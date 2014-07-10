@@ -1,6 +1,5 @@
 package gov.usgs.wqp.ogcproxy.services;
 
-import gov.usgs.wqp.ogcproxy.model.attributes.BaseAttributeType;
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;

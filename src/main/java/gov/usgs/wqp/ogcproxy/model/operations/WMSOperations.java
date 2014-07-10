@@ -10,12 +10,7 @@ import java.util.List;
  * WMSOperations
  * @author prusso
  *<br /><br />
- *	This enumeration was created at the beginning of the WMSProxy design but 
- *	once development got past its prototyping stage, it was deemed not needed
- *	for current operation.
- *<br /><br />
- *	It has been left in the WMSProxy codebase due to possible future necessity
- *	of declaring and filtering on WMS Operations.
+ *	This enumeration describes all of the standard WMS Operations
  */
 public enum WMSOperations {
 	/**
