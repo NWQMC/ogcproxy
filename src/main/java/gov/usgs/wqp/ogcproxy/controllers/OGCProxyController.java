@@ -21,8 +21,8 @@ import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
-public class WMSProxyController {
-	private static Logger log = SystemUtils.getLogger(WMSProxyController.class);
+public class OGCProxyController {
+	private static Logger log = SystemUtils.getLogger(OGCProxyController.class);
 	
 	/*
 	 * Beans		===========================================================

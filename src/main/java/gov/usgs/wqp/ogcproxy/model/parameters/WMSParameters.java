@@ -53,11 +53,6 @@ public enum WMSParameters {
 	UNKNOWN;
 
 	public static WMSParameters getTypeFromString(String string) {
-		 /**
-         * we need to lowercase the type so we can standardize on equality
-         */
-		string = string.toLowerCase();
-		
 		if (string.equals("service")) {
 			return service;
 		}
