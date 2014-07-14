@@ -1,6 +1,6 @@
-package gov.usgs.wqp.ogcproxy.model.operations;
+package gov.usgs.wqp.ogcproxy.model.ogc.operations;
 
-import gov.usgs.wqp.ogcproxy.model.parameters.WMSParameters;
+import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters;
 
 import java.util.ArrayList;
 import java.util.Arrays;

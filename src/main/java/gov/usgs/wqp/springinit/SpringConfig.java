@@ -81,15 +81,15 @@ public class SpringConfig extends WebMvcConfigurerAdapter {
 	}
 	
 	@Bean
-	public WQPDynamicLayerCachingService wmsLayerCachingService() {
+	public WQPDynamicLayerCachingService layerCachingService() {
 		/**
 		 * This is an unmanaged bean and must have the environment passed to it
 		 * when it is referenced as a bean.
 		 */
-		WQPDynamicLayerCachingService wmsLayerCachingService = WQPDynamicLayerCachingService.getInstance();
-		wmsLayerCachingService.setEnvironment(environment);
+		WQPDynamicLayerCachingService layerCachingService = WQPDynamicLayerCachingService.getInstance();
+		layerCachingService.setEnvironment(environment);
 		
-		return wmsLayerCachingService;
+		return layerCachingService;
 	}
 	
 	@Bean

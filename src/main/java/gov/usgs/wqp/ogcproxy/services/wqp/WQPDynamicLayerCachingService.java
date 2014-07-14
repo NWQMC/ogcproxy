@@ -3,8 +3,8 @@ package gov.usgs.wqp.ogcproxy.services.wqp;
 import gov.usgs.wqp.ogcproxy.exceptions.WMSProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.WMSProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
+import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
-import gov.usgs.wqp.ogcproxy.model.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
 

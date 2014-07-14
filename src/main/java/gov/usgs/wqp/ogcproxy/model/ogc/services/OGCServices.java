@@ -1,4 +1,4 @@
-package gov.usgs.wqp.ogcproxy.model.services;
+package gov.usgs.wqp.ogcproxy.model.ogc.services;
 
 /**
  * OGCServices
