@@ -315,7 +315,7 @@ public class ProxyService {
 		Map<String,String> wmsParams = new HashMap<String, String>();
 		Map<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
 		
-		ProxyUtil.separateParameters(requestParams, wmsParams, searchParams);
+		ProxyUtil.separateParameters(requestParams, wmsParams, searchParams);		
 		
 		if(searchParams.size() > 0) {
 			List<String> layerParams = new Vector<String>();
