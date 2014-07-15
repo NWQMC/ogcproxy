@@ -5,11 +5,12 @@ import gov.usgs.wqp.ogcproxy.exceptions.WMSProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
 import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
 import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeature;
+import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WFSParameters;
+import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters;
+import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
-import gov.usgs.wqp.ogcproxy.model.parameters.WMSParameters;
 import gov.usgs.wqp.ogcproxy.model.parser.wqx.SimplePointParser;
-import gov.usgs.wqp.ogcproxy.model.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.sources.DataInputType;
 import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil.ProxyServiceResult;
@@ -60,7 +61,7 @@ public class WQPLayerBuildingService {
 	 * ========================================================================
 	 */
 	@Autowired
-	private WQPDynamicLayerCachingService wmsLayerCachingService;
+	private WQPDynamicLayerCachingService layerCachingService;
 	/* ====================================================================== */
 		
 	/*
@@ -70,6 +71,7 @@ public class WQPLayerBuildingService {
 	/* ====================================================================== */
 	private static final String wmsLayerParameter = WMSParameters.getStringFromType(WMSParameters.layers);
 	private static final String wmsQueryLayerParameter = WMSParameters.getStringFromType(WMSParameters.query_layers);
+	private static final String wfsTypeNamesParameter = WFSParameters.getStringFromType(WFSParameters.typeNames);
 	
 	private static Environment environment;
 	private static boolean initialized = false;
@@ -400,7 +402,7 @@ public class WQPLayerBuildingService {
 		setEnvironment(env);
 	}
 	
-	public ProxyServiceResult getDynamicLayer(Map<String,String> wmsParams, SearchParameters<String, List<String>> searchParams, OGCServices originatingService) {
+	public ProxyServiceResult getDynamicLayer(Map<String,String> ogcParams, SearchParameters<String, List<String>> searchParams, List<String> layerParams, OGCServices originatingService, ProxyDataSourceParameter dataSource) {
 		if(!initialized) {
 			initialize();
 		}
@@ -409,21 +411,29 @@ public class WQPLayerBuildingService {
 		 * Next we need to see if this layer has already been requested 
 		 * and is available.
 		 * 
-		 * Good test requests are:
+		 * Good WMS test requests are:
 		 * 
-		 * http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A55;characteristicName:Hafnium&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
+		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;characteristicName:Hafnium&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
 		 * 
-		 * http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A55;characteristicName:Gasoline&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
+		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A53;characteristicName:Gasoline&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
 		 * 
-		 * http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A55;characteristicName:Uranium&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
+		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A55;characteristicName:Uranium&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
 		 * 
-		 * http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A55;characteristicName:Atrazine&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
+		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A55;characteristicName:Atrazine&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
 		 * 
-		 * http://172.16.81.145:8080/ogcproxy/wms?request=GetFeatureInfo&service=WMS&srs=EPSG:4326&styles=&transparent=true&version=1.1.1&format=image/png&bbox=-123.3984375,30.29701788337205,-49.5703125,50.62507306341435&height=616&width=1680&layers=wqp_sites&query_layers=wqp_sites&info_format=text/html&x=776&y=299&searchParams=huc:06*%7C07*%3BsampleMedia:Water%3BcharacteristicType:Nutrient
+		 * 		http://172.16.81.145:8080/ogcproxy/wms?request=GetFeatureInfo&service=WMS&srs=EPSG:4326&styles=&transparent=true&version=1.1.1&format=image/png&bbox=-123.3984375,30.29701788337205,-49.5703125,50.62507306341435&height=616&width=1680&layers=wqp_sites&query_layers=wqp_sites&info_format=text/html&x=776&y=299&searchParams=huc:06*%7C07*%3BsampleMedia:Water%3BcharacteristicType:Nutrient
+		 * 
+		 * Good WFS test requests are:
+		 * 
+		 * 		http://172.16.81.145:8080/ogcproxy/wfs?service=WFS&request=GetFeature&version=1.0.0&typeName=qw_portal_map:dynamicSites_1789281855&styles=&outputFormat=application/json
+		 * 
+		 * 		http://172.16.81.145:8080/ogcproxy/wfs?request=GetFeature&version=1.0.0&typeName=qw_portal_map:dynamicSites_1789281855&styles=&outputFormat=application/json
+		 * 
+		 * 		http://172.16.81.145:8080/ogcproxy/wfs?request=GetFeature&version=1.0.0&typeName=wqp_sites&searchParams=countrycode:US;statecode:US%3A51;huc:06*%7C07*%3BsampleMedia:Water%3BcharacteristicType:Nutrient&styles=&outputFormat=application/json
 		 */
 		DynamicLayerCache layerCache = null;
 		try {
-			layerCache = wmsLayerCachingService.getLayerCache(searchParams, originatingService);
+			layerCache = layerCachingService.getLayerCache(searchParams, originatingService);
 			
 			/**
 			 * We should be blocked above with the getLayerCache() call and should only
@@ -512,7 +522,7 @@ public class WQPLayerBuildingService {
 			
 			if(layerCache != null) {
 				layerCache.setCurrentStatus(DynamicLayerStatus.ERROR);
-				wmsLayerCachingService.removeLayerCache(layerCache.getSearchParameters().unsignedHashCode() + "");
+				layerCachingService.removeLayerCache(layerCache.getSearchParameters().unsignedHashCode() + "");
 			}
 			
 			log.error("WQPLayerBuildingService.getDynamicLayer() Error: Layer was not created for search parameters.");
@@ -521,33 +531,17 @@ public class WQPLayerBuildingService {
 		
 		/**
 		 * We finally got a layer name (and its been added to GeoServer, lets
-		 * add this layer to the layer parameter in the WMS request
+		 * add this layer to the layer parameter in the OGC request
 		 */
-		String currentLayers = wmsParams.get(wmsLayerParameter);
-		if((currentLayers == null) || (currentLayers.equals("") || (currentLayers.equals(ProxyDataSourceParameter.getStringFromType(ProxyDataSourceParameter.wqp_sites))))) {
-			currentLayers = geoserverWorkspace + ":" + layerCache.getLayerName();
-		} else {
-			currentLayers += "," + geoserverWorkspace + ":" + layerCache.getLayerName();
-		}
-		wmsParams.put(wmsLayerParameter, currentLayers);
-		
-		/**
-		 * Added functionality for other Request types.
-		 * 
-		 * If this request type is GetFeatureInfo we have an additional parameter
-		 * to modify.  GetFeatureInfo also includes a "query_layers" parameter
-		 * that needs to have the new layer name appended to it and/or the old
-		 * "wqp_sites" value replaced.
-		 */
-		if(wmsParams.get(wmsQueryLayerParameter) != null) {
-			String currentQueryLayers = wmsParams.get(wmsQueryLayerParameter);
-			if((currentQueryLayers == null) || (currentQueryLayers.equals("") || (currentQueryLayers.equals(ProxyDataSourceParameter.getStringFromType(ProxyDataSourceParameter.wqp_sites))))) {
-				currentQueryLayers = geoserverWorkspace + ":" + layerCache.getLayerName();
+		for(String layerParam : layerParams) {
+			String currentLayers = ogcParams.get(layerParam);
+			if((currentLayers == null) || (currentLayers.equals("")) || (currentLayers.equals(ProxyDataSourceParameter.getStringFromType(dataSource)))) {
+				currentLayers = geoserverWorkspace + ":" + layerCache.getLayerName();
 			} else {
-				currentQueryLayers += "," + geoserverWorkspace + ":" + layerCache.getLayerName();
+				currentLayers += "," + geoserverWorkspace + ":" + layerCache.getLayerName();
 			}
-			wmsParams.put(wmsQueryLayerParameter, currentQueryLayers);
-		}
+			ogcParams.put(layerParam, currentLayers);
+		}		
 		
 		return ProxyServiceResult.SUCCESS;
 	}
@@ -556,7 +550,7 @@ public class WQPLayerBuildingService {
 		ModelAndView mv = new ModelAndView("wqp_cache_status.jsp");
 		
 		mv.addObject("site", "WQP Layer Building Service");		
-		mv.addObject("cache", wmsLayerCachingService.getCacheStore().values());
+		mv.addObject("cache", layerCachingService.getCacheStore().values());
 		
 		return mv;
 	}
@@ -565,7 +559,7 @@ public class WQPLayerBuildingService {
 		ModelAndView mv = new ModelAndView("wqp_cache_cleared.jsp");
 		
 		mv.addObject("site", "WQP Layer Building Service");
-		mv.addObject("count", wmsLayerCachingService.clearCache());
+		mv.addObject("count", layerCachingService.clearCache());
 		
 		return mv;
 	}

@@ -1,7 +1,7 @@
 package gov.usgs.wqp.ogcproxy.model.cache;
 
+import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
-import gov.usgs.wqp.ogcproxy.model.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
 
 import java.util.Date;

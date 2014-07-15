@@ -1,4 +1,4 @@
-package gov.usgs.wqp.ogcproxy.model.parameters;
+package gov.usgs.wqp.ogcproxy.model.ogc.parameters;
 
 /**
  * WMSParameters

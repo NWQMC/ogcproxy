@@ -2,11 +2,11 @@ package gov.usgs.wqp.ogcproxy.services;
 
 import gov.usgs.wqp.ogcproxy.exceptions.WMSProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.WMSProxyExceptionID;
+import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WFSParameters;
+import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters;
+import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
-import gov.usgs.wqp.ogcproxy.model.parameters.WFSParameters;
-import gov.usgs.wqp.ogcproxy.model.parameters.WMSParameters;
-import gov.usgs.wqp.ogcproxy.model.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil.ProxyServiceResult;
@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
@@ -317,26 +318,38 @@ public class ProxyService {
 		ProxyUtil.separateParameters(requestParams, wmsParams, searchParams);
 		
 		if(searchParams.size() > 0) {
+			List<String> layerParams = new Vector<String>();
+			
 			/**
-			 * We have a create-layer request.  Lets see if the layers parameter 
+			 * We have a create-layer request.  Lets see if the layers and/or
+			 * queryParameter parameter 
 			 * is what we are expecting and decide what to do depending on its
 			 * value.
 			 */
 			String layerParam = wmsParams.get(WMSParameters.getStringFromType(WMSParameters.layers));
-			boolean layerFound = false;
 			ProxyDataSourceParameter layerValue = ProxyDataSourceParameter.UNKNOWN;
 			if((layerParam != null) && (!layerParam.equals(""))) {
 				layerValue = ProxyDataSourceParameter.getTypeFromString(layerParam);
 				
 				if(layerValue != ProxyDataSourceParameter.UNKNOWN) {
-					layerFound = true;
+					layerParams.add(WMSParameters.getStringFromType(WMSParameters.layers));
+				}
+			}
+			
+			String queryLayerParam = wmsParams.get(WMSParameters.getStringFromType(WMSParameters.query_layers));
+			ProxyDataSourceParameter queryLayerValue = ProxyDataSourceParameter.UNKNOWN;
+			if((queryLayerParam != null) && (!queryLayerParam.equals(""))) {
+				queryLayerValue = ProxyDataSourceParameter.getTypeFromString(layerParam);
+				
+				if(queryLayerValue != ProxyDataSourceParameter.UNKNOWN) {
+					layerParams.add(WMSParameters.getStringFromType(WMSParameters.query_layers));
 				}
 			}
 			
 			/**
 			 * Did we find a legitimate layer value or do we need to return an error?
 			 */
-			if((!layerFound) && (!layerPassthrough)) {
+			if((layerParams.size() == 0) && (!layerPassthrough)) {
 				finalResult.setResult(ProxyUtil.PROXY_LAYER_ERROR);
 				return;
 			}
@@ -349,7 +362,7 @@ public class ProxyService {
 			log.info("ProxyService.performWMSRequest() Info: Kicking off search parameter logic for layer [" + ProxyDataSourceParameter.getStringFromType(layerValue) + "]");
 			switch(layerValue) {
 				case wqp_sites: {
-					ProxyServiceResult result = wqpLayerBuildingService.getDynamicLayer(wmsParams, (SearchParameters<String, List<String>>) searchParams, OGCServices.WMS);
+					ProxyServiceResult result = wqpLayerBuildingService.getDynamicLayer(wmsParams, (SearchParameters<String, List<String>>) searchParams, layerParams, OGCServices.WMS, ProxyDataSourceParameter.wqp_sites);
 					
 					if(result != ProxyServiceResult.SUCCESS) {
 						finalResult.setResult(ProxyUtil.getErrorViewByFormat(wmsParams.get(WMSParameters.getStringFromType(WMSParameters.format))));
@@ -404,26 +417,36 @@ public class ProxyService {
 		ProxyUtil.separateParameters(requestParams, wfsParams, searchParams);
 		
 		if(searchParams.size() > 0) {
+			List<String> layerParams = new Vector<String>();
+			
 			/**
-			 * We have a create-layer request.  Lets see if the typeNames parameter 
-			 * is what we are expecting and decide what to do depending on its
-			 * value.
+			 * We have a create-layer request.  Lets see if the typeName and/or 
+			 * typeNames parameters are what we are expecting and decide what to
+			 * do depending on its value.
 			 */
 			String typeNamesParam = wfsParams.get(WFSParameters.getStringFromType(WFSParameters.typeNames));
-			boolean typeNamesFound = false;
 			ProxyDataSourceParameter typeNamesValue = ProxyDataSourceParameter.UNKNOWN;
 			if((typeNamesParam != null) && (!typeNamesParam.equals(""))) {
 				typeNamesValue = ProxyDataSourceParameter.getTypeFromString(typeNamesParam);
 				
 				if(typeNamesValue != ProxyDataSourceParameter.UNKNOWN) {
-					typeNamesFound = true;
+					layerParams.add(WFSParameters.getStringFromType(WFSParameters.typeNames));
+				}
+			}
+			
+			String typeNameParam = wfsParams.get(WFSParameters.getStringFromType(WFSParameters.typeName));
+			if((typeNameParam != null) && (!typeNameParam.equals(""))) {
+				typeNamesValue = ProxyDataSourceParameter.getTypeFromString(typeNameParam);
+				
+				if(typeNamesValue != ProxyDataSourceParameter.UNKNOWN) {
+					layerParams.add(WFSParameters.getStringFromType(WFSParameters.typeName));
 				}
 			}
 			
 			/**
 			 * Did we find a legitimate layer value or do we need to return an error?
 			 */
-			if((!typeNamesFound) && (!layerPassthrough)) {
+			if((layerParams.size() == 0) && (!layerPassthrough)) {
 				finalResult.setResult(ProxyUtil.PROXY_LAYER_ERROR);
 				return;
 			}
@@ -436,8 +459,7 @@ public class ProxyService {
 			log.info("ProxyService.performWFSRequest() Info: Kicking off search parameter logic for layer [" + ProxyDataSourceParameter.getStringFromType(typeNamesValue) + "]");
 			switch(typeNamesValue) {
 				case wqp_sites: {
-					ProxyServiceResult result = wqpLayerBuildingService.getDynamicLayer(wfsParams, (SearchParameters<String, List<String>>) searchParams, OGCServices.WFS);
-					
+					ProxyServiceResult result = wqpLayerBuildingService.getDynamicLayer(wfsParams, (SearchParameters<String, List<String>>) searchParams, layerParams, OGCServices.WFS, ProxyDataSourceParameter.wqp_sites);
 					if(result != ProxyServiceResult.SUCCESS) {
 						finalResult.setResult(ProxyUtil.getErrorViewByFormat(wfsParams.get(WMSParameters.getStringFromType(WMSParameters.format))));
 						return;

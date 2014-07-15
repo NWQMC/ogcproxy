@@ -213,13 +213,13 @@ public class ProxyUtil {
 		return ProxyViewResult.getViewForType(ProxyViewResult.ERROR_XML);
 	}
 	
-	public static boolean separateParameters(Map<String,String> requestParams, Map<String,String> wmsParams, Map<String, List<String>> searchParams) {
+	public static boolean separateParameters(Map<String,String> requestParams, Map<String,String> ogcParams, Map<String, List<String>> searchParams) {
 		if(requestParams == null) {
 			return false;
 		}
 		
-		if(wmsParams == null) {
-			wmsParams = new HashMap<String,String>();
+		if(ogcParams == null) {
+			ogcParams = new HashMap<String,String>();
 		}
 		
 		if(searchParams == null) {
@@ -244,12 +244,9 @@ public class ProxyUtil {
 	        	continue;
 	        }
 	        
-	        /**
-	         * lets lowercase the key so we can standardize on equality
-	         */
-	        wmsParams.put(key.toLowerCase(), pairs.getValue());
+	        ogcParams.put(key, pairs.getValue());
 	    }
-	    log.debug("ProxyUtil.separateParameters() WMS PARAMETER MAP:\n[" + wmsParams + "]");
+	    log.debug("ProxyUtil.separateParameters() OGC PARAMETER MAP:\n[" + ogcParams + "]");
 		
 		if(containsSearchQuery) {
 			String searchParamString = requestParams.get(ProxyUtil.searchParamKey);
