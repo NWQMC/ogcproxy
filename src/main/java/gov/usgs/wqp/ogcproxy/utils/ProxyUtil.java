@@ -1,5 +1,6 @@
 package gov.usgs.wqp.ogcproxy.utils;
 
+import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.parameters.WQPParameters;
 
@@ -33,6 +34,8 @@ import org.apache.log4j.Logger;
  */
 public class ProxyUtil {
 	private static Logger log = SystemUtils.getLogger(ProxyUtil.class);
+	
+	public static final String OGC_SERVICE_PARAMETER = "service";
 	
 	public static final String searchParamKey = WQPParameters.getStringFromType(WQPParameters.searchParams);
 	public static final String testParamKey = "test-wms";
@@ -213,6 +216,17 @@ public class ProxyUtil {
 		return ProxyViewResult.getViewForType(ProxyViewResult.ERROR_XML);
 	}
 	
+	/**
+	 * separateParameters()
+	 * <br /><br />
+	 * This method separates all dynamic search parameters from any OGC specific
+	 * parameters.  Search parameters are used for creating dynamic layers.
+	 * 
+	 * @param requestParams
+	 * @param ogcParams
+	 * @param searchParams
+	 * @return
+	 */
 	public static boolean separateParameters(Map<String,String> requestParams, Map<String,String> ogcParams, Map<String, List<String>> searchParams) {
 		if(requestParams == null) {
 			return false;
@@ -356,5 +370,34 @@ public class ProxyUtil {
     	newContent = newContent.replaceAll(serverPort, proxyPort);
     	newContent = newContent.replaceAll(serverContext, proxyContext);
     	return newContent;
+    }
+    
+    /**
+     * getFinalRequestedService()
+     * <br /><br />
+     * It's possible for a base request (by path) to go to one OGC service but actually
+     * request another OGC service.  This is accomplished by filling in the "service" 
+     * parameter with a service different from the one on the path.
+     * <br /><br />
+     * This method will return the final service requested.  If an unknown service
+     * is requested, this method will return the base request service.
+     * @param ogcParams
+     * @param calledService
+     * @return
+     */
+    public static OGCServices getFinalRequestedService(Map<String,String> requestParams, OGCServices calledService) {
+    	String serviceValue = requestParams.get(OGC_SERVICE_PARAMETER);
+    	
+    	if((serviceValue == null) || (serviceValue.equals(""))) {
+    		return calledService;
+    	}
+    	
+    	OGCServices requestedService = OGCServices.getTypeFromString(serviceValue);
+    	
+    	if((requestedService == calledService) || (requestedService == OGCServices.UNKNOWN)) {
+    		return calledService;
+    	}
+    	
+    	return requestedService;
     }
 }

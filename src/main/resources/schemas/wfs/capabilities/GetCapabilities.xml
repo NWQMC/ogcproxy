@@ -1,0 +1,25 @@
+<Layer queryable="1">
+	<Name>wqp_sites</Name>
+	<Title>wqp_sites</Title>
+	<Abstract />
+	<KeywordList>
+		<Keyword>features</Keyword>
+		<Keyword>wqp_sites</Keyword>
+	</KeywordList>
+	<CRS>EPSG:4326</CRS>
+	<EX_GeographicBoundingBox>
+		<westBoundLongitude>-179.144806</westBoundLongitude>
+		<eastBoundLongitude>179.76416</eastBoundLongitude>
+		<southBoundLatitude>18.913826</southBoundLatitude>
+		<northBoundLatitude>71.332649</northBoundLatitude>
+	</EX_GeographicBoundingBox>
+	<BoundingBox CRS="CRS:84" minx="-179.144806" miny="18.913826"
+		maxx="179.76416" maxy="71.332649" />
+	<BoundingBox CRS="EPSG:4326" minx="18.913826" miny="-179.144806"
+		maxx="71.332649" maxy="179.76416" />
+	<Style>
+		<Name>point</Name>
+		<Title>Default Point</Title>
+		<Abstract>A sample style that draws a point</Abstract>
+	</Style>
+</Layer>

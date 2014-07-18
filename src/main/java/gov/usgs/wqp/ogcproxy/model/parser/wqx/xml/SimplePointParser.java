@@ -1,7 +1,7 @@
-package gov.usgs.wqp.ogcproxy.model.parser.wqx;
+package gov.usgs.wqp.ogcproxy.model.parser.wqx.xml;
 
 import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
-import gov.usgs.wqp.ogcproxy.model.parser.wqx.handler.SimplePointProviderHandler;
+import gov.usgs.wqp.ogcproxy.model.parser.wqx.xml.handler.SimplePointProviderHandler;
 
 import java.io.IOException;
 import java.util.ArrayList;

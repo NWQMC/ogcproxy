@@ -11,6 +11,8 @@ import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
 import gov.usgs.wqp.ogcproxy.model.attributes.BaseAttributeType;
 import gov.usgs.wqp.ogcproxy.model.attributes.FeatureAttributeType;
 import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeature;
+import gov.usgs.wqp.ogcproxy.model.parser.wqx.xml.handler.SimplePointLocationHandler;
+import gov.usgs.wqp.ogcproxy.model.parser.wqx.xml.handler.SimplePointProviderHandler;
 import gov.usgs.wqp.ogcproxy.model.providers.SourceProvider;
 
 import java.util.ArrayList;

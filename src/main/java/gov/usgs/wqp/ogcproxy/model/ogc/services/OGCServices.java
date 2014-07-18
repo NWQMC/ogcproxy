@@ -11,11 +11,11 @@ public enum OGCServices {
 	WMS, WFS, UNKNOWN;
 
 	public static OGCServices getTypeFromString(String string) {
-		if (string.equals("WMS")) {
+		if (string.toUpperCase().equals("WMS")) {
 			return WMS;
 		}
 		
-		if (string.equals("WFS")) {
+		if (string.toUpperCase().equals("WFS")) {
 			return WFS;
 		}
 

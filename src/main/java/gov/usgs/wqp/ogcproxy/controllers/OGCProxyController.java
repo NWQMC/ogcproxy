@@ -1,7 +1,9 @@
 package gov.usgs.wqp.ogcproxy.controllers;
 
+import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.services.ProxyService;
 import gov.usgs.wqp.ogcproxy.services.RESTService;
+import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
 
 import java.util.Map;
@@ -57,16 +59,12 @@ public class OGCProxyController {
 	
 	@RequestMapping(value="**/wms", method=RequestMethod.GET)
     public DeferredResult<String> wmsProxy(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
-		DeferredResult<String> finalResult = new DeferredResult<String>();
-		proxyService.performWMSRequest(request, response, requestParams, finalResult);
-		return finalResult;
+		return performOGCRequest(request, response, requestParams, OGCServices.WMS);
 	}
 	
 	@RequestMapping(value="**/wfs", method=RequestMethod.GET)
     public DeferredResult<String> wfsProxy(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
-		DeferredResult<String> finalResult = new DeferredResult<String>();
-		proxyService.performWFSRequest(request, response, requestParams, finalResult);
-		return finalResult;
+		return performOGCRequest(request, response, requestParams, OGCServices.WFS);
 	}
 	
 	@RequestMapping(value="/rest/cachestatus/{site}", method=RequestMethod.GET)
@@ -86,5 +84,38 @@ public class OGCProxyController {
 		
 		return finalResult;
 	}
+	/* ====================================================================== */
+	
+	/*
+	 * OGC Request Actions ====================================================
+	 * ========================================================================
+	 */
+	private DeferredResult<String> performOGCRequest(HttpServletRequest request, HttpServletResponse response, Map<String,String> requestParams, OGCServices calledService) {
+		DeferredResult<String> finalResult = new DeferredResult<String>();
+		
+		OGCServices requestedService = ProxyUtil.getFinalRequestedService(requestParams, calledService);
+		switch(requestedService) {
+			case WMS: {
+				log.info("OGCProxyController.performOGCRequest() INFO - Performing WMS request.");
+				proxyService.performWMSRequest(request, response, requestParams, finalResult);
+				break;
+			}
+			
+			case WFS: {
+				log.info("OGCProxyController.performOGCRequest() INFO - Performing WFS request.");
+				proxyService.performWFSRequest(request, response, requestParams, finalResult);
+				break;
+			}
+			
+			default: {
+				log.warn("OGCProxyController.performOGCRequest() WARNING - Unknown OGC Service Requested.");
+				finalResult.setResult("Unknown OGC Service Requested");
+				break;
+			}
+		}
+		
+		return finalResult;
+	}
+
 	/* ====================================================================== */
 }
