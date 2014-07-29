@@ -1,16 +1,16 @@
 package gov.usgs.wqp.ogcproxy.exceptions;
 
-public class WMSProxyException extends Exception {
+public class OGCProxyException extends Exception {
 	private static final long serialVersionUID = 150502219018410239L;
 	
-	private final WMSProxyExceptionID exceptionid;		// uniquely generated id for this exception
+	private final OGCProxyExceptionID exceptionid;		// uniquely generated id for this exception
 	private final String classname; 					// the name of the class that threw the exception
 	private final String method; 						// the name of the method that threw the exception
 	private final String message; 						// a detailed message 
-	private WMSProxyException previous = null; 			// the exception which was caught
+	private OGCProxyException previous = null; 			// the exception which was caught
 	private String delimeter = "\n"; 					// line separator
 	
-	public WMSProxyException(final WMSProxyExceptionID id, final String classname, final String method, final String message) {
+	public OGCProxyException(final OGCProxyExceptionID id, final String classname, final String method, final String message) {
 		this.exceptionid	= id;
 		this.classname  	= classname;
 		this.method    		= method;
@@ -18,7 +18,7 @@ public class WMSProxyException extends Exception {
 		this.previous  		= null;
 	}
 
-	public WMSProxyException(final WMSProxyExceptionID id, final String classname, final String method, final String message, final WMSProxyException previous) {
+	public OGCProxyException(final OGCProxyExceptionID id, final String classname, final String method, final String message, final OGCProxyException previous) {
 		this.exceptionid	= id;
 		this.classname  	= classname;
 		this.method    		= method;
@@ -33,7 +33,7 @@ public class WMSProxyException extends Exception {
 	public String traceBack(final String sep) {
 		this.delimeter = sep;
 		int level = 0;
-		WMSProxyException e = this;
+		OGCProxyException e = this;
 		final StringBuffer text = new StringBuffer(line("WMSProxyException Trace: Calling sequence (top to bottom)"));
 		while (e != null) {
 			level++;
@@ -61,7 +61,7 @@ public class WMSProxyException extends Exception {
 		return this.traceBack();
 	}
 
-	public WMSProxyExceptionID getExceptionid() {
+	public OGCProxyExceptionID getExceptionid() {
 		return this.exceptionid;
 	}
 
@@ -73,7 +73,7 @@ public class WMSProxyException extends Exception {
 		return this.method;
 	}
 
-	public WMSProxyException getPrevious() {
+	public OGCProxyException getPrevious() {
 		return this.previous;
 	}	
 

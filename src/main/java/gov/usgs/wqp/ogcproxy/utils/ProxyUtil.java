@@ -37,6 +37,8 @@ public class ProxyUtil {
 	
 	public static final String OGC_SERVICE_PARAMETER = "service";
 	
+	public static final String OGC_GET_CAPABILITIES_REQUEST_VALUE = "GetCapabilities";
+	
 	public static final String searchParamKey = WQPParameters.getStringFromType(WQPParameters.searchParams);
 	public static final String testParamKey = "test-wms";
 	

@@ -5,8 +5,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
-import gov.usgs.wqp.ogcproxy.model.parser.wqx.xml.SimplePointParser;
-import gov.usgs.wqp.ogcproxy.model.parser.wqx.xml.handler.SimplePointProviderHandler;
+import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.SimplePointParser;
+import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.handler.SimplePointProviderHandler;
 
 import java.util.List;
 

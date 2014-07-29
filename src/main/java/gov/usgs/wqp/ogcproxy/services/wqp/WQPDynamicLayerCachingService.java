@@ -1,7 +1,7 @@
 package gov.usgs.wqp.ogcproxy.services.wqp;
 
-import gov.usgs.wqp.ogcproxy.exceptions.WMSProxyException;
-import gov.usgs.wqp.ogcproxy.exceptions.WMSProxyExceptionID;
+import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
+import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
@@ -122,9 +122,9 @@ public class WQPDynamicLayerCachingService {
 	 * equal:<br />
 	 * 			DynamicLayerStatus.AVAILABLE
 	 * <br /><br />
-	 * @throws WMSProxyException 
+	 * @throws OGCProxyException 
 	 */
-	public DynamicLayerCache getLayerCache(SearchParameters<String, List<String>> searchParams, OGCServices originatingService) throws WMSProxyException {
+	public DynamicLayerCache getLayerCache(SearchParameters<String, List<String>> searchParams, OGCServices originatingService) throws OGCProxyException {
 		if(!initialized) {
 			initialize();
 		}
@@ -167,8 +167,8 @@ public class WQPDynamicLayerCachingService {
 					  "].  Throwing Exception...";
 			log.error(msg);
 			
-			WMSProxyExceptionID id = WMSProxyExceptionID.WMS_LAYER_CREATION_FAILED;					
-			throw new WMSProxyException(id, "WQPDynamicLayerCachingService", "getLayerCache()", msg);
+			OGCProxyExceptionID id = OGCProxyExceptionID.WMS_LAYER_CREATION_FAILED;					
+			throw new OGCProxyException(id, "WQPDynamicLayerCachingService", "getLayerCache()", msg);
 		}
 		
 		/**
@@ -201,8 +201,8 @@ public class WQPDynamicLayerCachingService {
 							  "].  Throwing Exception...";
 					log.error(msg);
 					
-					WMSProxyExceptionID id = WMSProxyExceptionID.WMS_LAYER_CREATION_FAILED;					
-	                throw new WMSProxyException(id, "WQPDynamicLayerCachingService", "getLayerCache()", msg);
+					OGCProxyExceptionID id = OGCProxyExceptionID.WMS_LAYER_CREATION_FAILED;					
+	                throw new OGCProxyException(id, "WQPDynamicLayerCachingService", "getLayerCache()", msg);
 				}
 			}
 		}
@@ -259,7 +259,7 @@ public class WQPDynamicLayerCachingService {
 				 * finished before removing it.
 				 */
 				threadSafeCache = getLayerCache(cache.getSearchParameters(), OGCServices.UNKNOWN);
-			} catch (WMSProxyException e) {
+			} catch (OGCProxyException e) {
 				log.error(e.traceBack());
 			}
 			
