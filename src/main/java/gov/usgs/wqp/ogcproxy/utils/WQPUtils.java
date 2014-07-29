@@ -1,7 +1,7 @@
 package gov.usgs.wqp.ogcproxy.utils;
 
-import gov.usgs.wqp.ogcproxy.exceptions.WMSProxyException;
-import gov.usgs.wqp.ogcproxy.exceptions.WMSProxyExceptionID;
+import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
+import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 
 import java.io.BufferedInputStream;
@@ -113,7 +113,7 @@ public class WQPUtils {
 		}
 	}
 	
-	public static HttpUriRequest generateSimpleStationRequest(SearchParameters<String, List<String>> searchParams, String simpleStationURL) throws WMSProxyException {
+	public static HttpUriRequest generateSimpleStationRequest(SearchParameters<String, List<String>> searchParams, String simpleStationURL) throws OGCProxyException {
 		HttpUriRequest request = null;
 		        
         StringBuilder requestURIBuffer = new StringBuilder(simpleStationURL + "?");        
@@ -167,22 +167,22 @@ public class WQPUtils {
   				  e.getMessage() + "].";
 			log.error(msg);
 			
-			WMSProxyExceptionID id = WMSProxyExceptionID.URL_PARSING_EXCEPTION;					
-			throw new WMSProxyException(id, "WQPUtils", "generateSimpleStationRequest()", msg);
+			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;					
+			throw new OGCProxyException(id, "WQPUtils", "generateSimpleStationRequest()", msg);
       } catch (URISyntaxException e) {
       	String msg = "WQPUtils.generateSimpleStationRequest() Exception : Syntax error parsing server URL [" +
 				  e.getMessage() + "].";
 			log.error(msg);
 			
-			WMSProxyExceptionID id = WMSProxyExceptionID.URL_PARSING_EXCEPTION;					
-			throw new WMSProxyException(id, "WQPUtils", "generateSimpleStationRequest()", msg);
+			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;					
+			throw new OGCProxyException(id, "WQPUtils", "generateSimpleStationRequest()", msg);
 		}
         request = new HttpGet(serverRequestURI);
 		
 		return request;
 	}
 	
-	public static String retrieveSearchParamData(HttpClient httpClient, SearchParameters<String, List<String>> searchParams, String simpleStationURL, String workingDirectory, String layerName) throws WMSProxyException {
+	public static String retrieveSearchParamData(HttpClient httpClient, SearchParameters<String, List<String>> searchParams, String simpleStationURL, String workingDirectory, String layerName) throws OGCProxyException {
 		HttpUriRequest serverRequest = WQPUtils.generateSimpleStationRequest(searchParams, simpleStationURL);
 		
 		HttpResponse methodResponse;
@@ -195,15 +195,15 @@ public class WQPUtils {
             			 e.getMessage() + "]";
 			log.error(msg);
 			
-			WMSProxyExceptionID id = WMSProxyExceptionID.CLIENT_PROTOCOL_ERROR;					
-			throw new WMSProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
+			OGCProxyExceptionID id = OGCProxyExceptionID.CLIENT_PROTOCOL_ERROR;					
+			throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
         } catch (IOException e) {
         	String msg = "WQPUtils.retrieveSearchParamData() Exception : I/O error on server request [" +
             			 e.getMessage() + "]";
 			log.error(msg);
 			
-			WMSProxyExceptionID id = WMSProxyExceptionID.SERVER_REQUEST_IO_ERROR;					
-			throw new WMSProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
+			OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_REQUEST_IO_ERROR;					
+			throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
         }
         
         StatusLine serverStatusLine = methodResponse.getStatusLine();
@@ -215,8 +215,8 @@ public class WQPUtils {
         			statusCode + "].\nResponseHeaders: [" + Arrays.toString(methodResponse.getAllHeaders());
 			log.error(msg);
 			
-			WMSProxyExceptionID id = WMSProxyExceptionID.INVALID_SERVER_RESPONSE_CODE;					
-			throw new WMSProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
+			OGCProxyExceptionID id = OGCProxyExceptionID.INVALID_SERVER_RESPONSE_CODE;					
+			throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
         }
         
         HttpEntity methodEntity = methodResponse.getEntity();
@@ -234,8 +234,8 @@ public class WQPUtils {
        			 e.getMessage() + "]";
 			log.error(msg);
 			
-			WMSProxyExceptionID id = WMSProxyExceptionID.SERVER_REQUEST_IO_ERROR;					
-			throw new WMSProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
+			OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_REQUEST_IO_ERROR;					
+			throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
 		} finally {
 			try {
                 // This is important to guarantee connection release back into

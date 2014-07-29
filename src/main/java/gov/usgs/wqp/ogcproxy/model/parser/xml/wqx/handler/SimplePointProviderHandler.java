@@ -1,4 +1,4 @@
-package gov.usgs.wqp.ogcproxy.model.parser.wqx.xml.handler;
+package gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.handler;
 
 import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
 import gov.usgs.wqp.ogcproxy.model.providers.SourceProvider;

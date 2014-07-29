@@ -1,7 +1,7 @@
 package gov.usgs.wqp.ogcproxy.utils;
 
-import gov.usgs.wqp.ogcproxy.exceptions.WMSProxyException;
-import gov.usgs.wqp.ogcproxy.exceptions.WMSProxyExceptionID;
+import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
+import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -136,7 +136,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 		return true;
 	}
 	
-	public static String uncompressGzipAsString(byte[] content) throws WMSProxyException {
+	public static String uncompressGzipAsString(byte[] content) throws OGCProxyException {
     	ByteArrayInputStream bytein = new ByteArrayInputStream(content);
     	GZIPInputStream gzin;
 		try {
@@ -146,8 +146,8 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
         			 e.getMessage() + "]";
 	   			log.error(msg);
 	   			
-	   			WMSProxyExceptionID id = WMSProxyExceptionID.GZIP_ERROR;					
-	   			throw new WMSProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
+	   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_ERROR;					
+	   			throw new OGCProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
 		}
     	ByteArrayOutputStream byteout = new java.io.ByteArrayOutputStream();
     	
@@ -161,8 +161,8 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
             			 e.getMessage() + "]";
 		   			log.error(msg);
 		   			
-		   			WMSProxyExceptionID id = WMSProxyExceptionID.GZIP_ERROR;					
-		   			throw new WMSProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
+		   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_ERROR;					
+		   			throw new OGCProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
 			}
     	    if (res > 0) {
     	        byteout.write(buf, 0, res);
@@ -177,14 +177,14 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
         			 e.getMessage() + "]";
    			log.error(msg);
    			
-   			WMSProxyExceptionID id = WMSProxyExceptionID.GZIP_NOT_UTF8;					
-   			throw new WMSProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
+   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_NOT_UTF8;					
+   			throw new OGCProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
 		}
     	
     	return stringContent;
     }
     
-    public static byte[] compressStringToGzip(String content) throws WMSProxyException {
+    public static byte[] compressStringToGzip(String content) throws OGCProxyException {
     	if((content == null) || (content.length() == 0)) {
     		content = "";
     	}
@@ -198,8 +198,8 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
        			 e.getMessage() + "]";
   			log.error(msg);
   			
-  			WMSProxyExceptionID id = WMSProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;					
-  			throw new WMSProxyException(id, "ProxyUtil", "compressStringToGzip()", msg);
+  			OGCProxyExceptionID id = OGCProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;					
+  			throw new OGCProxyException(id, "ProxyUtil", "compressStringToGzip()", msg);
 		}
         try {
 			gzip.write(content.getBytes());
@@ -208,8 +208,8 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 	       			 e.getMessage() + "]";
 	  			log.error(msg);
 	  			
-	  			WMSProxyExceptionID id = WMSProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;					
-	  			throw new WMSProxyException(id, "SystemUtils", "compressStringToGzip()", msg);
+	  			OGCProxyExceptionID id = OGCProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;					
+	  			throw new OGCProxyException(id, "SystemUtils", "compressStringToGzip()", msg);
 		}
         try {
 			gzip.close();

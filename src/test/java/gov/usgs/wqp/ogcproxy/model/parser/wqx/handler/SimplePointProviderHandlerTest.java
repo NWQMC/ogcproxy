@@ -6,8 +6,8 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
-import gov.usgs.wqp.ogcproxy.model.parser.wqx.xml.handler.SimplePointLocationHandler;
-import gov.usgs.wqp.ogcproxy.model.parser.wqx.xml.handler.SimplePointProviderHandler;
+import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.handler.SimplePointLocationHandler;
+import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.handler.SimplePointProviderHandler;
 import gov.usgs.wqp.ogcproxy.model.providers.SourceProvider;
 
 import java.util.ArrayList;
