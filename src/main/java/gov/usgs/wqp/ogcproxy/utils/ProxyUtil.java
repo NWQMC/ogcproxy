@@ -420,4 +420,31 @@ public class ProxyUtil {
     	
     	return requestedService;
     }
+    
+    /**
+     * getServletParameterCaseSensitiveCharacterString()
+     * <br /><br />
+     * The problem we have with our parameters is that the OGC spec specifically
+     * mandates that all parameters are CASE-INSENSITIVE.  But since we get our
+     * parameters in a Map where the parameter is a key to the value in the map,
+     * case sensitivity is indeed important when trying to access the parameter map.
+     * <br /><br />
+     * This method returns the servlet case-sensitive version of a parameter that
+     * is inherently case-insensitive.
+     * @param ourParam
+     * @param requestParams
+     * @return
+     */
+    public static String getServletParameterCaseSensitiveCharacterString(String ourParam, Map<String,String> requestParams) {
+    	String result = ourParam;
+    	
+    	Set<String> keys = requestParams.keySet();
+    	for (String key : keys) {
+    		if(key.toLowerCase().equals(ourParam.toLowerCase())) {
+	        	return key;
+	        }
+    	}
+    	
+    	return result;
+    }
 }

@@ -416,29 +416,32 @@ public class ProxyService {
 		 * Lets see if the layers and/or queryParameter parameter is what 
 		 * we are expecting and decide what to do depending on its value.
 		 */
+		/**
+		 * We need to capture the pure servlet parameter key for our searchParams parameter.
+		 * 
+		 * Since this can be case INSENSITIVE but we use its value as a key in a map, we need
+		 * to know what the exact character sequence is going forward.
+		 */
+		String servletLayerParamName = ProxyUtil.getServletParameterCaseSensitiveCharacterString(WMSParameters.getStringFromType(WMSParameters.layers), requestParams);
 		List<String> layerParams = new Vector<String>();
-		String layerParam = wmsParams.get(WMSParameters
-				.getStringFromType(WMSParameters.layers));
+		String layerParam = wmsParams.get(servletLayerParamName);
 		if ((layerParam != null) && (!layerParam.equals(""))) {
-			dataSource = ProxyDataSourceParameter
-					.getTypeFromString(layerParam);
+			dataSource = ProxyDataSourceParameter.getTypeFromString(layerParam);
 
 			if (dataSource != ProxyDataSourceParameter.UNKNOWN) {
-				layerParams.add(WMSParameters
-						.getStringFromType(WMSParameters.layers));
+				layerParams.add(servletLayerParamName);
 			}
 		}
 
-		String queryLayerParam = wmsParams.get(WMSParameters
-				.getStringFromType(WMSParameters.query_layers));
+		String servletQueryLayerParamName = ProxyUtil.getServletParameterCaseSensitiveCharacterString(WMSParameters.getStringFromType(WMSParameters.query_layers), requestParams);
+		String queryLayerParam = wmsParams.get(servletQueryLayerParamName);
 		ProxyDataSourceParameter queryLayerValue = ProxyDataSourceParameter.UNKNOWN;
 		if ((queryLayerParam != null) && (!queryLayerParam.equals(""))) {
 			queryLayerValue = ProxyDataSourceParameter
 					.getTypeFromString(layerParam);
 
 			if (queryLayerValue != ProxyDataSourceParameter.UNKNOWN) {
-				layerParams.add(WMSParameters
-						.getStringFromType(WMSParameters.query_layers));
+				layerParams.add(servletQueryLayerParamName);
 			}
 		}
 
