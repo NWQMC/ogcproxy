@@ -251,7 +251,16 @@ public class ProxyUtil {
 	        
 	        String key = pairs.getKey();
 	        
-	        if(key.equals(ProxyUtil.searchParamKey)) {
+	        /**
+	         * OGC Spec for WFS and WMS states clearly that parameters shall NOT be
+	         * case sensitive.  We ran into some case sensitivity issues in GeoServer
+	         * so we made the conscious decision to make all parameter mappings be
+	         * case sensitive.  Since the "searchParams" key is basically a "vendor parameter"
+	         * we can do whatever we need to make this work.  OpenLayers, by default,
+	         * upper cases all of its parameters including this specific parameter.  We
+	         * will make the "searchParams" case insensitive
+	         */
+	        if(key.toLowerCase().equals(ProxyUtil.searchParamKey.toLowerCase())) {
 	        	containsSearchQuery = true;
 	        	continue;
 	        }
