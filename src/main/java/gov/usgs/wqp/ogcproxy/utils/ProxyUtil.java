@@ -244,6 +244,14 @@ public class ProxyUtil {
 		
 		log.debug("ProxyUtil.separateParameters() REQUEST PARAMS:\n" + requestParams);
 		
+		/**
+		 * We need to capture the pure servlet parameter key for our searchParams parameter.
+		 * 
+		 * Since this can be case INSENSITIVE but we use its value as a key in a map, we need
+		 * to know what the exact character sequence is going forward.
+		 */
+		String servletSearchParamName = ProxyUtil.searchParamKey;
+		
 		boolean containsSearchQuery = false;
 		Iterator<Entry<String, String>> itr = requestParams.entrySet().iterator();
 	    while (itr.hasNext()) {
@@ -262,6 +270,7 @@ public class ProxyUtil {
 	         */
 	        if(key.toLowerCase().equals(ProxyUtil.searchParamKey.toLowerCase())) {
 	        	containsSearchQuery = true;
+	        	servletSearchParamName = key;
 	        	continue;
 	        }
 	        
@@ -273,8 +282,8 @@ public class ProxyUtil {
 	    }
 	    log.debug("ProxyUtil.separateParameters() OGC PARAMETER MAP:\n[" + ogcParams + "]");
 		
-		if(containsSearchQuery) {
-			String searchParamString = requestParams.get(ProxyUtil.searchParamKey);
+		if(containsSearchQuery) {			
+			String searchParamString = requestParams.get(servletSearchParamName);
 			
 			/**
 			 * This is a "create layer" request.  We need to first see if it exists
