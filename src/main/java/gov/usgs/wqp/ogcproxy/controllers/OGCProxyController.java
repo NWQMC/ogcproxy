@@ -57,7 +57,7 @@ public class OGCProxyController {
 		return finalResult;
     }
 	
-	@RequestMapping(value="**/wms", method=RequestMethod.GET)
+	@RequestMapping(value="**/wms", method={RequestMethod.GET, RequestMethod.POST})
     public DeferredResult<String> wmsProxy(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
 		return performOGCRequest(request, response, requestParams, OGCServices.WMS);
 	}
@@ -66,11 +66,6 @@ public class OGCProxyController {
     public DeferredResult<String> wfsProxy(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
 		return performOGCRequest(request, response, requestParams, OGCServices.WFS);
 	}
-	
-	//@RequestMapping(value="**/wfs", method=RequestMethod.POST)
-    //public DeferredResult<String> wfsProxyPost(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
-	//	return performOGCRequest(request, response, requestParams, OGCServices.WFS);
-	//}
 	
 	@RequestMapping(value="/rest/cachestatus/{site}", method=RequestMethod.GET)
     public DeferredResult<ModelAndView> restCacheStatus(@PathVariable String site) {
