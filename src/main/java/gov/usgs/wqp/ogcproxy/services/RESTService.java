@@ -105,9 +105,9 @@ public class RESTService {
 		 * We can now proceed with the request.  Depending on the value of
 		 * the siteValue we will call the correct service.
 		 */
-		log.info("RESTService.checkCacheStatus() Info: Checking cache status for site [" + ProxyDataSourceParameter.getStringFromType(siteValue) + "]");
+		log.info("RESTService.checkCacheStatus() Info: Checking cache status for site [" + siteValue + "]");
 		switch(siteValue) {
-			case wqp_sites: {
+			case WQP_SITES: {
 				finalResult.setResult(wqpLayerBuildingService.getCacheStatus());				
 				break;
 			}
@@ -149,9 +149,9 @@ public class RESTService {
 		 * We can now proceed with the request.  Depending on the value of
 		 * the siteValue we will call the correct service.
 		 */
-		log.info("RESTService.clearCacheBySite() Info: Clearing cache for site [" + ProxyDataSourceParameter.getStringFromType(siteValue) + "]");
+		log.info("RESTService.clearCacheBySite() Info: Clearing cache for site [" + siteValue + "]");
 		switch(siteValue) {
-			case wqp_sites: {
+			case WQP_SITES: {
 				finalResult.setResult(wqpLayerBuildingService.clearCache());				
 				break;
 			}

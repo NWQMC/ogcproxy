@@ -11,6 +11,8 @@ import java.util.List;
  * @author prusso
  *<br /><br />
  *	This enumeration describes all of the standard WFS Operations
+ *<br/>
+ *	TODO DEAD CODE - This class is not referenced
  */
 public enum WFSOperations {
 	/**
@@ -30,114 +32,6 @@ public enum WFSOperations {
 	ListStoredQueries,			// This is for v2.0.0 ONLY
 	DescribeStoredQueries,		// This is for v2.0.0 ONLY
 	UNKNOWN;
-	
-	public static WFSOperations getTypeFromString(String string) {
-		if (string.equals("GetCapabilities")) {
-			return GetCapabilities;
-		}
-		
-		if (string.equals("DescribeFeatureType")) {
-			return DescribeFeatureType;
-		}
-		
-		if (string.equals("GetFeature")) {
-			return GetFeature;
-		}
-		
-		if (string.equals("LockFeature")) {
-			return LockFeature;
-		}
-		
-		if (string.equals("Transaction")) {
-			return Transaction;
-		}
-		
-		if (string.equals("GetGMLObject")) {
-			return GetGMLObject;
-		}
-		
-		if (string.equals("GetPropertyValue")) {
-			return GetPropertyValue;
-		}
-		
-		if (string.equals("GetFeatureWithLock")) {
-			return GetFeatureWithLock;
-		}
-		
-		if (string.equals("CreateStoredQuery")) {
-			return CreateStoredQuery;
-		}
-		
-		if (string.equals("DropStoredQuery")) {
-			return DropStoredQuery;
-		}
-		
-		if (string.equals("ListStoredQueries")) {
-			return ListStoredQueries;
-		}
-		
-		if (string.equals("DescribeStoredQueries")) {
-			return DescribeStoredQueries;
-		}
-
-		return UNKNOWN;
-	}
-
-	public static String getStringFromType(WFSOperations type) {
-		switch (type) {
-			case GetCapabilities: {
-				return "GetCapabilities";
-			}
-
-			case DescribeFeatureType: {
-				return "DescribeFeatureType";
-			}
-
-			case GetFeature: {
-				return "GetFeature";
-			}
-
-			case LockFeature: {
-				return "LockFeature";
-			}
-
-			case Transaction: {
-				return "Transaction";
-			}
-
-			case GetGMLObject: {
-				return "GetGMLObject";
-			}
-
-			case GetPropertyValue: {
-				return "GetPropertyValue";
-			}
-
-			case GetFeatureWithLock: {
-				return "GetFeatureWithLock";
-			}
-
-			case CreateStoredQuery: {
-				return "CreateStoredQuery";
-			}
-
-			case DropStoredQuery: {
-				return "DropStoredQuery";
-			}
-
-			case ListStoredQueries: {
-				return "ListStoredQueries";
-			}
-
-			case DescribeStoredQueries: {
-				return "DescribeStoredQueries";
-			}
-			
-			default: {
-				return "UNKNOWN";
-			}
-		}
-	}
 	
 	public static List<WFSParameters> getParameters(WFSOperations type) {
 		

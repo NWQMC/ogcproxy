@@ -5,8 +5,6 @@ import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
 import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
 import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeature;
-import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WFSParameters;
-import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
@@ -570,7 +568,7 @@ public class WQPLayerBuildingService {
 		 */
 		for(String layerParam : layerParams) {
 			String currentLayers = ogcParams.get(layerParam);
-			if((currentLayers == null) || (currentLayers.equals("")) || (currentLayers.equals(ProxyDataSourceParameter.getStringFromType(dataSource)))) {
+			if((currentLayers == null) || (currentLayers.equals("")) || (currentLayers.equals(dataSource.toString()))) {
 				currentLayers = geoserverWorkspace + ":" + layerCache.getLayerName();
 			} else {
 				currentLayers += "," + geoserverWorkspace + ":" + layerCache.getLayerName();

@@ -435,12 +435,11 @@ public class ProxyUtil {
      * @param requestParams
      * @return
      */
-    public static String getServletParameterCaseSensitiveCharacterString(String ourParam, Map<String,String> requestParams) {
+    public static String getCaseSensitiveParameter(String ourParam, Map<String,String> requestParams) {
     	String result = ourParam;
     	
-    	Set<String> keys = requestParams.keySet();
-    	for (String key : keys) {
-    		if(key.toLowerCase().equals(ourParam.toLowerCase())) {
+    	for (String key : requestParams.keySet()) {
+    		if ( key.equalsIgnoreCase(ourParam) ) {
 	        	return key;
 	        }
     	}

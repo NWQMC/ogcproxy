@@ -11,6 +11,8 @@ import java.util.List;
  * @author prusso
  *<br /><br />
  *	This enumeration describes all of the standard WMS Operations
+ *<br/>
+ *	TODO DEAD CODE - This class is not referenced
  */
 public enum WMSOperations {
 	/**
@@ -24,65 +26,6 @@ public enum WMSOperations {
 	DescribeLayer,
 	GetLegendGraphic,
 	UNKNOWN;
-	
-	public static WMSOperations getTypeFromString(String string) {
-		if (string.equals("Exceptions")) {
-			return Exceptions;
-		}
-		
-		if (string.equals("GetCapabilities")) {
-			return GetCapabilities;
-		}
-		
-		if (string.equals("GetMap")) {
-			return GetMap;
-		}
-		
-		if (string.equals("GetFeatureInfo")) {
-			return GetFeatureInfo;
-		}
-		
-		if (string.equals("DescribeLayer")) {
-			return DescribeLayer;
-		}
-		
-		if (string.equals("GetLegendGraphic")) {
-			return GetLegendGraphic;
-		}
-
-		return UNKNOWN;
-	}
-
-	public static String getStringFromType(WMSOperations type) {
-		switch (type) {
-			case Exceptions: {
-				return "Exceptions";
-			}
-			case GetCapabilities: {
-				return "GetCapabilities";
-			}
-
-			case GetMap: {
-				return "GetMap";
-			}
-
-			case GetFeatureInfo: {
-				return "GetFeatureInfo";
-			}
-
-			case DescribeLayer: {
-				return "DescribeLayer";
-			}
-
-			case GetLegendGraphic: {
-				return "GetLegendGraphic";
-			}
-			
-			default: {
-				return "UNKNOWN";
-			}
-		}
-	}
 	
 	public static List<WMSParameters> getParameters(WMSOperations type) {
 		

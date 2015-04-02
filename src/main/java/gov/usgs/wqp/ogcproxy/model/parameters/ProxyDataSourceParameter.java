@@ -8,25 +8,19 @@ package gov.usgs.wqp.ogcproxy.model.parameters;
  *	decides the source of all proxy data at the servlet level.
  */
 public enum ProxyDataSourceParameter {
-	wqp_sites, UNKNOWN;
+	WQP_SITES, UNKNOWN;
 
 	public static ProxyDataSourceParameter getTypeFromString(String string) {
-		if (string.contains("wqp_sites")) {
-			return wqp_sites;
+		if (string != null && string.contains("wqp_sites")) {
+			return WQP_SITES;
 		}
-
 		return UNKNOWN;
 	}
 
-	public static String getStringFromType(ProxyDataSourceParameter type) {
-		switch (type) {
-			case wqp_sites: {
-				return "wqp_sites";
-			}
-			
-			default: {
-				return "UNKNOWN";
-			}
+	public String toString() {
+		if (WQP_SITES == this) {
+			return "wqp_sites"; // lower case
 		}
+		return super.toString();
 	}
 }
