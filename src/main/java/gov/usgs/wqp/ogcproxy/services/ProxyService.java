@@ -7,6 +7,7 @@ import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
+import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.OgcWfsParser;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil.ProxyServiceResult;
@@ -61,6 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.async.DeferredResult;
+
 
 @Service
 public class ProxyService {
@@ -352,7 +354,7 @@ public class ProxyService {
 		String queryLayerParam            = wmsParams.get(servletQueryLayerParamName);
 		String errorValue                 = wmsParams.get(WMSParameters.format.toString());
 		
-		return performRequest(request, response, requestParams, OGCServices.WMS, layerParamName, layerParamName, servletQueryLayerParamName, queryLayerParam, errorValue);
+		return performGetRequest(request, response, requestParams, OGCServices.WMS, layerParamName, layerParamName, servletQueryLayerParamName, queryLayerParam, errorValue);
 	}
 
 	/**
@@ -377,11 +379,40 @@ public class ProxyService {
 		ProxyUtil.separateParameters(requestParams, wfsParams, searchParams);
 		
 		String layerParamName             = wfsParams.get(WFSParameters.typeName.toString());
-		String layerParamNameToAdd        = WFSParameters.typeNames.toString();
 		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
-		String queryLayerParam            = wfsParams.get(WFSParameters.typeName.toString());
+		String layerParamNameToAdd        = servletQueryLayerParamName;
+		String queryLayerParam            = layerParamName;
 
-		return performRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
+		return performGetRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
+	}
+	
+	// NEW POST OGC XML WMS
+	public DeferredResult<String> performPostWMSRequest(HttpServletRequest request,
+			HttpServletResponse response, Map<String, String> requestParams) {
+		
+		Map<String, String> ogcParams = new HashMap<String, String>();
+		new OgcWfsParser().ogcParse(request, ogcParams);
+		
+		String layerParamName             = ogcParams.get(WFSParameters.typeName.toString());
+		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
+		String layerParamNameToAdd        = servletQueryLayerParamName;
+		String queryLayerParam            = layerParamName;
+
+		return performGetRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
+	}
+	// NEW POST OGC XML WFS
+	public DeferredResult<String> performPostWFSRequest(HttpServletRequest request,
+			HttpServletResponse response, Map<String, String> requestParams) {
+		
+		Map<String, String> ogcParams = new HashMap<String, String>();
+		new OgcWfsParser().ogcParse(request, ogcParams);
+		
+		String layerParamName             = ogcParams.get(WFSParameters.typeName.toString());
+		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
+		String layerParamNameToAdd        = servletQueryLayerParamName;
+		String queryLayerParam            = layerParamName;
+
+		return performGetRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
 	}
 
 	/**
@@ -394,21 +425,21 @@ public class ProxyService {
 	 * @param requestParams
 	 * @param finalResult
 	 */
-	public DeferredResult<String> performRequest(HttpServletRequest request,
+	public DeferredResult<String> performGetRequest(HttpServletRequest request,
 			HttpServletResponse response, Map<String, String> requestParams,
 			OGCServices ogcService, String layerParamName, String layerParamNameToAdd,
 			String servletQueryLayerParamName, String queryLayerParam, String errorValue) {
 		
 		initialize();
 
-		ProxyDataSourceParameter dataSource      = ProxyDataSourceParameter.UNKNOWN;
+		ProxyDataSourceParameter dataSource	  = ProxyDataSourceParameter.UNKNOWN;
 		ProxyDataSourceParameter queryLayerValue = ProxyDataSourceParameter.UNKNOWN;
 		
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
 		Map<String, String> wxsParams = new HashMap<String, String>();
 		ProxyUtil.separateParameters(requestParams, wxsParams, searchParams);
 		
-		// Lets see if the layers and/or queryParameter parameter is what 
+		// Lets see if the layers and/or queryParameter parameter is what
 		// we are expecting and decide what to do depending on its value.
 		// We need to capture the pure servlet parameter key for our searchParams parameter.
 		// Since this can be case INSENSITIVE but we use its value as a key in a map, we need
@@ -451,8 +482,7 @@ public class ProxyService {
 			if (dataSource == ProxyDataSourceParameter.WQP_SITES) {
 				ProxyServiceResult result = wqpLayerBuildingService
 						.getDynamicLayer(
-								wxsParams,
-								searchParams,
+								wxsParams, searchParams,
 								layerParams, ogcService,
 								ProxyDataSourceParameter.WQP_SITES);
 
@@ -735,7 +765,7 @@ public class ProxyService {
 							"handleServerResponse()", msg);
 				}
 				
-				// Now, if the server response is xml we need to inspect it and 
+				// Now, if the server response is xml we need to inspect it and
 				// modify depending on a couple logic steps.
 				// 
 				// 		WMS uses "text/xml" as the contentType
@@ -796,15 +826,15 @@ public class ProxyService {
 		}
 	}
 	
-	private byte[] inspectServerContent(HttpServletRequest clientRequest, String ogcRequestType, OGCServices serviceType, byte[] serverContent, boolean contentCompressed, ProxyDataSourceParameter dataSource) throws OGCProxyException {			
+	private byte[] inspectServerContent(HttpServletRequest clientRequest, String ogcRequestType, OGCServices serviceType, byte[] serverContent, boolean contentCompressed, ProxyDataSourceParameter dataSource) throws OGCProxyException {
 		String stringContent = "";
 		if (contentCompressed) {
-			stringContent = SystemUtils.uncompressGzipAsString(serverContent);			
+			stringContent = SystemUtils.uncompressGzipAsString(serverContent);
 		} else {
 			stringContent = Arrays.toString(serverContent);
 		}
 		
-		// We now need to do some inspection on the data.  If the original OGC 
+		// We now need to do some inspection on the data.  If the original OGC
 		// request is a GetCapabilities, we need to insert the service's specific
 		// information into the response.
 		if (ProxyUtil.OGC_GET_CAPABILITIES_REQUEST_VALUE.toLowerCase().equals(ogcRequestType.toLowerCase())) {
@@ -820,9 +850,9 @@ public class ProxyService {
 					break;
 				}
 			}
-		}		
+		}
 		
-		// We also need to scrub the response for any mention of the actual 
+		// We also need to scrub the response for any mention of the actual
 		// GeoServer's location and replace it with this proxy's location.
 		if (stringContent.contains(geoserverHost)) {
 			log.info("ProxyService.inspectServerContent() INFO : Server response contains references to its hostname.  Redirecting entries to the proxy...");
@@ -843,9 +873,10 @@ public class ProxyService {
 		}
 		
 		if (contentCompressed) {
-			return SystemUtils.compressStringToGzip(stringContent);		
+			return SystemUtils.compressStringToGzip(stringContent);
 		} else {
 			return stringContent.getBytes();
 		}
 	}
+
 }

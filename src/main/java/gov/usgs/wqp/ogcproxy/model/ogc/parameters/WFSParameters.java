@@ -33,12 +33,19 @@ public enum WFSParameters {
 	storedQuery_Id,		// WFS 2.0.0
 	UNKNOWN;
 	
+	
+//	public final String ogcTag;
+//	
+//	private WFSParameters(String ogcTag) {
+//		this.ogcTag = ogcTag;
+//	}
+	
 	public static boolean isRequired(WFSParameters type) {
 		switch (type) {
 			case service:
 			case version:
 			case request:
-			case typeNames:
+			case typeNames: // TODO this is strictly not correct. for early versions typeName is required
 				return true;
 			default:
 				return false;

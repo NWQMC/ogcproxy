@@ -56,7 +56,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.version>3.2.3.RELEASE</spring.version>
-		<gt.version>12-SNAPSHOT</gt.version>
+		<gt.version>13.0</gt.version>
           <warName>ogcproxy</warName>
 	</properties>
 
@@ -215,6 +215,16 @@
 			<artifactId>gt-epsg-hsql</artifactId>
 			<version>${gt.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.geotools.xsd</groupId>
+			<artifactId>gt-xsd-core</artifactId>
+			<version>${gt.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.geotools.xsd</groupId>
+			<artifactId>gt-xsd-filter</artifactId>
+			<version>${gt.version}</version>
+		</dependency>
 		<!-- ================================================================== -->
 	
 		<!-- Spring 3 dependencies -->
@@ -229,6 +239,13 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webmvc</artifactId>
 			<version>${spring.version}</version>
+		</dependency>
+	
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-mock</artifactId>
+			<version>2.0.8</version>
+			<scope>test</scope>
 		</dependency>
 	
 		<dependency>
@@ -277,6 +294,6 @@
 			<artifactId>xstream</artifactId>
 			<version>1.2.2</version>
 		</dependency>
-		
+
 	</dependencies>
 </project>

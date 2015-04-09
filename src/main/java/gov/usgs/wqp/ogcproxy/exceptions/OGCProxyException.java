@@ -7,10 +7,14 @@ public class OGCProxyException extends Exception {
 	private final String classname; 					// the name of the class that threw the exception
 	private final String method; 						// the name of the method that threw the exception
 	private final String message; 						// a detailed message 
-	private OGCProxyException previous = null; 			// the exception which was caught
+	private final OGCProxyException previous; 			// the exception which was caught
 	private String delimeter = "\n"; 					// line separator
 	
 	public OGCProxyException(final OGCProxyExceptionID id, final String classname, final String method, final String message) {
+		this(id, classname, method, message, null);
+	}
+	public OGCProxyException(final OGCProxyExceptionID id, final String classname, final String method, final String message, Exception cause) {
+		super(message, cause);
 		this.exceptionid	= id;
 		this.classname  	= classname;
 		this.method    		= method;

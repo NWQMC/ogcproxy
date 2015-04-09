@@ -1,6 +1,7 @@
 package gov.usgs.wqp.ogcproxy.controllers;
 
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
+import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.OgcWfsParser;
 import gov.usgs.wqp.ogcproxy.services.ProxyService;
 import gov.usgs.wqp.ogcproxy.services.RESTService;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
@@ -73,10 +74,21 @@ public class OGCProxyController {
 		return proxyService.performWFSRequest(request, response, requestParams);
 	}
 
-//	@RequestMapping(value="**/wfs", method=RequestMethod.POST)
-//    public DeferredResult<String> wfsProxyPost(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
-//		return performOgcXmlRequest(request, response, requestParams, OGCServices.WFS);
-//	}
+	// NEW POST OGC XML WMS/WFS - it will check the payload for the actual service
+	@RequestMapping(value="**/wms", method=RequestMethod.POST)
+    public DeferredResult<String> wmsProxyPost(HttpServletRequest request, HttpServletResponse response) {
+		ProxyUtil.getPostRequestedService(request, OGCServices.WMS);
+		Map<String, String> requestParams = new OgcWfsParser().requestParamsPayloadToMap(request);
+		return proxyService.performPostWMSRequest(request, response, requestParams);
+	}
+	// NEW POST OGC XML WMS/WFS - it will check the payload for the actual service
+	// TODO if this is not fixed then this could just chain to the method above
+	@RequestMapping(value="**/wfs", method=RequestMethod.POST)
+    public DeferredResult<String> wfsProxyPost(HttpServletRequest request, HttpServletResponse response) {
+		ProxyUtil.getPostRequestedService(request, OGCServices.WFS);
+		Map<String, String> requestParams = new OgcWfsParser().requestParamsPayloadToMap(request);
+		return proxyService.performPostWFSRequest(request, response, requestParams);
+	}
 	
 	
 	
