@@ -1,5 +1,7 @@
 package gov.usgs.wqp.ogcproxy.model.ogc.operations;
 
+import static gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters.*;
+
 import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters;
 
 import java.util.ArrayList;
@@ -11,6 +13,8 @@ import java.util.List;
  * @author prusso
  *<br /><br />
  *	This enumeration describes all of the standard WMS Operations
+ *<br/>
+ *	TODO DEAD CODE - This class is not referenced
  */
 public enum WMSOperations {
 	/**
@@ -25,103 +29,34 @@ public enum WMSOperations {
 	GetLegendGraphic,
 	UNKNOWN;
 	
-	public static WMSOperations getTypeFromString(String string) {
-		if (string.equals("Exceptions")) {
-			return Exceptions;
-		}
-		
-		if (string.equals("GetCapabilities")) {
-			return GetCapabilities;
-		}
-		
-		if (string.equals("GetMap")) {
-			return GetMap;
-		}
-		
-		if (string.equals("GetFeatureInfo")) {
-			return GetFeatureInfo;
-		}
-		
-		if (string.equals("DescribeLayer")) {
-			return DescribeLayer;
-		}
-		
-		if (string.equals("GetLegendGraphic")) {
-			return GetLegendGraphic;
-		}
-
-		return UNKNOWN;
-	}
-
-	public static String getStringFromType(WMSOperations type) {
-		switch (type) {
-			case Exceptions: {
-				return "Exceptions";
-			}
-			case GetCapabilities: {
-				return "GetCapabilities";
-			}
-
-			case GetMap: {
-				return "GetMap";
-			}
-
-			case GetFeatureInfo: {
-				return "GetFeatureInfo";
-			}
-
-			case DescribeLayer: {
-				return "DescribeLayer";
-			}
-
-			case GetLegendGraphic: {
-				return "GetLegendGraphic";
-			}
-			
-			default: {
-				return "UNKNOWN";
-			}
-		}
-	}
-	
 	public static List<WMSParameters> getParameters(WMSOperations type) {
 		
 		switch (type) {
-			case Exceptions: {
-				return new ArrayList<WMSParameters>();
-			}
-			case GetCapabilities: {
-				return Arrays.asList(WMSParameters.service, WMSParameters.version, WMSParameters.request, WMSParameters.namespace);
-			}
+			case GetCapabilities:
+				return Arrays.asList(service, version, request, namespace);
 	
-			case GetMap: {
-				return Arrays.asList(WMSParameters.service, WMSParameters.version, WMSParameters.request, WMSParameters.layers, WMSParameters.styles,
-						WMSParameters.srs, WMSParameters.crs, WMSParameters.bbox, WMSParameters.width, WMSParameters.height, WMSParameters.format,
-						WMSParameters.transparent, WMSParameters.bgcolor, WMSParameters.exceptions, WMSParameters.time, WMSParameters.sld,
-						WMSParameters.sld_body);
-			}
+			case GetMap:
+				return Arrays.asList(service, version, request, layers, styles,
+						srs, crs, bbox, width, height, format, transparent,
+						bgcolor, exceptions, time, sld, sld_body);
 	
-			case GetFeatureInfo: {
-				return Arrays.asList(WMSParameters.service, WMSParameters.version, WMSParameters.request, WMSParameters.layers,
-						WMSParameters.styles, WMSParameters.srs, WMSParameters.crs, WMSParameters.bbox, WMSParameters.width, WMSParameters.height,
-						WMSParameters.query_layers, WMSParameters.info_format, WMSParameters.feature_count, WMSParameters.x, WMSParameters.i,
-						WMSParameters.y, WMSParameters.j, WMSParameters.exceptions, WMSParameters.buffer, WMSParameters.cql_filter,
-						WMSParameters.filter, WMSParameters.propertyName);
-			}
+			case GetFeatureInfo:
+				return Arrays.asList(service, version, request, layers,
+						styles, srs, crs, bbox, width, height, query_layers,
+						info_format, feature_count, x, i, y, j, exceptions,
+						buffer, cql_filter, filter, propertyName);
 	
-			case DescribeLayer: {
-				return Arrays.asList(WMSParameters.service, WMSParameters.version, WMSParameters.request, WMSParameters.layers, WMSParameters.exceptions);
-			}
+			case DescribeLayer:
+				return Arrays.asList(service, version, request, layers, exceptions);
 	
-			case GetLegendGraphic: {
-				return Arrays.asList(WMSParameters.request, WMSParameters.layer, WMSParameters.style, WMSParameters.featuretype, WMSParameters.rule,
-						WMSParameters.scale, WMSParameters.sld, WMSParameters.sld_body, WMSParameters.format, WMSParameters.width, WMSParameters.height,
-						WMSParameters.exceptions);
-			}
+			case GetLegendGraphic:
+				return Arrays.asList(request, layer, style, featuretype, rule,
+						scale, sld, sld_body, format, width, height, exceptions);
 			
-			default: {
+			case Exceptions:
+			default:
 				return new ArrayList<WMSParameters>();
-			}
+
 		}
 	}
 	
@@ -130,7 +65,7 @@ public enum WMSOperations {
 		List<WMSParameters> requiredParams = new ArrayList<WMSParameters>();
 		
 		for(WMSParameters param : params) {
-			if(WMSParameters.isRequired(param)) {
+			if(isRequired(param)) {
 				requiredParams.add(param);
 			}
 		}

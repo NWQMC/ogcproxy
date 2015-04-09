@@ -3,6 +3,7 @@ package gov.usgs.wqp.ogcproxy.utils;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.parameters.WQPParameters;
+import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.OgcWfsParser;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -408,13 +409,33 @@ public class ProxyUtil {
     public static OGCServices getFinalRequestedService(Map<String,String> requestParams, OGCServices calledService) {
     	String serviceValue = requestParams.get(OGC_SERVICE_PARAMETER);
     	
-    	if((serviceValue == null) || (serviceValue.equals(""))) {
+    	if ((serviceValue == null) || (serviceValue.equals(""))) {
     		return calledService;
     	}
     	
     	OGCServices requestedService = OGCServices.getTypeFromString(serviceValue);
     	
-    	if((requestedService == calledService) || (requestedService == OGCServices.UNKNOWN)) {
+    	if ((requestedService == calledService) || (requestedService == OGCServices.UNKNOWN)) {
+    		return calledService;
+    	}
+    	
+    	return requestedService;
+    }
+    
+	// TODO asdf
+    public static OGCServices getPostRequestedService(HttpServletRequest request, OGCServices calledService) {
+    	OGCServices requestedService = OGCServices.UNKNOWN;
+    	
+    	Map<String, String> ogcParams = new HashMap<String, String>();
+		try {
+			new OgcWfsParser().ogcParse(request, ogcParams );
+	    	String serviceValue = ogcParams.get(OGC_SERVICE_PARAMETER);
+	    	requestedService = OGCServices.getTypeFromString(serviceValue);
+		} catch (Exception e) {
+	    	requestedService = OGCServices.UNKNOWN;
+		}
+    	
+    	if (requestedService == OGCServices.UNKNOWN) {
     		return calledService;
     	}
     	
@@ -435,12 +456,11 @@ public class ProxyUtil {
      * @param requestParams
      * @return
      */
-    public static String getServletParameterCaseSensitiveCharacterString(String ourParam, Map<String,String> requestParams) {
+    public static String getCaseSensitiveParameter(String ourParam, Map<String,String> requestParams) {
     	String result = ourParam;
     	
-    	Set<String> keys = requestParams.keySet();
-    	for (String key : keys) {
-    		if(key.toLowerCase().equals(ourParam.toLowerCase())) {
+    	for (String key : requestParams.keySet()) {
+    		if ( key.equalsIgnoreCase(ourParam) ) {
 	        	return key;
 	        }
     	}
