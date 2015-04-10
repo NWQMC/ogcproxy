@@ -7,7 +7,6 @@ import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
-import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.OgcWfsParser;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil.ProxyServiceResult;
@@ -388,10 +387,7 @@ public class ProxyService {
 	
 	// NEW POST OGC XML WMS
 	public DeferredResult<String> performPostWMSRequest(HttpServletRequest request,
-			HttpServletResponse response, Map<String, String> requestParams) {
-		
-		Map<String, String> ogcParams = new HashMap<String, String>();
-		new OgcWfsParser().ogcParse(request, ogcParams);
+			HttpServletResponse response, Map<String, String> requestParams, Map<String, String> ogcParams) {
 		
 		String layerParamName             = ogcParams.get(WFSParameters.typeName.toString());
 		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
@@ -402,10 +398,7 @@ public class ProxyService {
 	}
 	// NEW POST OGC XML WFS
 	public DeferredResult<String> performPostWFSRequest(HttpServletRequest request,
-			HttpServletResponse response, Map<String, String> requestParams) {
-		
-		Map<String, String> ogcParams = new HashMap<String, String>();
-		new OgcWfsParser().ogcParse(request, ogcParams);
+			HttpServletResponse response, Map<String, String> requestParams, Map<String, String> ogcParams) {
 		
 		String layerParamName             = ogcParams.get(WFSParameters.typeName.toString());
 		String servletQueryLayerParamName = WFSParameters.typeNames.toString();

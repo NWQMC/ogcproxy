@@ -2,7 +2,6 @@ package gov.usgs.wqp.ogcproxy.model.parser.xml.ogc;
 
 import static org.junit.Assert.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
@@ -142,14 +141,13 @@ public class OgcWfsParserTest {
 	
 	@Test
 	public void testOgcParse_typeNames() throws Exception {
-		Map<String,String> ogcParams = new HashMap<String, String>();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContentType("application/xml");
 		
 		request.setContent(ogcParamsWfs_typeNames.getBytes());
 		
-		new OgcWfsParser().ogcParse(request, ogcParams);
+		Map<String,String> ogcParams = new OgcWfsParser(request).ogcParse();
 		
 		System.out.println(ogcParams);
 		
@@ -162,14 +160,13 @@ public class OgcWfsParserTest {
 	
 	@Test
 	public void testOgcParse_typeName() throws Exception {
-		Map<String,String> ogcParams = new HashMap<String, String>();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContentType("application/xml");
 		
 		request.setContent(ogcParamsWfs_typeName.getBytes());
 		
-		new OgcWfsParser().ogcParse(request, ogcParams);
+		Map<String,String> ogcParams = new OgcWfsParser(request).ogcParse();
 		
 		System.out.println(ogcParams);
 		
@@ -182,14 +179,13 @@ public class OgcWfsParserTest {
 	
 	@Test
 	public void testOgcParse_noXMLversion() throws Exception {
-		Map<String,String> ogcParams = new HashMap<String, String>();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContentType("application/xml");
 		
 		request.setContent(ogcParamsWfs_noXMLversion.getBytes());
 		
-		new OgcWfsParser().ogcParse(request, ogcParams);
+		Map<String,String> ogcParams = new OgcWfsParser(request).ogcParse();
 		
 		System.out.println(ogcParams);
 		
@@ -202,14 +198,13 @@ public class OgcWfsParserTest {
 	
 	@Test
 	public void testOgcParse_simpleOgcWfs() throws Exception {
-		Map<String,String> ogcParams = new HashMap<String, String>();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContentType("application/xml");
 		
 		request.setContent(simpleOgcWfs.getBytes());
 		
-		new OgcWfsParser().ogcParse(request, ogcParams);
+		Map<String,String> ogcParams = new OgcWfsParser(request).ogcParse();
 		
 		System.out.println(ogcParams);
 		
@@ -222,14 +217,13 @@ public class OgcWfsParserTest {
 	
 	@Test
 	public void testOgcParse_complexOgcWfs() throws Exception {
-		Map<String,String> ogcParams = new HashMap<String, String>();
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContentType("application/xml");
 		
 		request.setContent(complexOgcWfs.getBytes());
 		
-		new OgcWfsParser().ogcParse(request, ogcParams);
+		Map<String,String> ogcParams = new OgcWfsParser(request).ogcParse();
 		
 		System.out.println(ogcParams);
 		
@@ -243,14 +237,14 @@ public class OgcWfsParserTest {
 	
 
 	@Test
-	public void testcontentToString_searchParamOcgXml() throws Exception {
+	public void testGetBody_searchParamOcgXml() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContentType("application/xml");
 		
 		request.setContent(searchParamOcgXml.getBytes());
 		
-		String content = new OgcWfsParser().contentToString(request);
+		String content = new OgcWfsParser(request).getBody();
 		
 		System.out.println(content);
 		
@@ -268,7 +262,7 @@ public class OgcWfsParserTest {
 		
 		request.setContent(searchParamOcgXml.getBytes());
 		
-		String searchParams = new OgcWfsParser().searchParse(request);
+		String searchParams = new OgcWfsParser(request).searchParse();
 		
 		System.out.println();
 		System.out.println(searchParams);
@@ -285,7 +279,7 @@ public class OgcWfsParserTest {
 		
 		request.setContent(searchParamOcgXml.getBytes());
 		
-		Map<String,String> requestParams = new OgcWfsParser().requestParamsPayloadToMap(request);
+		Map<String,String> requestParams = new OgcWfsParser(request).requestParamsPayloadToMap();
 		
 		System.out.println();
 		System.out.println(requestParams);

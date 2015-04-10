@@ -77,17 +77,25 @@ public class OGCProxyController {
 	// NEW POST OGC XML WMS/WFS - it will check the payload for the actual service
 	@RequestMapping(value="**/wms", method=RequestMethod.POST)
     public DeferredResult<String> wmsProxyPost(HttpServletRequest request, HttpServletResponse response) {
-		ProxyUtil.getPostRequestedService(request, OGCServices.WMS);
-		Map<String, String> requestParams = new OgcWfsParser().requestParamsPayloadToMap(request);
-		return proxyService.performPostWMSRequest(request, response, requestParams);
+		
+		OgcWfsParser ogcParser =  new OgcWfsParser(request);
+		Map<String, String> requestParams = ogcParser.requestParamsPayloadToMap();
+		Map<String, String> ogcParams = ogcParser.ogcParse();
+		ProxyUtil.getPostRequestedService(request, OGCServices.WMS, ogcParams);
+		
+		return proxyService.performPostWMSRequest(request, response, requestParams, ogcParams);
 	}
 	// NEW POST OGC XML WMS/WFS - it will check the payload for the actual service
 	// TODO if this is not fixed then this could just chain to the method above
 	@RequestMapping(value="**/wfs", method=RequestMethod.POST)
     public DeferredResult<String> wfsProxyPost(HttpServletRequest request, HttpServletResponse response) {
-		ProxyUtil.getPostRequestedService(request, OGCServices.WFS);
-		Map<String, String> requestParams = new OgcWfsParser().requestParamsPayloadToMap(request);
-		return proxyService.performPostWFSRequest(request, response, requestParams);
+
+		OgcWfsParser ogcParser =  new OgcWfsParser(request);
+		Map<String, String> requestParams = ogcParser.requestParamsPayloadToMap();
+		Map<String, String> ogcParams = ogcParser.ogcParse();
+		ProxyUtil.getPostRequestedService(request, OGCServices.WFS, ogcParams);
+		
+		return proxyService.performPostWFSRequest(request, response, requestParams, ogcParams);
 	}
 	
 	

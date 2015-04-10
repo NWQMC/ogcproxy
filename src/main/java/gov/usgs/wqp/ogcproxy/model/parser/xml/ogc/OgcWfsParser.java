@@ -27,11 +27,19 @@ public class OgcWfsParser {
 	
 	private static final Pattern[] OGC_PARAMS = new Pattern[]{VERSION, SERVICE, TYPE_NAME};
 
-//	public void parse(HttpServletRequest request, Map<String, String> ogcParams, Map<String, String> searchParams) 
+	private final HttpServletRequest request;
+	private String body;
+	
+	public OgcWfsParser(HttpServletRequest request) {
+		this.request = request;
+	}
+	
+	
+//	public void parse(Map<String, String> ogcParams, Map<String, String> searchParams) 
 //			throws OGCProxyException {
 //		try {
-//			ogcParse(request, ogcParams);
-//			String queryString = searchParse(request);
+//			ogcParse(ogcParams);
+//			String queryString = searchParse();
 //		} catch (Exception e) {
 //			throw new OGCProxyException(OGCProxyExceptionID.ERROR_READING_CLIENT_REQUEST_BODY, 
 //					OgcWfsParser.class.getName(), "parse", "OGC parse error");
@@ -39,11 +47,11 @@ public class OgcWfsParser {
 //		
 //	}
 
-	public Map<String,String> requestParamsPayloadToMap(HttpServletRequest request) {
+	public Map<String,String> requestParamsPayloadToMap() {
 		Map<String,String> params = new HashMap<String, String>();
 		String queryString = "";
 		try {
-			queryString = searchParse(request);
+			queryString = searchParse();
 		} catch (Exception e) {
 			return params;
 		}
@@ -59,8 +67,8 @@ public class OgcWfsParser {
 		return params;
 	}
 	
-	String searchParse(HttpServletRequest request) throws Exception {
-		String xml = contentToString(request);
+	String searchParse() throws Exception {
+		String xml = getBody();
 		Document doc = document(xml);
 //		NodeList filter = nodes(doc, "ogc:Filter");
 		NodeList nodes = nodes(doc, "ogc:PropertyIsEqualTo");
@@ -99,25 +107,34 @@ public class OgcWfsParser {
 		}
 	}
 
-	public void ogcParse(HttpServletRequest request, Map<String, String> ogcParams) {
-		String line;
+	public Map<String, String> ogcParse() {
+		Map<String, String> ogcParams = new HashMap<String, String>();
+		
+		String body;
 		try {
-			line = contentToString(request);
+			body = getBody();
 		} catch (Exception e) {
-			return; // TODO maybe there should be some notification that this was unsuccessful?
+			return ogcParams;
+			// TODO maybe there should be some notification that this was unsuccessful?
 		}
 		
 		for (Pattern param: OGC_PARAMS) {
-			Matcher match = param.matcher(line);
+			Matcher match = param.matcher(body);
 			if (match.find()) {
 				ogcParams.put(match.group(1), match.group(2));
 			}
 		}
+		
+		return ogcParams;
 		// TODO enh with typeName and typeNames version checking
 	}
 	
 	
-	String contentToString(HttpServletRequest request) throws Exception {
+	String getBody() throws Exception {
+		if (body != null) {
+			return body;
+		}
+		
 		Reader reader = new InputStreamReader(request.getInputStream());
 		BufferedReader buffer = new BufferedReader(reader);
 		
@@ -135,11 +152,11 @@ public class OgcWfsParser {
 		} else {
 			line = builder.toString();
 		}
-		line = line.trim();
+		body = line.trim();
 //		line = line.replaceAll("\\s+<", "<");
 //		line = line.replaceAll("\\s+", " ");
 		
-		return line;
+		return body;
 	}
 	
 	

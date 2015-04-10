@@ -3,7 +3,6 @@ package gov.usgs.wqp.ogcproxy.utils;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.parameters.WQPParameters;
-import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.OgcWfsParser;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
@@ -423,12 +422,10 @@ public class ProxyUtil {
     }
     
 	// TODO asdf
-    public static OGCServices getPostRequestedService(HttpServletRequest request, OGCServices calledService) {
+    public static OGCServices getPostRequestedService(HttpServletRequest request, OGCServices calledService, Map<String, String> ogcParams) {
     	OGCServices requestedService = OGCServices.UNKNOWN;
     	
-    	Map<String, String> ogcParams = new HashMap<String, String>();
 		try {
-			new OgcWfsParser().ogcParse(request, ogcParams );
 	    	String serviceValue = ogcParams.get(OGC_SERVICE_PARAMETER);
 	    	requestedService = OGCServices.getTypeFromString(serviceValue);
 		} catch (Exception e) {
