@@ -227,11 +227,14 @@ public class WQPUtils {
 		try {
 			bis = new BufferedInputStream(methodEntity.getContent());
 			bos = new BufferedOutputStream(new FileOutputStream(new File(filePath)));
-		   	int inByte;
-			while((inByte = bis.read()) != -1) bos.write(inByte);
+		   	byte[] buff = new byte[1024*8];
+		   	int count=0;
+			while((count = bis.read(buff)) != -1) {
+				bos.write(buff,0,count);
+			}
 		} catch (Exception e) {
 			String msg = "WQPUtils.retrieveSearchParamData() Exception reading response from server [" +
-       			 e.getMessage() + "]";
+       			 e.getMessage() + "] Check that the path exists: " + filePath;
 			log.error(msg);
 			
 			OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_REQUEST_IO_ERROR;					
@@ -246,9 +249,13 @@ public class WQPUtils {
             }
         	
 			try {
-				bos.flush();
-				bis.close();
-				bos.close();
+				if (bos != null) {
+					bos.flush();
+					bos.close();
+				}
+				if (bis != null) {
+					bis.close();
+				}
 			} catch (IOException e) {
 				String msg = "WQPUtils.retrieveSearchParamData() Exception closing buffered streams [" +
 		       			 e.getMessage() + "] continuing...";
