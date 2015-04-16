@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,42 +61,44 @@ public class OGCProxyController {
 	
 	//http://www.waterqualitydata.us/qw_portal_map/ows?service=WPS&version=1.0.0&request=Execute&identifier=gs:SingleWpsStatus
 	
+	@Async
 	@RequestMapping(value="**/wms", method={RequestMethod.GET, RequestMethod.POST})
-    public DeferredResult<String> wmsProxy(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
+    public void wmsProxy(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
 		ProxyUtil.getFinalRequestedService(requestParams, OGCServices.WMS);
 		log.info("OGCProxyController.performOGCRequest() INFO - Performing WMS request.");
-		return proxyService.performWMSRequest(request, response, requestParams);
+		proxyService.performWMSRequest(request, response, requestParams);
 	}
 	
+	@Async
 	@RequestMapping(value="**/wfs", method=RequestMethod.GET)
-    public DeferredResult<String> wfsProxyGet(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
+    public void wfsProxyGet(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
 		ProxyUtil.getFinalRequestedService(requestParams, OGCServices.WFS);
 		log.info("OGCProxyController.performOGCRequest() INFO - Performing WMS request.");
-		return proxyService.performWFSRequest(request, response, requestParams);
+		proxyService.performWFSRequest(request, response, requestParams);
 	}
 
 	// NEW POST OGC XML WMS/WFS - it will check the payload for the actual service
+	@Async
 	@RequestMapping(value="**/wms", method=RequestMethod.POST)
-    public DeferredResult<String> wmsProxyPost(HttpServletRequest request, HttpServletResponse response) {
+    public void wmsProxyPost(HttpServletRequest request, HttpServletResponse response) {
 		
 		OgcWfsParser ogcParser =  new OgcWfsParser(request);
 		Map<String, String> requestParams = ogcParser.requestParamsPayloadToMap();
-		Map<String, String> ogcParams = ogcParser.ogcParse();
-		ProxyUtil.getPostRequestedService(request, OGCServices.WMS, ogcParams);
+		ProxyUtil.getPostRequestedService(request, OGCServices.WMS, requestParams);
 		
-		return proxyService.performPostWMSRequest(request, response, requestParams, ogcParams);
+		proxyService.performPostWMSRequest(request, response, requestParams);
 	}
 	// NEW POST OGC XML WMS/WFS - it will check the payload for the actual service
 	// TODO if this is not fixed then this could just chain to the method above
+	@Async
 	@RequestMapping(value="**/wfs", method=RequestMethod.POST)
-    public DeferredResult<String> wfsProxyPost(HttpServletRequest request, HttpServletResponse response) {
+    public void wfsProxyPost(HttpServletRequest request, HttpServletResponse response) {
 
 		OgcWfsParser ogcParser =  new OgcWfsParser(request);
 		Map<String, String> requestParams = ogcParser.requestParamsPayloadToMap();
-		Map<String, String> ogcParams = ogcParser.ogcParse();
-		ProxyUtil.getPostRequestedService(request, OGCServices.WFS, ogcParams);
+		ProxyUtil.getPostRequestedService(request, OGCServices.WFS, requestParams);
 		
-		return proxyService.performPostWFSRequest(request, response, requestParams, ogcParams);
+		proxyService.performPostWFSRequest(request, response, requestParams);
 	}
 	
 	

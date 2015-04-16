@@ -341,7 +341,7 @@ public class ProxyService {
 	 * @param requestParams
 	 * @param finalResult
 	 */
-	public DeferredResult<String> performWMSRequest(HttpServletRequest request,
+	public void performWMSRequest(HttpServletRequest request,
 			HttpServletResponse response, Map<String, String> requestParams) {
 		
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
@@ -353,7 +353,7 @@ public class ProxyService {
 		String queryLayerParam            = wmsParams.get(servletQueryLayerParamName);
 		String errorValue                 = wmsParams.get(WMSParameters.format.toString());
 		
-		return performGetRequest(request, response, requestParams, OGCServices.WMS, layerParamName, layerParamName, servletQueryLayerParamName, queryLayerParam, errorValue);
+		performGetRequest(request, response, requestParams, OGCServices.WMS, layerParamName, layerParamName, servletQueryLayerParamName, queryLayerParam, errorValue);
 	}
 
 	/**
@@ -370,7 +370,7 @@ public class ProxyService {
 	 * @param requestParams
 	 * @param finalResult
 	 */
-	public DeferredResult<String> performWFSRequest(HttpServletRequest request,
+	public void performWFSRequest(HttpServletRequest request,
 			HttpServletResponse response, Map<String, String> requestParams) {
 		
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
@@ -382,30 +382,30 @@ public class ProxyService {
 		String layerParamNameToAdd        = servletQueryLayerParamName;
 		String queryLayerParam            = layerParamName;
 
-		return performGetRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
+		performGetRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
 	}
 	
 	// NEW POST OGC XML WMS
-	public DeferredResult<String> performPostWMSRequest(HttpServletRequest request,
 			HttpServletResponse response, Map<String, String> requestParams, Map<String, String> ogcParams) {
+	public void performPostWMSRequest(HttpServletRequest request,
 		
 		String layerParamName             = ogcParams.get(WFSParameters.typeName.toString());
 		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
 		String layerParamNameToAdd        = servletQueryLayerParamName;
 		String queryLayerParam            = layerParamName;
 
-		return performGetRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
+		performGetRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
 	}
 	// NEW POST OGC XML WFS
-	public DeferredResult<String> performPostWFSRequest(HttpServletRequest request,
 			HttpServletResponse response, Map<String, String> requestParams, Map<String, String> ogcParams) {
+	public void performPostWFSRequest(HttpServletRequest request,
 		
 		String layerParamName             = ogcParams.get(WFSParameters.typeName.toString());
 		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
 		String layerParamNameToAdd        = servletQueryLayerParamName;
 		String queryLayerParam            = layerParamName;
 
-		return performGetRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
+		performGetRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
 	}
 
 	/**
@@ -418,7 +418,7 @@ public class ProxyService {
 	 * @param requestParams
 	 * @param finalResult
 	 */
-	public DeferredResult<String> performGetRequest(HttpServletRequest request,
+	public void performGetRequest(HttpServletRequest request,
 			HttpServletResponse response, Map<String, String> requestParams,
 			OGCServices ogcService, String layerParamName, String layerParamNameToAdd,
 			String servletQueryLayerParamName, String queryLayerParam, String errorValue) {
@@ -458,14 +458,11 @@ public class ProxyService {
 			}
 		}
 		
-		DeferredResult<String> finalResult = new DeferredResult<String>();
-
 		if (searchParams.size() > 0) {
 			// Did we find a legitimate layer value or do we need to return an
 			// error (we must have a layer value to do a dynamic search)?
 			if ((layerParams.size() == 0) && ( ! layerPassthrough )) {
-				finalResult.setResult(ProxyUtil.PROXY_LAYER_ERROR);
-				return finalResult;
+				return;
 			}
 
 			// We can now proceed with the request. Depending on the value of
@@ -480,24 +477,19 @@ public class ProxyService {
 								ProxyDataSourceParameter.WQP_SITES);
 
 				if (result != ProxyServiceResult.SUCCESS) {
-					finalResult.setResult(ProxyUtil.getErrorViewByFormat(errorValue));
-					return finalResult;
+					return;
 				}
 			}
 		}
 		
 		// We now need to perform the proxy call to the GeoServer and return the result to the client
-		String result = "success";
 		String ogcRequestType = (wxsParams.get("request") == null) ? "" : wxsParams.get("request");
 		if ( ! proxyRequest(request, response, wxsParams, ogcRequestType, ogcService, dataSource) ) {
 			log.error("ProxyService.performRequest() Error:  Unable to proxy client request.");
-			result = "failed";
 		}
 
 		log.info("ProxyService.performRequest() INFO: Proxy request is completed.");
-		finalResult.setResult(result);
-		
-		return finalResult;
+		return;
 	}
 	
 	
