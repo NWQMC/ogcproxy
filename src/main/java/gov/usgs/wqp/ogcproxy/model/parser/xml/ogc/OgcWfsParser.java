@@ -1,6 +1,8 @@
 package gov.usgs.wqp.ogcproxy.model.parser.xml.ogc;
 
 
+import gov.usgs.wqp.ogcproxy.utils.XmlUtils;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
@@ -15,6 +17,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -29,82 +32,93 @@ public class OgcWfsParser {
 
 	private final HttpServletRequest request;
 	private String body;
+	private String bodyMinusSearchParams;
+	
 	
 	public OgcWfsParser(HttpServletRequest request) {
 		this.request = request;
 	}
 	
 	
-//	public void parse(Map<String, String> ogcParams, Map<String, String> searchParams) 
-//			throws OGCProxyException {
-//		try {
-//			ogcParse(ogcParams);
-//			String queryString = searchParse();
-//		} catch (Exception e) {
-//			throw new OGCProxyException(OGCProxyExceptionID.ERROR_READING_CLIENT_REQUEST_BODY, 
-//					OgcWfsParser.class.getName(), "parse", "OGC parse error");
-//		}
-//		
-//	}
-
 	public Map<String,String> requestParamsPayloadToMap() {
-		Map<String,String> params = new HashMap<String, String>();
+		Map<String,String> params = ogcParse();
 		String queryString = "";
 		try {
-			queryString = searchParse();
+			queryString = searchParams();
+			params.put("searchParams", queryString);
 		} catch (Exception e) {
 			return params;
 		}
-		for (String param : queryString.split(";")) {
-			String[] parts = param.split(":");
-			if (parts.length != 2) {
-				continue;
-			}
-			parts[1] = parts[1].replaceAll("%3A", ":").replaceAll("%7C", ";");
-			params.put(parts[0], parts[1]);
-		}
 		
 		return params;
 	}
 	
-	String searchParse() throws Exception {
-		String xml = getBody();
-		Document doc = document(xml);
-//		NodeList filter = nodes(doc, "ogc:Filter");
-		NodeList nodes = nodes(doc, "ogc:PropertyIsEqualTo");
+	String searchParams() throws Exception {
+		String xml     = getBody();
+		Document doc   = document(xml);
+		NodeList nodes = nodes(doc.getDocumentElement(), "ogc:PropertyIsEqualTo");
+		Node node      = findSearchParamsNode(nodes);
 		
-		return findSearchParams(nodes);
+		if (node == null) {
+			// TODO this is a side effect and should be done elsewhere however we have the node now
+			bodyMinusSearchParams = body;
+			return "";
+		}
+		String params  = extractSearchParams(node);
+		
+		// TODO this is a side effect and should be done elsewhere however we have the node now
+		node.getParentNode().removeChild(node);
+		bodyMinusSearchParams = XmlUtils.domToString(doc);
+		
+		if (params!=null) {
+			params = params.replaceAll("%3A", ":").replaceAll("%7C", "|");
+		}
+		return params;
 	}
-
 	
-	String findSearchParams(NodeList nodes) {
-		String params = null;
-		Map<String,String> searchParams = new HashMap<String, String>();
+	Node findSearchParamsNode(NodeList nodes) {
+		boolean isSearchParams = false;
 		for (int j = 0; j < nodes.getLength(); j++) {
 	        Node node = nodes.item(j);
 
-	        textForMatchingTag(node, searchParams, "PropertyName");
-        	textForMatchingTag(node, searchParams, "Literal");
+	        String propertyName   = textForMatchingTag(node, "PropertyName");
+	        isSearchParams = "searchParams".equalsIgnoreCase(propertyName);
 	        
-        	// did we find the searchParams
-        	if (searchParams.containsKey("Literal") && "searchParams".equalsIgnoreCase( searchParams.get("PropertyName") )) {
-	        	params = searchParams.get("Literal");
-	        } else {
-	        	params = findSearchParams(node.getChildNodes());
+	    	// did we find the searchParam node?
+	    	if (isSearchParams) {
+	    		return node.getParentNode();
 	        }
-        	if (params != null) {
-        		return params; // short circuit
+	    	
+	    	// check all children
+	    	node = findSearchParamsNode(node.getChildNodes());
+	    	
+	    	// short circuit: stop looping if we found the node
+        	if (node != null) {
+	    		return node;
         	}
 		}
-		return params;
+		// if we have not found it then return nothing
+		return null;
+	}
+	
+	
+	String extractSearchParams(Node node) {
+		Node propertyNode   = node.getFirstChild().getNextSibling();
+        String propertyName = textForMatchingTag(propertyNode, "PropertyName");
+        
+    	// did we find the searchParams
+    	if ( "searchParams".equalsIgnoreCase(propertyName) ) {
+        	String searchParams = textForMatchingTag(node.getLastChild().getPreviousSibling(), "Literal");
+        	return searchParams;
+        }
+		return "";
 	}
 
-	void textForMatchingTag(Node child, Map<String, String> searchParams, String tagName) {
-		if (child != null) {
-			if (child.getNodeName().contains(tagName)) {
-				searchParams.put(tagName, child.getTextContent());
-			}
+	String textForMatchingTag(Node child, String tagName) {
+		if (child != null && child.getNodeName().contains(tagName)) {
+			return child.getTextContent();
 		}
+		return null;
 	}
 
 	public Map<String, String> ogcParse() {
@@ -129,7 +143,9 @@ public class OgcWfsParser {
 		// TODO enh with typeName and typeNames version checking
 	}
 	
-	
+	public String getBodyMinusSearchParams() {
+		return bodyMinusSearchParams;
+	}
 	String getBody() throws Exception {
 		if (body != null) {
 			return body;
@@ -172,8 +188,8 @@ public class OgcWfsParser {
 		return doc;
 	}
 
-	NodeList nodes(Document doc, String subtag) {
-		NodeList nodes = doc.getElementsByTagName(subtag);
+	NodeList nodes(Element node, String subtag) {
+		NodeList nodes = node.getElementsByTagName(subtag);
 		
 		return nodes;
 	}

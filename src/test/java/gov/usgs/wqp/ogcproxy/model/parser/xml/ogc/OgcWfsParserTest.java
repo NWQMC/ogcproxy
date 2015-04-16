@@ -1,7 +1,11 @@
 package gov.usgs.wqp.ogcproxy.model.parser.xml.ogc;
 
 import static org.junit.Assert.*;
+import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
+import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -64,6 +68,24 @@ public class OgcWfsParserTest {
 			"		            <ogc:Literal>"+SEARCH_PARAMS+"</ogc:Literal> "+
 			"                 </ogc:PropertyIsEqualTo> "+
 			"             </ogc:And> "+
+			"         </ogc:Filter> "+
+			"     </wfs:Query> "+
+			" </wfs:GetFeature> ";
+
+	final String noSearchParamOcgXml = 
+			" <?xml version=\"1.0\" encoding=\"UTF-8\"?> "+
+			" <wfs:GetFeature xmlns:wfs=\"http://www.opengis.net/wfs\" service=\"WFS\" version=\"1.1.0\" "+
+			"     xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "+
+			"     xsi:schemaLocation=\"http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd\" "+
+			"     xmlns:ows=\"http://www.opengis.net/ows/1.1\"> "+
+			"     <wfs:Query typeName=\"wqp_sites\" srsName=\"EPSG:900913\"> "+
+			"         <ogc:Filter xmlns:ogc=\"http://www.opengis.net/ogc\"> "+
+			"                 <ogc:BBOX> "+
+			"                     <gml:Envelope xmlns:gml=\"http://www.opengis.net/gml\" srsName=\"EPSG:900913\"> "+
+			"                         <gml:lowerCorner>-10534634.541594 5203332.5364988</gml:lowerCorner> "+
+			"                         <gml:upperCorner>-9791055.1305685 5614258.0004863</gml:upperCorner> "+
+			"                     </gml:Envelope> "+
+			"                 </ogc:BBOX> "+
 			"         </ogc:Filter> "+
 			"     </wfs:Query> "+
 			" </wfs:GetFeature> ";
@@ -252,7 +274,7 @@ public class OgcWfsParserTest {
 		
 		assertEquals(expected, content);
 	}
-	
+
 	
 	@Test
 	public void testSearchParse_searchParamOcgXml() throws Exception {
@@ -262,13 +284,65 @@ public class OgcWfsParserTest {
 		
 		request.setContent(searchParamOcgXml.getBytes());
 		
-		String searchParams = new OgcWfsParser(request).searchParse();
+		String searchParams = new OgcWfsParser(request).searchParams();
 		
 		System.out.println();
 		System.out.println(searchParams);
 		System.out.println();
 		
-		assertEquals(SEARCH_PARAMS, searchParams);
+		assertEquals(SEARCH_PARAMS.replaceAll("%3A", ":").replaceAll("%7C", "|"), searchParams);
+	}
+
+	@Test
+	public void testSearchParse_bodyMinusSearchParams() throws Exception {
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("POST");
+		request.setContentType("application/xml");
+		
+		request.setContent(searchParamOcgXml.getBytes());
+		
+		OgcWfsParser parser = new OgcWfsParser(request);
+		String searchParams = parser.searchParams();
+		String bodyMinusSearchParams = parser.getBodyMinusSearchParams().replaceAll("\\s+"," ");
+		String body = parser.getBody().replaceAll("\\s+", " ");
+		
+		System.out.println();
+		System.out.println(searchParams);
+		System.out.println(body);
+		System.out.println(bodyMinusSearchParams);
+		System.out.println();
+		
+		assertTrue("we expect the original to be longer than when searchParams are removed", body.length() > bodyMinusSearchParams.length() );
+		assertFalse("body and body minus searchParams should not be the same",  body.equals(bodyMinusSearchParams) );
+		
+		// we are expecting a transformation like this
+		//<wfs:GetFeature xmlns:wfs="http://www.opengis.net/wfs" service="WFS" version="1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd" xmlns:ows="http://www.opengis.net/ows/1.1"> <wfs:Query typeName="wqp_sites" srsName="EPSG:900913"> <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc"> <ogc:And> <ogc:BBOX> <gml:Envelope xmlns:gml="http://www.opengis.net/gml" srsName="EPSG:900913"> <gml:lowerCorner>-10534634.541594 5203332.5364988</gml:lowerCorner> <gml:upperCorner>-9791055.1305685 5614258.0004863</gml:upperCorner> </gml:Envelope> </ogc:BBOX> <ogc:PropertyIsEqualTo> 		 <ogc:PropertyName>searchParams</ogc:PropertyName> 		 <ogc:Literal>countrycode:US;statecode:US%3A55%7CUS%3A28%7CUS%3A32;characteristicName:Atrazine</ogc:Literal> </ogc:PropertyIsEqualTo> </ogc:And> </ogc:Filter> </wfs:Query> </wfs:GetFeature>
+		//<?xml version="1.0" encoding="UTF-8" standalone="no"?><wfs:GetFeature xmlns:wfs="http://www.opengis.net/wfs" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" service="WFS" version="1.1.0" xsi:schemaLocation="http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd"> <wfs:Query srsName="EPSG:900913" typeName="wqp_sites"> <ogc:Filter xmlns:ogc="http://www.opengis.net/ogc"> <ogc:And> <ogc:BBOX> <gml:Envelope xmlns:gml="http://www.opengis.net/gml" srsName="EPSG:900913"> <gml:lowerCorner>-10534634.541594 5203332.5364988</gml:lowerCorner> <gml:upperCorner>-9791055.1305685 5614258.0004863</gml:upperCorner> </gml:Envelope> </ogc:BBOX> </ogc:And> </ogc:Filter> </wfs:Query> </wfs:GetFeature>
+	}
+
+
+	@Test
+	public void testSearchParse_body_IS_withoutSearchParams() throws Exception {
+		MockHttpServletRequest request = new MockHttpServletRequest();
+		request.setMethod("POST");
+		request.setContentType("application/xml");
+		
+		request.setContent(noSearchParamOcgXml.getBytes());
+		
+		OgcWfsParser parser = new OgcWfsParser(request);
+		String searchParams = parser.searchParams();
+		String bodyMinusSearchParams = parser.getBodyMinusSearchParams().replaceAll("\\s+"," ");
+		String body = parser.getBody().replaceAll("\\s+", " ");
+		
+		System.out.println();
+		System.out.println(searchParams);
+		System.out.println(body);
+		System.out.println(bodyMinusSearchParams);
+		System.out.println();
+		
+		assertEquals("searchParams should be the empty string when not provided", "", searchParams);
+		assertEquals("we expect the original to be the same when searchParams are not provided", body.length(),  bodyMinusSearchParams.length() );
+		assertEquals("body and body minus searchParams should be the same when searchParams are not provided",  body, bodyMinusSearchParams );
 	}
 
 	@Test
@@ -285,9 +359,19 @@ public class OgcWfsParserTest {
 		System.out.println(requestParams);
 		System.out.println();
 		
-		assertEquals("US", requestParams.get("countrycode"));
-		assertEquals("US:55;US:28;US:32", requestParams.get("statecode"));
-		assertEquals("Atrazine", requestParams.get("characteristicName"));
+		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
+		Map<String, String> wxsParams = new HashMap<String, String>();
+		ProxyUtil.separateParameters(requestParams, wxsParams, searchParams);
+		
+		System.out.println();
+		System.out.println(searchParams);
+		System.out.println();
+		
+		assertEquals("US", searchParams.get("countrycode").get(0));
+		assertEquals("US:55", searchParams.get("statecode").get(0));
+		assertEquals("US:28", searchParams.get("statecode").get(1));
+		assertEquals("US:32", searchParams.get("statecode").get(2));
+		assertEquals("Atrazine", searchParams.get("characteristicName").get(0));
 	}
 
 }
