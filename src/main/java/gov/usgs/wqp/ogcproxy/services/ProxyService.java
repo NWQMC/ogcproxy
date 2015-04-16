@@ -386,10 +386,10 @@ public class ProxyService {
 	}
 	
 	// NEW POST OGC XML WMS
-			HttpServletResponse response, Map<String, String> requestParams, Map<String, String> ogcParams) {
 	public void performPostWMSRequest(HttpServletRequest request,
+			HttpServletResponse response, Map<String, String> requestParams) {
 		
-		String layerParamName             = ogcParams.get(WFSParameters.typeName.toString());
+		String layerParamName             = requestParams.get(WFSParameters.typeName.toString());
 		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
 		String layerParamNameToAdd        = servletQueryLayerParamName;
 		String queryLayerParam            = layerParamName;
@@ -397,10 +397,10 @@ public class ProxyService {
 		performGetRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
 	}
 	// NEW POST OGC XML WFS
-			HttpServletResponse response, Map<String, String> requestParams, Map<String, String> ogcParams) {
 	public void performPostWFSRequest(HttpServletRequest request,
+			HttpServletResponse response, Map<String, String> requestParams) {
 		
-		String layerParamName             = ogcParams.get(WFSParameters.typeName.toString());
+		String layerParamName             = requestParams.get(WFSParameters.typeName.toString());
 		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
 		String layerParamNameToAdd        = servletQueryLayerParamName;
 		String queryLayerParam            = layerParamName;
