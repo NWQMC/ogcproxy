@@ -222,7 +222,7 @@ public class ProxyUtil {
     }
     
     /**
-     * getFinalRequestedService()
+     * getRequestedService()
      * <br /><br />
      * It's possible for a base request (by path) to go to one OGC service but actually
      * request another OGC service.  This is accomplished by filling in the "service" 
@@ -234,24 +234,7 @@ public class ProxyUtil {
      * @param calledService
      * @return
      */
-    public static OGCServices getFinalRequestedService(Map<String,String> requestParams, OGCServices calledService) {
-    	String serviceValue = requestParams.get(OGC_SERVICE_PARAMETER);
-    	
-    	if (isEmpty(serviceValue)) {
-    		return calledService;
-    	}
-    	
-    	OGCServices requestedService = OGCServices.getTypeFromString(serviceValue);
-    	
-    	if ((requestedService == calledService) || (requestedService == OGCServices.UNKNOWN)) {
-    		return calledService;
-    	}
-    	
-    	return requestedService;
-    }
-    
-	// TODO asdf
-    public static OGCServices getPostRequestedService(HttpServletRequest request, OGCServices calledService, Map<String, String> ogcParams) {
+    public static OGCServices getRequestedService(OGCServices calledService, Map<String, String> ogcParams) {
     	OGCServices requestedService = OGCServices.UNKNOWN;
     	
 		try {

@@ -64,7 +64,7 @@ public class OGCProxyController {
 	@Async
 	@RequestMapping(value="**/wms", method={RequestMethod.GET, RequestMethod.POST})
     public void wmsProxy(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
-		ProxyUtil.getFinalRequestedService(requestParams, OGCServices.WMS);
+		ProxyUtil.getRequestedService(OGCServices.WMS, requestParams);
 		log.info("OGCProxyController.performOGCRequest() INFO - Performing WMS request.");
 		proxyService.performWMSRequest(request, response, requestParams);
 	}
@@ -72,7 +72,7 @@ public class OGCProxyController {
 	@Async
 	@RequestMapping(value="**/wfs", method=RequestMethod.GET)
     public void wfsProxyGet(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
-		ProxyUtil.getFinalRequestedService(requestParams, OGCServices.WFS);
+		ProxyUtil.getRequestedService(OGCServices.WFS, requestParams);
 		log.info("OGCProxyController.performOGCRequest() INFO - Performing WMS request.");
 		proxyService.performWFSRequest(request, response, requestParams);
 	}
@@ -84,7 +84,7 @@ public class OGCProxyController {
 		
 		OgcWfsParser ogcParser =  new OgcWfsParser(request);
 		Map<String, String> requestParams = ogcParser.requestParamsPayloadToMap();
-		ProxyUtil.getPostRequestedService(request, OGCServices.WMS, requestParams);
+		ProxyUtil.getRequestedService(OGCServices.WMS, requestParams);
 		
 		proxyService.performPostWMSRequest(request, response, requestParams);
 	}
@@ -96,7 +96,7 @@ public class OGCProxyController {
 
 		OgcWfsParser ogcParser =  new OgcWfsParser(request);
 		Map<String, String> requestParams = ogcParser.requestParamsPayloadToMap();
-		ProxyUtil.getPostRequestedService(request, OGCServices.WFS, requestParams);
+		ProxyUtil.getRequestedService(OGCServices.WFS, requestParams);
 		
 		proxyService.performPostWFSRequest(request, response, requestParams);
 	}
