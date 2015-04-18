@@ -113,43 +113,43 @@ public class ProxyUtil {
 	}
 	
 	public static String getErrorViewByFormat(String format) {
-		if(isEmpty(format)) {
+		if (isEmpty(format)) {
 			ProxyViewResult.getViewForType(ProxyViewResult.ERROR_XML);
 		}
 		
-		if("image/png".equals(format.toLowerCase())) {
+		if ("image/png".equals(format.toLowerCase())) {
 			return ProxyViewResult.getViewForType(ProxyViewResult.EMPTY_PNG);
 		}
 		
-		if("image/png8".equals(format.toLowerCase())) {
+		if ("image/png8".equals(format.toLowerCase())) {
 			return ProxyViewResult.getViewForType(ProxyViewResult.EMPTY_PNG);
 		}
 		
-		if("image/jpeg".equals(format.toLowerCase())) {
+		if ("image/jpeg".equals(format.toLowerCase())) {
 			return ProxyViewResult.getViewForType(ProxyViewResult.EMPTY_JPG);
 		}
 		
-		if("image/jpg".equals(format.toLowerCase())) {
+		if ("image/jpg".equals(format.toLowerCase())) {
 			return ProxyViewResult.getViewForType(ProxyViewResult.EMPTY_JPG);
 		}
 		
-		if("image/tiff".equals(format.toLowerCase())) {
+		if ("image/tiff".equals(format.toLowerCase())) {
 			return ProxyViewResult.getViewForType(ProxyViewResult.EMPTY_TIFF);
 		}
 		
-		if("image/tiff8".equals(format.toLowerCase())) {
+		if ("image/tiff8".equals(format.toLowerCase())) {
 			return ProxyViewResult.getViewForType(ProxyViewResult.EMPTY_TIFF);
 		}
 		
-		if("image/geotiff".equals(format.toLowerCase())) {
+		if ("image/geotiff".equals(format.toLowerCase())) {
 			return ProxyViewResult.getViewForType(ProxyViewResult.EMPTY_TIFF);
 		}
 		
-		if("image/geotiff8".equals(format.toLowerCase())) {
+		if ("image/geotiff8".equals(format.toLowerCase())) {
 			return ProxyViewResult.getViewForType(ProxyViewResult.EMPTY_TIFF);
 		}
 		
-		if("application/pdf".equals(format.toLowerCase())) {
+		if ("application/pdf".equals(format.toLowerCase())) {
 			return ProxyViewResult.getViewForType(ProxyViewResult.EMPTY_PDF);
 		}
 		
@@ -168,15 +168,15 @@ public class ProxyUtil {
 	 * @return
 	 */
 	public static boolean separateParameters(Map<String,String> requestParams, Map<String,String> ogcParams, Map<String, List<String>> searchParams) {
-		if(requestParams == null) {
+		if (requestParams == null) {
 			return false;
 		}
 		
-		if(ogcParams == null) {
+		if (ogcParams == null) {
 			ogcParams = new HashMap<String,String>();
 		}
 		
-		if(searchParams == null) {
+		if (searchParams == null) {
 			searchParams = new SearchParameters<String,List<String>>();
 		}
 		
@@ -206,13 +206,13 @@ public class ProxyUtil {
 	         * upper cases all of its parameters including this specific parameter.  We
 	         * will make the "searchParams" case insensitive
 	         */
-	        if(key.toLowerCase().equals(ProxyUtil.searchParamKey.toLowerCase())) {
+	        if (key.toLowerCase().equals(ProxyUtil.searchParamKey.toLowerCase())) {
 	        	containsSearchQuery = true;
 	        	servletSearchParamName = key;
 	        	continue;
 	        }
 	        
-	        if(key.equals(ProxyUtil.testParamKey)) {
+	        if (key.equals(ProxyUtil.testParamKey)) {
 	        	continue;
 	        }
 	        
@@ -220,7 +220,7 @@ public class ProxyUtil {
 	    }
 	    log.debug("ProxyUtil.separateParameters() OGC PARAMETER MAP:\n[" + ogcParams + "]");
 		
-		if(containsSearchQuery) {			
+		if (containsSearchQuery) {			
 			String searchParamString = requestParams.get(servletSearchParamName);
 			
 			/**
@@ -269,7 +269,7 @@ public class ProxyUtil {
 			}
             requestBuffer.append(encodedValue);
             
-            if(paramEntryItr.hasNext()) {
+            if (paramEntryItr.hasNext()) {
             	requestBuffer.append("&");
             }
         }        

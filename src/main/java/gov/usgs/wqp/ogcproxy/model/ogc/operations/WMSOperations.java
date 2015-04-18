@@ -65,7 +65,7 @@ public enum WMSOperations {
 		List<WMSParameters> requiredParams = new ArrayList<WMSParameters>();
 		
 		for(WMSParameters param : params) {
-			if(isRequired(param)) {
+			if (isRequired(param)) {
 				requiredParams.add(param);
 			}
 		}

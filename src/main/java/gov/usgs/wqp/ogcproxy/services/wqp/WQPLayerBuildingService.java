@@ -1,6 +1,7 @@
 package gov.usgs.wqp.ogcproxy.services.wqp;
 
 import static org.springframework.util.StringUtils.isEmpty;
+
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
@@ -543,7 +544,7 @@ public class WQPLayerBuildingService {
 		} catch (OGCProxyException e) {
 			log.error(e.traceBack());
 			
-			if(layerCache != null) {
+			if (layerCache != null) {
 				layerCache.setCurrentStatus(DynamicLayerStatus.ERROR);
 				layerCachingService.removeLayerCache(layerCache.getSearchParameters().unsignedHashCode() + "");
 			}
@@ -558,7 +559,7 @@ public class WQPLayerBuildingService {
 		 */
 		for (String layerParam : layerParams) {
 			String currentLayers = ogcParams.get(layerParam);
-			if(isEmpty(currentLayers) || (currentLayers.equals(dataSource.toString()))) {
+			if (isEmpty(currentLayers) || (currentLayers.equals(dataSource.toString()))) {
 				currentLayers = geoserverWorkspace + ":" + layerCache.getLayerName();
 			} else {
 				currentLayers += "," + geoserverWorkspace + ":" + layerCache.getLayerName();
@@ -593,7 +594,7 @@ public class WQPLayerBuildingService {
 				 * closing </Layer> tag and insert our stuff before it.
 				 */
 				int closingParentTag = serverContent.lastIndexOf("</Layer>");
-				if(closingParentTag == -1) {
+				if (closingParentTag == -1) {
 					log.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WMS GetCapabilities response from mapping service does not contain a closing </Layer> element.  Returning silently...");
 					return serverContent;
 				}
@@ -620,17 +621,17 @@ public class WQPLayerBuildingService {
 				 * this tag we'll just insert it right before the closing </ows:Operation> tag.
 				 */
 				int getFeatureTag = serverContent.lastIndexOf("<ows:Operation name=\"GetFeature\">");
-				if(getFeatureTag == -1) {
+				if (getFeatureTag == -1) {
 					log.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WFS GetCapabilities response from mapping service does not contain a <ows:Operation name=\"GetFeature\"> element.  Returning silently...");
 					return serverContent;
 				}
 				
 				int insertTag = serverContent.indexOf("</ows:DCP>", getFeatureTag);
-				if(insertTag == -1) {
+				if (insertTag == -1) {
 					log.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WFS GetCapabilities response from mapping service does not contain a closing </ows:DCP> element from the location of the <ows:Operation name=\"GetFeature\"> tag.  Looking for closing Operation tag.");
 					
 					insertTag = serverContent.indexOf("</ows:Operation>", getFeatureTag);
-					if(insertTag == -1) {
+					if (insertTag == -1) {
 						log.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WFS GetCapabilities response from mapping service does not contain a closing </ows:Operation> element from the location of the <ows:Operation name=\"GetFeature\"> tag.  Returning silently...");
 						return serverContent;
 					}
@@ -874,7 +875,7 @@ public class WQPLayerBuildingService {
 		 * Write the features to the shapefile
 		 */
 		TimeProfiler.startTimer("WQPLayerBuildingService.createShapeFile() INFO: OVERALL GeoTools ShapeFile Creation Time");
-		if(!ShapeFileUtils.writeToShapeFile(newDataStore, featureType, features, path, filename)) {
+		if (!ShapeFileUtils.writeToShapeFile(newDataStore, featureType, features, path, filename)) {
 			String error = "Unable to write shape file";
 			log.error(error);
 			return false;

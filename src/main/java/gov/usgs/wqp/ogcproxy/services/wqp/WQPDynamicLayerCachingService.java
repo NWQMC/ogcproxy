@@ -198,7 +198,7 @@ public class WQPDynamicLayerCachingService {
 				
 				Thread.sleep(WQPDynamicLayerCachingService.threadSleep);
 			} catch (InterruptedException e) {
-				if((currentCache.getCurrentStatus() != DynamicLayerStatus.AVAILABLE) && (currentCache.getCurrentStatus() != DynamicLayerStatus.EMPTY)) {
+				if ((currentCache.getCurrentStatus() != DynamicLayerStatus.AVAILABLE) && (currentCache.getCurrentStatus() != DynamicLayerStatus.EMPTY)) {
 					String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : Caught Interrupted Exception waiting for " +
 							  "Cache object [" + key + "] status to change.  Its current status is [" +
 							  DynamicLayerStatus.getStringFromType(currentCache.getCurrentStatus()) +
@@ -227,7 +227,7 @@ public class WQPDynamicLayerCachingService {
 			 * Set the status to ERROR so that anyone currently waiting to use the cache will
 			 * see it as invalid
 			 */
-			if(currentCache != null) {
+			if (currentCache != null) {
 				String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : Removed Layer Cache for layer name [" +
 							 currentCache.getLayerName() + "] for key [" + searchParamKey + "].  Invalidating " +
 							 "cache for any current threads.";
@@ -267,7 +267,7 @@ public class WQPDynamicLayerCachingService {
 				log.error(e.traceBack());
 			}
 			
-			if(threadSafeCache != null) {
+			if (threadSafeCache != null) {
 				threadSafeCache.setCurrentStatus(DynamicLayerStatus.ERROR);
 				removeLayerCache(threadSafeCache.getSearchParameters().unsignedHashCode() + "");
 			} else {

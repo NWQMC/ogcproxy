@@ -759,7 +759,7 @@ public class ProxyService {
 				// have to expand the following logic.
 				byte[] inspectedBytes;
 				String contentType = methodEntity.getContentType().getValue();
-				if((contentType != null) && (contentType.toLowerCase().contains("xml"))) {
+				if ((contentType != null) && (contentType.toLowerCase().contains("xml"))) {
 					inspectedBytes = inspectServerContent(clientRequest, ogcRequestType, serviceType, serverContent, contentCompressed, dataSource);
 					
 					// We must set the content-length here for the possible change

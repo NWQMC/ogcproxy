@@ -21,14 +21,14 @@ public class ShapeFileUtility {
 			
 			for(int i = 0; i < values.length; i++) {
 				CLIMode mode = values[i];
-				if(CLIMode.UNKNOWN == mode) {
+				if (CLIMode.UNKNOWN == mode) {
 					continue;
 				}
 				
 				result.append(mode);
 				
-				if(i < (values.length - 1)) {
-					if(values[i+1] != CLIMode.UNKNOWN) {
+				if (i < (values.length - 1)) {
+					if (values[i+1] != CLIMode.UNKNOWN) {
 						result.append(", ");
 					}
 				}

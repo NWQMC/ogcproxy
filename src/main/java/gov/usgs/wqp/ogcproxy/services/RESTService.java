@@ -65,9 +65,9 @@ public class RESTService {
 		 * to check initialization after instantiation and set the env
 		 * properties here.
 		 */
-		if(!initialized) {
+		if (!initialized) {
 			synchronized(RESTService.class) {
-				if(!initialized) {
+				if (!initialized) {
 					initialized = true;
 				}
 			}
@@ -84,10 +84,10 @@ public class RESTService {
 		 */
 		boolean siteFound = false;
 		ProxyDataSourceParameter siteValue = ProxyDataSourceParameter.UNKNOWN;
-		if((site != null) && (!site.equals(""))) {
+		if ((site != null) && (!site.equals(""))) {
 			siteValue = ProxyDataSourceParameter.getTypeFromString(site);
 			
-			if(siteValue != ProxyDataSourceParameter.UNKNOWN) {
+			if (siteValue != ProxyDataSourceParameter.UNKNOWN) {
 				siteFound = true;
 			}
 		}
@@ -95,7 +95,7 @@ public class RESTService {
 		/**
 		 * Did we find a legitimate site value or do we need to return an error?
 		 */
-		if(!siteFound) {
+		if (!siteFound) {
 			ModelAndView mv = new ModelAndView("invalid_site.jsp");
 			finalResult.setResult(mv);
 			return;
@@ -127,10 +127,10 @@ public class RESTService {
 		 */
 		boolean siteFound = false;
 		ProxyDataSourceParameter siteValue = ProxyDataSourceParameter.UNKNOWN;
-		if((site != null) && (!site.equals(""))) {
+		if ((site != null) && (!site.equals(""))) {
 			siteValue = ProxyDataSourceParameter.getTypeFromString(site);
 			
-			if(siteValue != ProxyDataSourceParameter.UNKNOWN) {
+			if (siteValue != ProxyDataSourceParameter.UNKNOWN) {
 				siteFound = true;
 			}
 		}
@@ -138,7 +138,7 @@ public class RESTService {
 		/**
 		 * Did we find a legitimate site value or do we need to return an error?
 		 */
-		if(!siteFound) {
+		if (!siteFound) {
 			ModelAndView mv = new ModelAndView("invalid_site.jsp");
 			mv.addObject("site", site);
 			finalResult.setResult(mv);

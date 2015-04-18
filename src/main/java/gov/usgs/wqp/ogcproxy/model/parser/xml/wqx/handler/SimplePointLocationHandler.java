@@ -119,7 +119,7 @@ public class SimplePointLocationHandler extends DefaultHandler {
 		//log.debug(msg);
 		contents.reset();
 		
-		if(SimplePointLocationHandler.LOCATION_START.equals(qName)) {
+		if (SimplePointLocationHandler.LOCATION_START.equals(qName)) {
 			this.currentPointFeature = new SimplePointFeature(this.featureBuilder, this.currentSourceProvider);
 		}
 	}
@@ -132,8 +132,8 @@ public class SimplePointLocationHandler extends DefaultHandler {
 		/**
 		 * SimplePointFeature name element
 		 */
-		if(SimplePointLocationHandler.LOCATION_IDENTIFIER.equals(qName)) {
-			if(this.currentPointFeature != null) {
+		if (SimplePointLocationHandler.LOCATION_IDENTIFIER.equals(qName)) {
+			if (this.currentPointFeature != null) {
 				this.currentPointFeature.setName(contents.toString());
 			} else {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
@@ -146,8 +146,8 @@ public class SimplePointLocationHandler extends DefaultHandler {
 		/**
 		 * SimplePointFeature type element
 		 */
-		if(SimplePointLocationHandler.LOCATION_TYPE.equals(qName)) {
-			if(this.currentPointFeature != null) {
+		if (SimplePointLocationHandler.LOCATION_TYPE.equals(qName)) {
+			if (this.currentPointFeature != null) {
 				this.currentPointFeature.setType(contents.toString());
 			} else {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
@@ -160,8 +160,8 @@ public class SimplePointLocationHandler extends DefaultHandler {
 		/**
 		 * SimplePointFeature latitude element
 		 */
-		if(SimplePointLocationHandler.LATTITUDE.equals(qName)) {
-			if(this.currentPointFeature != null) {
+		if (SimplePointLocationHandler.LATTITUDE.equals(qName)) {
+			if (this.currentPointFeature != null) {
 				double value = 0.0;
 				String stringValue = contents.toString();
 				try {
@@ -190,8 +190,8 @@ public class SimplePointLocationHandler extends DefaultHandler {
 		/**
 		 * SimplePointFeature longitude element
 		 */
-		if(SimplePointLocationHandler.LONGITUDE.equals(qName)) {
-			if(this.currentPointFeature != null) {
+		if (SimplePointLocationHandler.LONGITUDE.equals(qName)) {
+			if (this.currentPointFeature != null) {
 				double value = 0.0;
 				String stringValue = contents.toString();
 				try {
@@ -220,14 +220,14 @@ public class SimplePointLocationHandler extends DefaultHandler {
 		/**
 		 * The ending tag for this feature
 		 */
-		if(SimplePointLocationHandler.LOCATION_START.equals(qName)) {
+		if (SimplePointLocationHandler.LOCATION_START.equals(qName)) {
 			this.simplePointFeatures.add(this.currentPointFeature);
 		}
 		
 		/**
 		 * Tag flag to return handling to the parent
 		 */
-		if(SimplePointProviderHandler.SUBHANDLER_ELEMENT.equals(qName)) {
+		if (SimplePointProviderHandler.SUBHANDLER_ELEMENT.equals(qName)) {
 			this.xmlReader.setContentHandler(this.parentHandler);
 			return;
 		}

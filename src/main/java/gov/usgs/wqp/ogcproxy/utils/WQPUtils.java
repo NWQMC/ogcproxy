@@ -48,7 +48,7 @@ public class WQPUtils {
 	public static final String layerPrefix = "dynamicSites_";
 	
 	public static void parseSearchParams(String searchParamString, Map<String, List<String>> searchParams) {
-		if(searchParams == null) {
+		if (searchParams == null) {
 			searchParams = new SearchParameters<String,List<String>>();
 		}
 		
@@ -97,7 +97,7 @@ public class WQPUtils {
 			 */
 			List<String> keyValue = Arrays.asList(pairs.split(":", 2));
 			
-			if(keyValue.size() != 2) {
+			if (keyValue.size() != 2) {
 				log.warn("WQPUtils.parseSearchParams() ERROR: keyValue pair [" + pairs + "] does not split evenly with a colon.  " +
 						  "Resulting split results in an array of size {" + keyValue.size() + "} with values: " + keyValue +
 						  ".  Skipping this search param.");
@@ -135,7 +135,7 @@ public class WQPUtils {
             	String rawValue = rawValueItr.next();
             	joinedValues.append(rawValue);
             	
-            	if(rawValueItr.hasNext()) {
+            	if (rawValueItr.hasNext()) {
             		joinedValues.append(";");
             	}
             }
@@ -149,7 +149,7 @@ public class WQPUtils {
 			}
 			requestURIBuffer.append(encodedValue);
             
-            if(paramEntryItr.hasNext()) {
+            if (paramEntryItr.hasNext()) {
             	requestURIBuffer.append("&");
             }
         }
@@ -210,7 +210,7 @@ public class WQPUtils {
         int statusCode = serverStatusLine.getStatusCode();
         log.debug("WQPUtils.retrieveSearchParamData() DEBUG: Server status code " + statusCode);
         
-        if(statusCode != 200) {
+        if (statusCode != 200) {
         	String msg = "WQPUtils.retrieveSearchParamData() Invalid response from WQP server.  Status code [" +
         			statusCode + "].\nResponseHeaders: [" + Arrays.toString(methodResponse.getAllHeaders());
 			log.error(msg);
@@ -268,7 +268,7 @@ public class WQPUtils {
 		 * was empty, we'll have an empty file
 		 */
 		File dataFile = new File(filePath);
-		if(dataFile.length() > 0) {
+		if (dataFile.length() > 0) {
 			return filePath;
 		}
 		

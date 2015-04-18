@@ -67,7 +67,7 @@ public class TimeProfiler {
 		long result = 0;
 		
 		Long startTime = TimeProfiler.timers.remove(name);
-		if(startTime != null) {
+		if (startTime != null) {
 			result = endTime - startTime;
 			
 			result -= TimeProfiler.averageInsertTime - TimeProfiler.averageRemoveTime;
@@ -82,7 +82,7 @@ public class TimeProfiler {
 		long result = 0;
 		
 		Long startTime = TimeProfiler.timers.remove(name);
-		if(startTime != null) {
+		if (startTime != null) {
 			result = endTime - startTime;
 			
 			result -= TimeProfiler.averageInsertTime - TimeProfiler.averageRemoveTime;
