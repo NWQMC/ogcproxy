@@ -1,7 +1,6 @@
 package gov.usgs.wqp.ogcproxy.services;
 
 import static org.springframework.util.StringUtils.isEmpty;
-
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WFSParameters;
@@ -10,8 +9,8 @@ import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
+import gov.usgs.wqp.ogcproxy.utils.ProxyServiceResult;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
-import gov.usgs.wqp.ogcproxy.utils.ProxyUtil.ProxyServiceResult;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
 
 import java.io.IOException;
