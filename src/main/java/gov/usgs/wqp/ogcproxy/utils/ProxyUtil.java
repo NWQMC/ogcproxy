@@ -55,31 +55,11 @@ public class ProxyUtil {
 		SUCCESS, EMPTY, ERROR;
 
 		public static ProxyServiceResult getTypeFromString(String string) {
-			if (string.equals("SUCCESS")) {
-				return SUCCESS;
-			}
-			
-			if (string.equals("EMPTY")) {
-				return EMPTY;
-			}
-
-			return ERROR;
+			return StringUtils.getTypeFromString(string, ERROR);
 		}
 
 		public static String getStringFromType(ProxyServiceResult type) {
-			switch (type) {
-				case SUCCESS: {
-					return "SUCCESS";
-				}
-				
-				case EMPTY: {
-					return "EMPTY";
-				}
-				
-				default: {
-					return "ERROR";
-				}
-			}
+			return StringUtils.getStringFromType(type, ERROR);
 		}
 	}
 	
@@ -94,55 +74,11 @@ public class ProxyUtil {
 		EMPTY_JPG, EMPTY_PNG, EMPTY_TIFF, EMPTY_PDF, EMPTY_XML, ERROR_XML;
 
 		public static ProxyViewResult getTypeFromString(String string) {
-			if (string.equals("EMPTY_JPG")) {
-				return EMPTY_JPG;
-			}
-			
-			if (string.equals("EMPTY_PNG")) {
-				return EMPTY_PNG;
-			}
-			
-			if (string.equals("EMPTY_TIFF")) {
-				return EMPTY_TIFF;
-			}
-			
-			if (string.equals("EMPTY_PDF")) {
-				return EMPTY_PDF;
-			}
-			
-			if (string.equals("EMPTY_XML")) {
-				return EMPTY_XML;
-			}
-
-			return ERROR_XML;
+			return StringUtils.getTypeFromString(string, ERROR_XML);
 		}
 
 		public static String getStringFromType(ProxyViewResult type) {
-			switch (type) {
-				case EMPTY_JPG: {
-					return "EMPTY_JPG";
-				}
-				
-				case EMPTY_PNG: {
-					return "EMPTY_PNG";
-				}
-				
-				case EMPTY_TIFF: {
-					return "EMPTY_TIFF";
-				}
-				
-				case EMPTY_PDF: {
-					return "EMPTY_PDF";
-				}
-				
-				case EMPTY_XML: {
-					return "EMPTY_XML";
-				}
-				
-				default: {
-					return "ERROR_XML";
-				}
-			}
+			return StringUtils.getStringFromType(type, ERROR_XML);
 		}
 		
 		public static String getViewForType(ProxyViewResult type) {

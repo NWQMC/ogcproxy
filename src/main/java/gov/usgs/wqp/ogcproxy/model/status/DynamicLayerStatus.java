@@ -1,5 +1,7 @@
 package gov.usgs.wqp.ogcproxy.model.status;
 
+import gov.usgs.wqp.ogcproxy.utils.StringUtils;
+
 /**
  * DynamicLayerStatus
  * @author prusso
@@ -11,54 +13,10 @@ public enum DynamicLayerStatus {
 	AVAILABLE, BUILDING, INITIATED, EMPTY, ERROR;
 
 	public static DynamicLayerStatus getTypeFromString(String string) {
-		if (string.equals("AVAILABLE")) {
-			return AVAILABLE;
-		}
-		
-		if (string.equals("BUILDING")) {
-			return BUILDING;
-		}
-		
-		if (string.equals("INITIATED")) {
-			return INITIATED;
-		}
-		
-		if (string.equals("EMPTY")) {
-			return EMPTY;
-		}
-		
-		if (string.equals("ERROR")) {
-			return ERROR;
-		}
-
-		return ERROR;
+		return StringUtils.getTypeFromString(string, ERROR);
 	}
 
 	public static String getStringFromType(DynamicLayerStatus type) {
-		switch (type) {
-			case AVAILABLE: {
-				return "AVAILABLE";
-			}
-			
-			case BUILDING: {
-				return "BUILDING";
-			}
-			
-			case INITIATED: {
-				return "INITIATED";
-			}
-			
-			case EMPTY: {
-				return "EMPTY";
-			}
-			
-			case ERROR: {
-				return "ERROR";
-			}
-			
-			default: {
-				return "ERROR";
-			}
-		}
+		return StringUtils.getStringFromType(type, ERROR);
 	}
 }

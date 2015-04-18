@@ -52,11 +52,6 @@ public enum WMSParameters {
 	viewparams,
 	UNKNOWN;
 
-// TODO this is either a but or an undocumented 'feature'		
-//		if (string.equals("srs")) {
-//			return crs;
-//		}
-
 	
 	public String toString() {
 		switch (this) {
@@ -78,149 +73,24 @@ public enum WMSParameters {
 	
 	public static boolean isRequired(WMSParameters type) {
 		switch (type) {
-			case service: {
+			case service: 
+			case version: 
+			case request: 
+			case layer: 
+			case layers: 
+			case styles: 
+			case srs: 
+			case bbox: 
+			case width: 
+			case height: 
+			case format:
+			case query_layers:
+			case x:
+			case y:
 				return true;
-			}
 			
-			case version: {
-				return true;
-			}
-			
-			case request: {
-				return true;
-			}
-			
-			case namespace: {
+			default:
 				return false;
-			}
-			
-			case layer: {
-				return true;
-			}
-			
-			case layers: {
-				return true;
-			}
-			
-			case style: {
-				return false;
-			}
-			
-			case styles: {
-				return true;
-			}
-			
-			case srs: {
-				return true;
-			}
-			
-			case crs: {
-				return false;
-			}
-			
-			case bbox: {
-				return true;
-			}
-			
-			case width: {
-				return true;
-			}
-			
-			case height: {
-				return true;
-			}
-			
-			case format: {
-				return true;
-			}
-			
-			case transparent: {
-				return false;
-			}
-			
-			case bgcolor: {
-				return false;
-			}
-			
-			case exceptions: {
-				return false;
-			}
-			
-			case time: {
-				return false;
-			}
-			
-			case sld: {
-				return false;
-			}
-			
-			case sld_body: {
-				return false;
-			}
-			
-			case query_layers: {
-				return true;
-			}
-			
-			case info_format: {
-				return false;
-			}
-			
-			case feature_count: {
-				return false;
-			}
-			
-			case featuretype: {
-				return false;
-			}
-			
-			case x: {
-				return true;
-			}
-			
-			case i: {
-				return false;
-			}
-			
-			case y: {
-				return true;
-			}
-			
-			case j: {
-				return false;
-			}
-			
-			case buffer: {
-				return false;
-			}
-			
-			case cql_filter: {
-				return false;
-			}
-			
-			case filter: {
-				return false;
-			}
-			
-			case propertyName: {
-				return false;
-			}
-			
-			case rule: {
-				return false;
-			}
-			
-			case scale: {
-				return false;
-			}
-			
-			case viewparams: {
-				return false;
-			}
-			
-			default: {
-				return false;
-			}
 		}
 	}
 }

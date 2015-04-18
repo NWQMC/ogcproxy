@@ -34,12 +34,6 @@ public enum WFSParameters {
 	UNKNOWN;
 	
 	
-//	public final String ogcTag;
-//	
-//	private WFSParameters(String ogcTag) {
-//		this.ogcTag = ogcTag;
-//	}
-	
 	public static boolean isRequired(WFSParameters type) {
 		switch (type) {
 			case service:

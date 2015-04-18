@@ -1,83 +1,17 @@
 package gov.usgs.wqp.ogcproxy.cli;
 
+import gov.usgs.wqp.ogcproxy.utils.StringUtils;
+
 public class ShapeFileUtility {
 	public enum CLIMode {
 		createAndUploadShapefile, createShapefile, uploadShapefile, geoserverPost, geoserverPostFile, geoserverGet, geoserverDelete, UNKNOWN;
 
 		public static CLIMode getTypeFromString(String string) {
-			if (string.equals("createAndUploadShapefile")) {
-				return createAndUploadShapefile;
-			}
-			
-			if (string.equals("createShapefile")) {
-				return createShapefile;
-			}
-			
-			if (string.equals("uploadShapefile")) {
-				return uploadShapefile;
-			}
-			
-			if (string.equals("geoserverPost")) {
-				return geoserverPost;
-			}
-			
-			if (string.equals("geoserverPostFile")) {
-				return geoserverPostFile;
-			}
-			
-			if (string.equals("geoserverGet")) {
-				return geoserverGet;
-			}
-			
-			if (string.equals("geoserverDelete")) {
-				return geoserverDelete;
-			}
-			
-			if (string.equals("UNKNOWN")) {
-				return UNKNOWN;
-			}
-
-			return UNKNOWN;
+			return StringUtils.getTypeFromString(string, UNKNOWN);
 		}
 
 		public static String getStringFromType(CLIMode type) {
-			switch (type) {
-				case createAndUploadShapefile: {
-					return "createAndUploadShapefile";
-				}
-				
-				case createShapefile: {
-					return "createShapefile";
-				}
-				
-				case uploadShapefile: {
-					return "uploadShapefile";
-				}
-				
-				case geoserverPost: {
-					return "geoserverPost";
-				}
-				
-				case geoserverPostFile: {
-					return "geoserverPostFile";
-				}
-				
-				case geoserverGet: {
-					return "geoserverGet";
-				}
-				
-				case geoserverDelete: {
-					return "geoserverDelete";
-				}
-				
-				case UNKNOWN: {
-					return "UNKNOWN";
-				}
-				
-				default: {
-					return "UNKNOWN";
-				}
-			}
+			return StringUtils.getStringFromType(type, UNKNOWN);
 		}
 		
 		public static String validModes() {
