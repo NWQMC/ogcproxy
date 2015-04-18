@@ -1,5 +1,7 @@
 package gov.usgs.wqp.ogcproxy.services;
 
+import static org.springframework.util.StringUtils.isEmpty;
+
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WFSParameters;
@@ -166,8 +168,7 @@ public class ProxyService {
 				String defaultProto = geoserverProtocol;
 				geoserverProtocol = environment
 						.getProperty("wqp.geoserver.proto");
-				if ((geoserverProtocol == null)
-						|| (geoserverProtocol.equals(""))) {
+				if (isEmpty(geoserverProtocol)) {
 					log.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.proto] "
 							+ "- Setting geoserver protocol default to ["
 							+ defaultProto + "].\n");
@@ -183,8 +184,7 @@ public class ProxyService {
 				String defaultHost = geoserverHost;
 				geoserverHost = environment
 						.getProperty("wqp.geoserver.host");
-				if ((geoserverHost == null)
-						|| (geoserverHost.equals(""))) {
+				if (isEmpty(geoserverHost)) {
 					log.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.host] "
 							+ "- Setting geoserver host default to ["
 							+ defaultHost + "].\n");
@@ -200,8 +200,7 @@ public class ProxyService {
 				String defaultPort = geoserverPort;
 				geoserverPort = environment
 						.getProperty("wqp.geoserver.port");
-				if ((geoserverPort == null)
-						|| (geoserverPort.equals(""))) {
+				if (isEmpty(geoserverPort)) {
 					log.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.port] "
 							+ "- Setting geoserver port default to ["
 							+ defaultPort + "].\n");
@@ -222,8 +221,7 @@ public class ProxyService {
 				String defaultContext = geoserverContext;
 				geoserverContext = environment
 						.getProperty("wqp.geoserver.context");
-				if ((geoserverContext == null)
-						|| (geoserverContext.equals(""))) {
+				if (isEmpty(geoserverContext)) {
 					log.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.context] "
 							+ "- Setting geoserver context default to ["
 							+ defaultContext + "].\n");
@@ -239,8 +237,7 @@ public class ProxyService {
 				String defaultWorkspace = geoserverWorkspace;
 				geoserverWorkspace = environment
 						.getProperty("wqp.geoserver.workspace");
-				if ((geoserverWorkspace == null)
-						|| (geoserverWorkspace.equals(""))) {
+				if (isEmpty(geoserverWorkspace)) {
 					log.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.workspace] "
 							+ "- Setting geoserver workspace default to ["
 							+ defaultWorkspace + "].\n");
@@ -458,6 +455,7 @@ public class ProxyService {
 			}
 		}
 		
+		// use dynamic layers for search params
 		if (searchParams.size() > 0) {
 			// Did we find a legitimate layer value or do we need to return an
 			// error (we must have a layer value to do a dynamic search)?

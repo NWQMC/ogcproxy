@@ -1,5 +1,6 @@
 package gov.usgs.wqp.ogcproxy.services.wqp;
 
+import static org.springframework.util.StringUtils.isEmpty;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
@@ -186,7 +187,7 @@ public class WQPLayerBuildingService {
 		if (initialized) {
 			return;
 		}
-		synchronized(WQPLayerBuildingService.class) {
+		synchronized (WQPLayerBuildingService.class) {
 			if (initialized) {
 				return;
 			}
@@ -197,7 +198,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultProto = geoserverProtocol;
 				geoserverProtocol = environment.getProperty("wqp.geoserver.proto");
-				if ((geoserverProtocol == null) || (geoserverProtocol.equals(""))) {
+				if (isEmpty(geoserverProtocol)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.proto] " +
 							  "- Setting geoserver protocol default to [" + defaultProto + "].\n");
 					geoserverProtocol = defaultProto;
@@ -210,7 +211,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultHost = geoserverHost;
 				geoserverHost = environment.getProperty("wqp.geoserver.host");
-				if ((geoserverHost == null) || (geoserverHost.equals(""))) {
+				if (isEmpty(geoserverHost)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.host] " +
 							  "- Setting geoserver host default to [" + defaultHost + "].\n");
 					geoserverHost = defaultHost;
@@ -223,7 +224,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultPort = geoserverPort;
 				geoserverPort = environment.getProperty("wqp.geoserver.port");
-				if ((geoserverPort == null) || (geoserverPort.equals(""))) {
+				if (isEmpty(geoserverPort)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.port] " +
 							  "- Setting geoserver port default to [" + defaultPort + "].\n");
 					geoserverPort = defaultPort;
@@ -236,7 +237,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultContext = geoserverContext;
 				geoserverContext = environment.getProperty("wqp.geoserver.context");
-				if ((geoserverContext == null) || (geoserverContext.equals(""))) {
+				if (isEmpty(geoserverContext)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.context] " +
 							  "- Setting geoserver context default to [" + defaultContext + "].\n");
 					geoserverContext = defaultContext;
@@ -249,7 +250,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultWorkspace = geoserverWorkspace;
 				geoserverWorkspace = environment.getProperty("wqp.geoserver.workspace");
-				if ((geoserverWorkspace == null) || (geoserverWorkspace.equals(""))) {
+				if (isEmpty(geoserverWorkspace)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.workspace] " +
 							  "- Setting geoserver workspace default to [" + defaultWorkspace + "].\n");
 					geoserverWorkspace = defaultWorkspace;
@@ -277,7 +278,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultDatastore = geoserverDatastore;
 				geoserverDatastore = environment.getProperty("wqp.geoserver.datastore");
-				if ((geoserverDatastore == null) || (geoserverDatastore.equals(""))) {
+				if (isEmpty(geoserverDatastore)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.datastore] " +
 							  "- Setting geoserver datastore default to [" + defaultDatastore + "].\n");
 					geoserverDatastore = defaultDatastore;
@@ -296,13 +297,13 @@ public class WQPLayerBuildingService {
 			geoserverRestPutShapefileURI = geoserverProtocol + "://" + geoserverHost + ":" + geoserverPort + geoserverContext +
 							   "/rest/workspaces/" + geoserverWorkspace + "/datastores";
 			
-			/*
+			/* 
 			 * Get all URL properties for calling WQP for data
 			 */
 			try {
 				String defaultProto = simpleStationProtocol;
 				simpleStationProtocol = environment.getProperty("layerbuilder.simplestation.proto");
-				if ((simpleStationProtocol == null) || (simpleStationProtocol.equals(""))) {
+				if (isEmpty(simpleStationProtocol)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.proto] " +
 							  "- Setting simplestation protocol default to [" + defaultProto + "].\n");
 					simpleStationProtocol = defaultProto;
@@ -316,7 +317,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultHost = simpleStationHost;
 				simpleStationHost = environment.getProperty("layerbuilder.simplestation.host");
-				if ((simpleStationHost == null) || (simpleStationHost.equals(""))) {
+				if (isEmpty(simpleStationHost)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.host] " +
 							  "- Setting simplestation host default to [" + defaultHost + "].\n");
 					simpleStationHost = defaultHost;
@@ -330,7 +331,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultPort = simpleStationPort;
 				simpleStationPort = environment.getProperty("layerbuilder.simplestation.port");
-				if ((simpleStationPort == null) || (simpleStationPort.equals(""))) {
+				if (isEmpty(simpleStationPort)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.port] " +
 							  "- Setting simplestation port default to [" + defaultPort + "].\n");
 					simpleStationPort = defaultPort;
@@ -344,7 +345,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultContext = simpleStationContext;
 				simpleStationContext = environment.getProperty("layerbuilder.simplestation.context");
-				if ((simpleStationContext == null) || (simpleStationContext.equals(""))) {
+				if (isEmpty(simpleStationContext)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.context] " +
 							  "- Setting simplestation context default to [" + defaultContext + "].\n");
 					simpleStationContext = defaultContext;
@@ -358,7 +359,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultPath = simpleStationPath;
 				simpleStationPath = environment.getProperty("layerbuilder.simplestation.path");
-				if ((simpleStationPath == null) || (simpleStationPath.equals(""))) {
+				if (isEmpty(simpleStationPath)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.path] " +
 							  "- Setting simplestation path default to [" + defaultPath + "].\n");
 					simpleStationPath = defaultPath;
@@ -487,7 +488,7 @@ public class WQPLayerBuildingService {
 					 * except we call "simplestation" instead of "Station"
 					 */
 					String layerName = buildDynamicLayer(searchParams, geoserverRestPutShapefileURI, geoserverUser, geoserverPass);	
-					if ((layerName == null) || (layerName.equals(""))) {
+					if (isEmpty(layerName)) {
 						layerCache.setCurrentStatus(DynamicLayerStatus.EMPTY);
 						
 						String msg2 = "WQPLayerBuildingService.getDynamicLayer() Unable to create layer [" + layerCache.getLayerName() +
@@ -557,7 +558,7 @@ public class WQPLayerBuildingService {
 		 */
 		for (String layerParam : layerParams) {
 			String currentLayers = ogcParams.get(layerParam);
-			if((currentLayers == null) || (currentLayers.equals("")) || (currentLayers.equals(dataSource.toString()))) {
+			if(isEmpty(currentLayers) || (currentLayers.equals(dataSource.toString()))) {
 				currentLayers = geoserverWorkspace + ":" + layerCache.getLayerName();
 			} else {
 				currentLayers += "," + geoserverWorkspace + ":" + layerCache.getLayerName();
@@ -675,7 +676,7 @@ public class WQPLayerBuildingService {
 		
 		String dataFilename = WQPUtils.retrieveSearchParamData(this.httpClient, searchParams, simpleStationRequest, workingDirectory, layerName);
 		
-		if ((dataFilename == null) || (dataFilename.equals(""))) {
+		if (isEmpty(dataFilename)) {
 			/*
 			 * Did not receive any data from the server for this request.  Cannot create layer.
 			 */

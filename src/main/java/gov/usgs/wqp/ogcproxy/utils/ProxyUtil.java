@@ -1,5 +1,7 @@
 package gov.usgs.wqp.ogcproxy.utils;
 
+import static org.springframework.util.StringUtils.isEmpty;
+
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.parameters.WQPParameters;
@@ -111,7 +113,7 @@ public class ProxyUtil {
 	}
 	
 	public static String getErrorViewByFormat(String format) {
-		if((format == null) || (format.equals(""))) {
+		if(isEmpty(format)) {
 			ProxyViewResult.getViewForType(ProxyViewResult.ERROR_XML);
 		}
 		
@@ -344,7 +346,7 @@ public class ProxyUtil {
     public static OGCServices getFinalRequestedService(Map<String,String> requestParams, OGCServices calledService) {
     	String serviceValue = requestParams.get(OGC_SERVICE_PARAMETER);
     	
-    	if ((serviceValue == null) || (serviceValue.equals(""))) {
+    	if (isEmpty(serviceValue)) {
     		return calledService;
     	}
     	
