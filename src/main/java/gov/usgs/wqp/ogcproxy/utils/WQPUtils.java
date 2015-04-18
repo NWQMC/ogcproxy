@@ -16,10 +16,8 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -116,28 +114,23 @@ public class WQPUtils {
 	public static HttpUriRequest generateSimpleStationRequest(SearchParameters<String, List<String>> searchParams, String simpleStationURL) throws OGCProxyException {
 		HttpUriRequest request = null;
 		        
-        StringBuilder requestURIBuffer = new StringBuilder(simpleStationURL + "?");        
-        Iterator<Entry<String,List<String>>> paramEntryItr = searchParams.entrySet().iterator();
-        while (paramEntryItr.hasNext()) {
-        	Entry<String,List<String>> paramEntry = paramEntryItr.next();
+        StringBuilder requestURIBuffer = new StringBuilder(simpleStationURL + "?");
+        String sepParams = "";
+        for (Map.Entry<String,List<String>> paramEntry : searchParams.entrySet()) {
             String param = paramEntry.getKey();
             List<String> values = paramEntry.getValue();
             
-            requestURIBuffer.append(param);
-            requestURIBuffer.append("=");
+            requestURIBuffer.append(sepParams).append(param).append("=");
+            sepParams="&";
             
             /**
              * Delineate multiple values per parameter with a semi-colon ';'
              */
             StringBuffer joinedValues = new StringBuffer();
-            Iterator<String> rawValueItr = values.iterator();
-            while (rawValueItr.hasNext()) {
-            	String rawValue = rawValueItr.next();
-            	joinedValues.append(rawValue);
-            	
-            	if (rawValueItr.hasNext()) {
-            		joinedValues.append(";");
-            	}
+            String sepValues = "";
+            for (String rawValue : values) {
+            	joinedValues.append(sepValues).append(rawValue);
+            	sepValues=";";
             }
             
             String encodedValue;
@@ -148,10 +141,6 @@ public class WQPUtils {
 				encodedValue = joinedValues.toString();
 			}
 			requestURIBuffer.append(encodedValue);
-            
-            if (paramEntryItr.hasNext()) {
-            	requestURIBuffer.append("&");
-            }
         }
         
         /**

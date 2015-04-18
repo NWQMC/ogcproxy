@@ -1,7 +1,5 @@
 package gov.usgs.wqp.ogcproxy.utils;
 
-import static org.springframework.util.StringUtils.isEmpty;
-
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.parameters.WQPParameters;
@@ -11,10 +9,8 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -82,9 +78,7 @@ public class ProxyUtil {
 		String servletSearchParamName = ProxyUtil.searchParamKey;
 		
 		boolean containsSearchQuery = false;
-		Iterator<Entry<String, String>> itr = requestParams.entrySet().iterator();
-	    while (itr.hasNext()) {
-	        Map.Entry<String, String> pairs = (Map.Entry<String, String>)itr.next();
+	    for (Map.Entry<String, String> pairs : requestParams.entrySet()) {
 	        
 	        String key = pairs.getKey();
 	        
@@ -142,14 +136,13 @@ public class ProxyUtil {
 
         StringBuilder requestBuffer = new StringBuilder(forwardURL + proxyPath + "?");
         
-        Iterator<Entry<String,String>> paramEntryItr = wmsParams.entrySet().iterator();
-        while (paramEntryItr.hasNext()) {
-        	Entry<String,String> paramEntry = paramEntryItr.next();
+        String sep = "";
+        for (Map.Entry<String,String> paramEntry : wmsParams.entrySet()) {
             String param = paramEntry.getKey();
             String value = paramEntry.getValue();
             
-            requestBuffer.append(param);
-            requestBuffer.append("=");
+            requestBuffer.append(sep).append(param).append("=");
+            sep = "&";
             
             String encodedValue;
 			try {
@@ -159,10 +152,6 @@ public class ProxyUtil {
 				encodedValue = value;
 			}
             requestBuffer.append(encodedValue);
-            
-            if (paramEntryItr.hasNext()) {
-            	requestBuffer.append("&");
-            }
         }        
 
         return requestBuffer.toString();
