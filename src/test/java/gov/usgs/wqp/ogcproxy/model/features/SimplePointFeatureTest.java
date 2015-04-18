@@ -90,7 +90,7 @@ public class SimplePointFeatureTest {
 		 * Check complex feature BaseAttributeType datastructure
 		 */
 		List<BaseAttributeType> baseTypes = currentPointFeature.listBaseAttributes();
-		for(BaseAttributeType baseType : this.defaultBaseAttribs) {
+		for (BaseAttributeType baseType : this.defaultBaseAttribs) {
 			assertTrue(baseTypes.contains(baseType));
 		}
 		assertEquals(SourceProvider.getStringFromType(SourceProvider.UNKNOWN), currentPointFeature.getBaseAttribute(BaseAttributeType.Provider));
@@ -101,7 +101,7 @@ public class SimplePointFeatureTest {
 		
 		
 		List<FeatureAttributeType> featureTypes = currentPointFeature.listFeatureAttributes();
-		for(FeatureAttributeType featureType : this.defaultFeatureAttribs) {
+		for (FeatureAttributeType featureType : this.defaultFeatureAttribs) {
 			assertTrue(featureTypes.contains(featureType));
 		}
 		assertEquals("", currentPointFeature.getFeatureAttribute(FeatureAttributeType.name));
@@ -200,7 +200,7 @@ public class SimplePointFeatureTest {
 		 * Check complex feature BaseAttributeType datastructure
 		 */
 		List<BaseAttributeType> baseTypes = currentPointFeature.listBaseAttributes();
-		for(BaseAttributeType baseType : this.defaultBaseAttribs) {
+		for (BaseAttributeType baseType : this.defaultBaseAttribs) {
 			assertTrue(baseTypes.contains(baseType));
 		}
 		assertEquals(SourceProvider.getStringFromType(defaultProvider), currentPointFeature.getBaseAttribute(BaseAttributeType.Provider));
@@ -211,7 +211,7 @@ public class SimplePointFeatureTest {
 		
 		
 		List<FeatureAttributeType> featureTypes = currentPointFeature.listFeatureAttributes();
-		for(FeatureAttributeType featureType : this.defaultFeatureAttribs) {
+		for (FeatureAttributeType featureType : this.defaultFeatureAttribs) {
 			assertTrue(featureTypes.contains(featureType));
 		}
 		assertEquals(defaultName, currentPointFeature.getFeatureAttribute(FeatureAttributeType.name));

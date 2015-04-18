@@ -865,7 +865,7 @@ public class WQPLayerBuildingService {
 		 */
 		TimeProfiler.startTimer("WQPLayerBuildingService.createShapeFile() INFO: GeoTools - SimpleFeature List Creation Time");
 		List<SimpleFeature> features = new ArrayList<SimpleFeature>();
-		for(FeatureDAO feature : featureList) {
+		for (FeatureDAO feature : featureList) {
 			features.add(feature.getSimpleFeature());
 		}
 		TimeProfiler.endTimer("WQPLayerBuildingService.createShapeFile() INFO: GeoTools - SimpleFeature List Creation Time", log);

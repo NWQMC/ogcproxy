@@ -20,7 +20,7 @@ public class SearchParameters<T, K> extends ConcurrentHashMap<String, List<Strin
 		
 		int newHash = this.prime + key.hashCode();
 		
-		for(String s : value) {
+		for (String s : value) {
 			newHash = newHash * this.prime + s.hashCode();
 		}
 		
@@ -39,7 +39,7 @@ public class SearchParameters<T, K> extends ConcurrentHashMap<String, List<Strin
 		
 		int oldHash = this.prime + ((String)key).hashCode();
 		
-		for(String s : oldValue) {
+		for (String s : oldValue) {
 			oldHash = oldHash * this.prime + s.hashCode();
 		}
 		

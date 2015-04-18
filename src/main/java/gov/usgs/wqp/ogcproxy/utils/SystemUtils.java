@@ -63,7 +63,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 	}
 	
 	public static boolean filenameIsValid(String name) {
-		for(char character : SystemUtils.ILLEGAL_CHARACTERS) {
+		for (char character : SystemUtils.ILLEGAL_CHARACTERS) {
 			if (name.indexOf(character) != -1) {
 				return false;
 			}

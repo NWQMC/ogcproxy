@@ -76,7 +76,7 @@ public enum WFSOperations {
 		List<WFSParameters> params = WFSOperations.getParameters(type);
 		List<WFSParameters> requiredParams = new ArrayList<WFSParameters>();
 		
-		for(WFSParameters param : params) {
+		for (WFSParameters param : params) {
 			if (isRequired(param)) {
 				requiredParams.add(param);
 			}

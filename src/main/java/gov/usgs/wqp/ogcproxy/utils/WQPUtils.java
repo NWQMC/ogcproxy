@@ -79,7 +79,7 @@ public class WQPUtils {
 		 */
 		List<String> keyAndValues = Arrays.asList(searchParamString.split(";"));
 		
-		for(String pairs : keyAndValues) {
+		for (String pairs : keyAndValues) {
 			/**
 			 * Search Param pairs consist of a key and value separated by a colon.
 			 * 

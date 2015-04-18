@@ -19,7 +19,7 @@ public class ShapeFileUtility {
 			
 			StringBuffer result = new StringBuffer();
 			
-			for(int i = 0; i < values.length; i++) {
+			for (int i = 0; i < values.length; i++) {
 				CLIMode mode = values[i];
 				if (CLIMode.UNKNOWN == mode) {
 					continue;

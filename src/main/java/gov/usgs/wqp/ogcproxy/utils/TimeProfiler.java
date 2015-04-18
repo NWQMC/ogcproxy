@@ -28,7 +28,7 @@ public class TimeProfiler {
 		Map<String, Long> primer = new HashMap<String, Long>();		
 		int count = 100;
 		long insertTime = 0;
-		for(int i = 0; i < count; i++) {
+		for (int i = 0; i < count; i++) {
 			long startTime = System.nanoTime();
 			primer.put("Test", startTime);
 			long endTime = System.nanoTime();
@@ -40,7 +40,7 @@ public class TimeProfiler {
 		TimeProfiler.averageInsertTime = insertTime/count;
 		
 		long removeTime = 0;
-		for(int i = 0; i < count; i++) {
+		for (int i = 0; i < count; i++) {
 			primer.put("Test", removeTime);
 			
 			long startTime = System.nanoTime();
