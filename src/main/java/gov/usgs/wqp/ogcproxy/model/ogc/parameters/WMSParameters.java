@@ -4,7 +4,7 @@ package gov.usgs.wqp.ogcproxy.model.ogc.parameters;
  * WMSParameters
  * @author prusso
  *<br /><br />
- *	This enumeration was created at the beginning of the WMSProxy design but 
+ *	This enumeration was created at the beginning of the WMSProxy design but
  *	once development got past its prototyping stage, it was deemed not needed
  *	for current operation.
  *<br /><br />
@@ -73,16 +73,16 @@ public enum WMSParameters {
 	
 	public static boolean isRequired(WMSParameters type) {
 		switch (type) {
-			case service: 
-			case version: 
-			case request: 
-			case layer: 
-			case layers: 
-			case styles: 
-			case srs: 
-			case bbox: 
-			case width: 
-			case height: 
+			case service:
+			case version:
+			case request:
+			case layer:
+			case layers:
+			case styles:
+			case srs:
+			case bbox:
+			case width:
+			case height:
 			case format:
 			case query_layers:
 			case x:

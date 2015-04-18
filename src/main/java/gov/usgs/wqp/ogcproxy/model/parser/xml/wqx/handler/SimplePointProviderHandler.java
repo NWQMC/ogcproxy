@@ -96,9 +96,9 @@ import org.xml.sax.helpers.DefaultHandler;
  * 		</WQX-Outbound>
  * }
  * </pre>
- * 
- * 
- * 
+ *
+ *
+ *
  * @author prusso
  *
  */

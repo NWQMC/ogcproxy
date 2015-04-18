@@ -30,7 +30,7 @@ public class OgcFilterDiscoveryTest {
 		InputSource input = new InputSource(bais);
 		
 		Document dom = db.parse( input );
-		assertNotNull(dom.getDocumentElement());		
+		assertNotNull(dom.getDocumentElement());
 		
 	    
 		NodeList nodes = dom.getElementsByTagName("ogc:Filter");
@@ -50,7 +50,7 @@ public class OgcFilterDiscoveryTest {
 				System.out.println(child.getNodeName());
 				System.out.println(child.getTextContent());
 				
-				if (child.hasChildNodes()) 
+				if (child.hasChildNodes())
 					childNodes(child.getChildNodes());
 	        }
 		}

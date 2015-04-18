@@ -51,7 +51,7 @@ public class RESTService {
     
     /**
      * Singleton accessor
-     * 
+     *
      * @return RESTService instance
      */
 	public static RESTService getInstance() {
@@ -60,7 +60,7 @@ public class RESTService {
 	
 	public void initialize() {
 		/**
-		 * Since we are using Spring DI we cannot access the environment bean 
+		 * Since we are using Spring DI we cannot access the environment bean
 		 * in the constructor.  We'll just use a locked initialized variable
 		 * to check initialization after instantiation and set the env
 		 * properties here.
@@ -78,7 +78,7 @@ public class RESTService {
 		/**
 		 * The proxy can handle any number of "sites".  Sites are determined by
 		 * the "layers" parameter when a WMS call comes in and depending on that
-		 * value, the appropriate service is invoked.  We will use the layer 
+		 * value, the appropriate service is invoked.  We will use the layer
 		 * value as the site determination value here and invoke the correct
 		 * service for status.
 		 */
@@ -108,7 +108,7 @@ public class RESTService {
 		log.info("RESTService.checkCacheStatus() Info: Checking cache status for site [" + siteValue + "]");
 		switch(siteValue) {
 			case WQP_SITES: {
-				finalResult.setResult(wqpLayerBuildingService.getCacheStatus());				
+				finalResult.setResult(wqpLayerBuildingService.getCacheStatus());
 				break;
 			}
 			default: {
@@ -121,7 +121,7 @@ public class RESTService {
 		/**
 		 * The proxy can handle any number of "sites".  Sites are determined by
 		 * the "layers" parameter when a WMS call comes in and depending on that
-		 * value, the appropriate service is invoked.  We will use the layer 
+		 * value, the appropriate service is invoked.  We will use the layer
 		 * value as the site determination value here and invoke the correct
 		 * service for status.
 		 */
@@ -152,7 +152,7 @@ public class RESTService {
 		log.info("RESTService.clearCacheBySite() Info: Clearing cache for site [" + siteValue + "]");
 		switch(siteValue) {
 			case WQP_SITES: {
-				finalResult.setResult(wqpLayerBuildingService.clearCache());				
+				finalResult.setResult(wqpLayerBuildingService.clearCache());
 				break;
 			}
 			default: {

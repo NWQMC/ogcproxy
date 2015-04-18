@@ -27,7 +27,7 @@ import org.xml.sax.helpers.DefaultHandler;
  * 		<WQX-Outbound xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
  * 		    <Provider>
  * 		        <ProviderName>STEWARDS</ProviderName>
- * 
+ *
  * 		        <Organization>
  * 		        	<MonitoringLocation>
  * 		                <MonitoringLocationIdentity>
@@ -60,14 +60,14 @@ import org.xml.sax.helpers.DefaultHandler;
  * 		                </MonitoringLocationGeospatial>
  * 		            </MonitoringLocation>
  * 		        </Organization>
- * 
+ *
  * 		    </Provider>
  * 		</WQX-Outbound>
  * }
  * </pre>
- * 
- * 
- * 
+ *
+ *
+ *
  * @author prusso
  *
  */
@@ -206,7 +206,7 @@ public class SimplePointLocationHandler extends DefaultHandler {
 							  "could not be parsed as a double value.  Setting longitude to 0.0";
 					System.out.println(error);
 					log.debug(error);
-				}				
+				}
 				
 				this.currentPointFeature.setLongitude(value);
 			} else {

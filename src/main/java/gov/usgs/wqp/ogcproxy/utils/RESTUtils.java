@@ -105,15 +105,15 @@ public class RESTUtils {
 		return response;
 	}
 	
-	public static String putDataFile(String uri, String user, String pass, String mediaType, String filename) {		
-		ClientConfig config = new DefaultClientConfig(); 
+	public static String putDataFile(String uri, String user, String pass, String mediaType, String filename) {
+		ClientConfig config = new DefaultClientConfig();
         Client client = Client.create(config);
 		
 		if (user != null) {
 			client.addFilter(new HTTPBasicAuthFilter(user, pass));
 		}
     
-        WebResource service = client.resource(uri); 
+        WebResource service = client.resource(uri);
         File file = new File(filename);
                 
         String response;

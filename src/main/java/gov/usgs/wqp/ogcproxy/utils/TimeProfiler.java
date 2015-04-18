@@ -25,7 +25,7 @@ public class TimeProfiler {
 		TimeProfiler.FORMATTER = new DecimalFormat("#0.000000000");
 		TimeProfiler.timers = new HashMap<String, Long>();
 		
-		Map<String, Long> primer = new HashMap<String, Long>();		
+		Map<String, Long> primer = new HashMap<String, Long>();
 		int count = 100;
 		long insertTime = 0;
 		for (int i = 0; i < count; i++) {

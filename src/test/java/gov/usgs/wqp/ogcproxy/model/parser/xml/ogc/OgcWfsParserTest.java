@@ -18,7 +18,7 @@ public class OgcWfsParserTest {
 	final String ANOTHER = "statecode:US%3A01;countycode:US%3A01%3A005%7CUS:01%3A007%7CUS%3A01%3A017;siteType:Stream%7CWell;sampleMedia:Water%7CSediment";
     
     
-	final String ogcParamsWfs_typeNames = 
+	final String ogcParamsWfs_typeNames =
 			" <?xml version=\"1.0\" encoding=\"UTF-8\"?> "+
 			" <wfs:GetFeature xmlns:wfs=\"http://www.opengis.net/wfs\" service=\"WFS\" version=\"1.1.0\" "+
 			"     xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "+
@@ -28,7 +28,7 @@ public class OgcWfsParserTest {
 			"     </wfs:Query> "+
 			" </wfs:GetFeature> ";
 	
-	final String ogcParamsWfs_typeName = 
+	final String ogcParamsWfs_typeName =
 			" <?xml version=\"1.0\" encoding=\"UTF-8\"?> "+
 			" <wfs:GetFeature xmlns:wfs=\"http://www.opengis.net/wfs\" service=\"WFS\" version=\"1.1.0\" "+
 			"     xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "+
@@ -38,7 +38,7 @@ public class OgcWfsParserTest {
 			"     </wfs:Query> "+
 			" </wfs:GetFeature> ";
 
-	final String ogcParamsWfs_noXMLversion = 
+	final String ogcParamsWfs_noXMLversion =
 			" <wfs:GetFeature xmlns:wfs=\"http://www.opengis.net/wfs\" service=\"WFS\" version=\"1.1.0\" "+
 			"     xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "+
 			"     xsi:schemaLocation=\"http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd\" "+
@@ -48,7 +48,7 @@ public class OgcWfsParserTest {
 			" </wfs:GetFeature> ";
 
 	
-	final String searchParamOcgXml = 
+	final String searchParamOcgXml =
 			" <?xml version=\"1.0\" encoding=\"UTF-8\"?> "+
 			" <wfs:GetFeature xmlns:wfs=\"http://www.opengis.net/wfs\" service=\"WFS\" version=\"1.1.0\" "+
 			"     xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "+
@@ -72,7 +72,7 @@ public class OgcWfsParserTest {
 			"     </wfs:Query> "+
 			" </wfs:GetFeature> ";
 
-	final String noSearchParamOcgXml = 
+	final String noSearchParamOcgXml =
 			" <?xml version=\"1.0\" encoding=\"UTF-8\"?> "+
 			" <wfs:GetFeature xmlns:wfs=\"http://www.opengis.net/wfs\" service=\"WFS\" version=\"1.1.0\" "+
 			"     xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "+
@@ -91,7 +91,7 @@ public class OgcWfsParserTest {
 			" </wfs:GetFeature> ";
 
 	
-	final String simpleOgcWfs = 
+	final String simpleOgcWfs =
 			" <?xml version=\"1.0\" encoding=\"UTF-8\"?> "+
 			" <wfs:GetFeature xmlns:wfs=\"http://www.opengis.net/wfs\" service=\"WFS\" version=\"1.1.0\" "+
 			"     xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "+

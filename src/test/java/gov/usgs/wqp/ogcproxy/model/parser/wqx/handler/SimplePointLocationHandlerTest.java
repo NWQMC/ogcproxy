@@ -62,7 +62,7 @@ public class SimplePointLocationHandlerTest {
 			fail("Error calling startElement(): " + e.getMessage());
 		}
 		
-		assertNull(locationHandler.getCurrentPointFeature());		
+		assertNull(locationHandler.getCurrentPointFeature());
 	}
 	
 	@Test
@@ -359,7 +359,7 @@ public class SimplePointLocationHandlerTest {
 		
 		/**
 		 * Since we sent the START flag again as an end element the logic should have
-		 * put the SimplePointFeature into the List we passed into the handler 
+		 * put the SimplePointFeature into the List we passed into the handler
 		 */
 		assertEquals(1, this.featureList.size());
 		

@@ -48,7 +48,7 @@ public class OGCProxyController {
 	 */
 	@RequestMapping(value="/", method=RequestMethod.GET)
     public DeferredResult<ModelAndView> entry() {
-		String msg = "WMSProxyController.entry() called";							
+		String msg = "WMSProxyController.entry() called";
 		log.info(msg);
 		
 		ModelAndView mv = new ModelAndView("index.jsp");

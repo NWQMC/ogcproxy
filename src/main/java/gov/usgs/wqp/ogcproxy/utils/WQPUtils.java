@@ -54,36 +54,36 @@ public class WQPUtils {
 		
 		/**
 		 * SearchParams is a list of key/value pairs depicting key=search param and value = search param value.
-		 * 
+		 *
 		 * Search Param Values can be lists of strings.
-		 * 
+		 *
 		 * The overall String structure has the following formats:
-		 * 
+		 *
 		 * 		general form:
 		 * 				&searchParams=filter1:value1;filter2=value2;filter3=value3
-		 * 
+		 *
 		 * 		empty values:
 		 * 				&searchParams=filter1:;filter2:;filter3:
-		 * 
+		 *
 		 * 		multiple values:
 		 * 				&searchParams=filter1:value1|value2|value3;filter2:value1|value2|value3;filter3:value1|value2|value3
-		 * 
+		 *
 		 *  The passed in String is just the value (everything after the = sign).
-		 *  
+		 *
 		 *  All keys are separated by semicolons.
-		 *  
+		 *
 		 *  Multiple values per each key are separated by pipes (|)
-		 *  
+		 *
 		 */
 		List<String> keyAndValues = Arrays.asList(searchParamString.split(";"));
 		
 		for (String pairs : keyAndValues) {
 			/**
 			 * Search Param pairs consist of a key and value separated by a colon.
-			 * 
+			 *
 			 *    ** IMPORTANT **
 			 *  	05/20/2014
-			 *  
+			 *
 			 *  We have many "values" within the search parameters that can contain
 			 *  colons as well.  This means that the delimeter between the key and
 			 *  the value is compromised.  Since we are already using pipes and it
@@ -91,7 +91,7 @@ public class WQPUtils {
 			 *  symbol, we have decided to split the keys and their values by the
 			 *  first colon found.  This way it guarantees that we at least have
 			 *  a delineation between the key and its values.
-			 *  
+			 *
 			 */
 			List<String> keyValue = Arrays.asList(pairs.split(":", 2));
 			
@@ -107,7 +107,7 @@ public class WQPUtils {
 			
 			List<String> values = Arrays.asList(stringValues.split("\\|"));
 			
-			searchParams.put(key, values);			
+			searchParams.put(key, values);
 		}
 	}
 	
@@ -156,14 +156,14 @@ public class WQPUtils {
   				  e.getMessage() + "].";
 			log.error(msg);
 			
-			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;					
+			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;
 			throw new OGCProxyException(id, "WQPUtils", "generateSimpleStationRequest()", msg);
       } catch (URISyntaxException e) {
       	String msg = "WQPUtils.generateSimpleStationRequest() Exception : Syntax error parsing server URL [" +
 				  e.getMessage() + "].";
 			log.error(msg);
 			
-			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;					
+			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;
 			throw new OGCProxyException(id, "WQPUtils", "generateSimpleStationRequest()", msg);
 		}
         request = new HttpGet(serverRequestURI);
@@ -184,14 +184,14 @@ public class WQPUtils {
             			 e.getMessage() + "]";
 			log.error(msg);
 			
-			OGCProxyExceptionID id = OGCProxyExceptionID.CLIENT_PROTOCOL_ERROR;					
+			OGCProxyExceptionID id = OGCProxyExceptionID.CLIENT_PROTOCOL_ERROR;
 			throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
         } catch (IOException e) {
         	String msg = "WQPUtils.retrieveSearchParamData() Exception : I/O error on server request [" +
             			 e.getMessage() + "]";
 			log.error(msg);
 			
-			OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_REQUEST_IO_ERROR;					
+			OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_REQUEST_IO_ERROR;
 			throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
         }
         
@@ -204,7 +204,7 @@ public class WQPUtils {
         			statusCode + "].\nResponseHeaders: [" + Arrays.toString(methodResponse.getAllHeaders());
 			log.error(msg);
 			
-			OGCProxyExceptionID id = OGCProxyExceptionID.INVALID_SERVER_RESPONSE_CODE;					
+			OGCProxyExceptionID id = OGCProxyExceptionID.INVALID_SERVER_RESPONSE_CODE;
 			throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
         }
         
@@ -226,7 +226,7 @@ public class WQPUtils {
        			 e.getMessage() + "] Check that the path exists: " + filePath;
 			log.error(msg);
 			
-			OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_REQUEST_IO_ERROR;					
+			OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_REQUEST_IO_ERROR;
 			throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
 		} finally {
 			try {

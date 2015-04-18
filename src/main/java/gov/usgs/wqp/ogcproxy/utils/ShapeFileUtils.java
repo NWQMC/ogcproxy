@@ -19,7 +19,7 @@ import org.opengis.feature.simple.SimpleFeatureType;
  * @author prusso
  *<br /><br />
  *	This class exposes many utility methods used in the creation of shapefiles.
- *	The majority of the methods here are statically provided so they can be 
+ *	The majority of the methods here are statically provided so they can be
  *	exposed and utilized outside of the package this utility resides in.
  */
 public class ShapeFileUtils {

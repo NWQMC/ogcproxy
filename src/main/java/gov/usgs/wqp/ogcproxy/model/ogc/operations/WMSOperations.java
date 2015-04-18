@@ -19,7 +19,6 @@ import java.util.List;
 public enum WMSOperations {
 	/**
 	 * http://docs.geoserver.org/stable/en/user/services/wms/reference.html
-	 * 
 	 */
 	Exceptions,
 	GetCapabilities,

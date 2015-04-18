@@ -7,7 +7,7 @@ import gov.usgs.wqp.ogcproxy.utils.StringUtils;
  * DataInputType
  * @author prusso
  *<br /><br />
- *	This enumeration explicitly defines all supported Data Formats 
+ *	This enumeration explicitly defines all supported Data Formats
  *	for a dataset used for creating a shapefile.
  */
 public enum DataInputType {

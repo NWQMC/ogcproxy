@@ -25,6 +25,6 @@ public class XmlUtils {
 			// returns null
 		}
 		return text;
-	} 
+	}
 
 }

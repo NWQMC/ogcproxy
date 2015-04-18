@@ -7,7 +7,7 @@ import gov.usgs.wqp.ogcproxy.utils.StringUtils;
  * WQPParameters
  * @author prusso
  *<br /><br />
- *	This enumeration explicitly defines all known WQP parameters possible in 
+ *	This enumeration explicitly defines all known WQP parameters possible in
  *	any WMSProxy call.
  */
 public enum WQPParameters {

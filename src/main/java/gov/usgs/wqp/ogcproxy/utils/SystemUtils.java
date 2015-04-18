@@ -53,7 +53,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 			logFile = T.getResource("conf/log4j.properties");
 		}
 
-		Logger log = Logger.getLogger(T.getName());	
+		Logger log = Logger.getLogger(T.getName());
 		
 		if (logFile != null) {
 			PropertyConfigurator.configure(logFile);
@@ -97,7 +97,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 				}
 				return false;
 			}
-		};			
+		};
 		
 		String[] directoryFiles = directory.list(filter);
 
@@ -146,7 +146,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
         			 e.getMessage() + "]";
 	   			log.error(msg);
 	   			
-	   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_ERROR;					
+	   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_ERROR;
 	   			throw new OGCProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
 		}
     	ByteArrayOutputStream byteout = new java.io.ByteArrayOutputStream();
@@ -161,7 +161,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
             			 e.getMessage() + "]";
 		   			log.error(msg);
 		   			
-		   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_ERROR;					
+		   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_ERROR;
 		   			throw new OGCProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
 			}
     	    if (res > 0) {
@@ -177,7 +177,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
         			 e.getMessage() + "]";
    			log.error(msg);
    			
-   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_NOT_UTF8;					
+   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_NOT_UTF8;
    			throw new OGCProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
 		}
     	
@@ -198,7 +198,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
        			 e.getMessage() + "]";
   			log.error(msg);
   			
-  			OGCProxyExceptionID id = OGCProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;					
+  			OGCProxyExceptionID id = OGCProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;
   			throw new OGCProxyException(id, "ProxyUtil", "compressStringToGzip()", msg);
 		}
         try {
@@ -208,7 +208,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 	       			 e.getMessage() + "]";
 	  			log.error(msg);
 	  			
-	  			OGCProxyExceptionID id = OGCProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;					
+	  			OGCProxyExceptionID id = OGCProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;
 	  			throw new OGCProxyException(id, "SystemUtils", "compressStringToGzip()", msg);
 		}
         try {

@@ -120,7 +120,7 @@ public class ProxyService {
 
 	/**
 	 * Singleton accessor
-	 * 
+	 *
 	 * @return ProxyService instance
 	 */
 	public static ProxyService getInstance() {
@@ -331,7 +331,7 @@ public class ProxyService {
 	 * This method provides WMS request proxying along with intercepting
 	 * WMS requests and providing additional functionality based on the
 	 * filters found in the request parameters.
-	 * 
+	 *
 	 * @param request
 	 * @param response
 	 * @param requestParams
@@ -356,11 +356,11 @@ public class ProxyService {
 	 * As of initial release, this method provides the same
 	 * functionality as the WMS proxying provides, including building
 	 * a layer if the passed in search params do not exist.
-	 * 
+	 *
 	 * The main reason we called out a different method for WFS calls
 	 * is the possibility of doing completely different logic based
 	 * on this type of call.
-	 * 
+	 *
 	 * @param request
 	 * @param response
 	 * @param requestParams
@@ -408,7 +408,7 @@ public class ProxyService {
 	 * This method provides WMS/WFS request proxying along with intercepting
 	 * WMS/WFS requests and providing additional functionality based on the
 	 * filters found in the request parameters.
-	 * 
+	 *
 	 * @param request
 	 * @param response
 	 * @param requestParams
@@ -494,7 +494,7 @@ public class ProxyService {
 	/**
 	 * Logic and supporting methods stolen from
 	 * gov.usgs.cida.proxy.AlternateProxyServlet
-	 * 
+	 *
 	 * @param clientRequest
 	 * @param clientResponse
 	 * @param requestParams
@@ -749,10 +749,10 @@ public class ProxyService {
 				
 				// Now, if the server response is xml we need to inspect it and
 				// modify depending on a couple logic steps.
-				// 
+				//
 				// 		WMS uses "text/xml" as the contentType
 				// 		WFS uses "application/xml" as the contentType.
-				// 
+				//
 				// We will just search for "xml" in the contentType value to
 				// cover both cases.  If we need more contentType support we'll
 				// have to expand the following logic.

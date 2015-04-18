@@ -51,7 +51,7 @@ public class WQPDynamicLayerCachingService {
 	
 	/**
 	 * Singleton accessor
-	 * 
+	 *
 	 * @return WMSService instance
 	 */
 	public static WQPDynamicLayerCachingService getInstance() {
@@ -178,11 +178,11 @@ public class WQPDynamicLayerCachingService {
 		 * check its status to see if its being worked on or if its fully available
 		 * to being used.  If it's NOT available, we will sleep until it does
 		 * become available.
-		 * 
+		 *
 		 * The internal DynamicLayerStatus object will have its state managed by
 		 * the initial thread that created it.  This thread will set the state to
 		 * DynamicLayerStatus.AVAILABLE as soon as it becomes available.
-		 * 
+		 *
 		 * In the catching of the Interrupted Exception, we will double check that
 		 * the status is available.  If its not we log an error.
 		 */

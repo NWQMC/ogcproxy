@@ -11,7 +11,7 @@ public class SearchParameters<T, K> extends ConcurrentHashMap<String, List<Strin
 	@Override
 	public List<String> put(String key, List<String> value) {
 		/**
-		 * We need to keep track of these hash keys.  If we replace an existing 
+		 * We need to keep track of these hash keys.  If we replace an existing
 		 * one we have to make sure we remove it before placing it.
 		 */
 		if (super.containsKey(key)) {

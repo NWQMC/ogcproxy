@@ -95,7 +95,7 @@ public class WQPLayerBuildingService {
 			"</Layer>";
 	
 	/**
-	 * WFS GetFeature allows the use of the searchParams parameter.  Declare it in the GetCapabilities 
+	 * WFS GetFeature allows the use of the searchParams parameter.  Declare it in the GetCapabilities
 	 * document with the ows:AnyValue indicator (http://schemas.opengis.net/ows/1.1.0/owsDomainType.xsd)
 	 */
 	private static final String WFS_GET_CAPABILITIES_CONTENT = "<ows:Parameter name=\"searchParams\">" +
@@ -157,7 +157,7 @@ public class WQPLayerBuildingService {
 	
 	/**
 	 * Singleton accessor
-	 * 
+	 *
 	 * @return WQPLayerBuildingService instance
 	 */
 	public static WQPLayerBuildingService getInstance() {
@@ -297,7 +297,7 @@ public class WQPLayerBuildingService {
 			geoserverRestPutShapefileURI = geoserverProtocol + "://" + geoserverHost + ":" + geoserverPort + geoserverContext +
 							   "/rest/workspaces/" + geoserverWorkspace + "/datastores";
 			
-			/* 
+			/*
 			 * Get all URL properties for calling WQP for data
 			 */
 			try {
@@ -431,25 +431,25 @@ public class WQPLayerBuildingService {
 		/*
 		 * Next we need to see if this layer has already been requested
 		 * and is available.
-		 * 
+		 *
 		 * Good WMS test requests are:
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;characteristicName:Hafnium&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A53;characteristicName:Gasoline&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A55;characteristicName:Uranium&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A55;characteristicName:Atrazine&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wms?request=GetFeatureInfo&service=WMS&srs=EPSG:4326&styles=&transparent=true&version=1.1.1&format=image/png&bbox=-123.3984375,30.29701788337205,-49.5703125,50.62507306341435&height=616&width=1680&layers=wqp_sites&query_layers=wqp_sites&info_format=text/html&x=776&y=299&searchParams=huc:06*%7C07*%3BsampleMedia:Water%3BcharacteristicType:Nutrient
-		 * 
+		 *
 		 * Good WFS test requests are:
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wfs?service=WFS&request=GetFeature&version=1.0.0&typeName=qw_portal_map:dynamicSites_1789281855&styles=&outputFormat=application/json
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wfs?request=GetFeature&version=1.0.0&typeName=qw_portal_map:dynamicSites_1789281855&styles=&outputFormat=application/json
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wfs?request=GetFeature&version=1.0.0&typeName=wqp_sites&searchParams=countrycode:US;statecode:US%3A51;huc:06*%7C07*%3BsampleMedia:Water%3BcharacteristicType:Nutrient&styles=&outputFormat=application/json
 		 */
 		
@@ -467,7 +467,7 @@ public class WQPLayerBuildingService {
 				case INITIATED: {
 					String msg1 = "WQPLayerBuildingService.getDynamicLayer() Created new DynamicLayerCache for key [" +
 							searchParams.unsignedHashCode() +
-							"].  Setting status to BUILDING and creating layer...";							
+							"].  Setting status to BUILDING and creating layer...";
 					log.info(msg1);
 					
 					/*
@@ -481,13 +481,13 @@ public class WQPLayerBuildingService {
 					 * We now call the simplestation url with our search params
 					 * (along with a mimeType=xml) in order to retrieve the data
 					 * that creates the layer:
-					 * 
+					 *
 					 * 		http://www.waterqualitydata.us/simplestation/search?countycode=US%3A40%3A109&characteristicName=Atrazine&mimeType=xml
-					 * 
+					 *
 					 * Documentation is from http://waterqualitydata.us/webservices_documentation.jsp
 					 * except we call "simplestation" instead of "Station"
 					 */
-					String layerName = buildDynamicLayer(searchParams, geoserverRestPutShapefileURI, geoserverUser, geoserverPass);	
+					String layerName = buildDynamicLayer(searchParams, geoserverRestPutShapefileURI, geoserverUser, geoserverPass);
 					if (isEmpty(layerName)) {
 						layerCache.setCurrentStatus(DynamicLayerStatus.EMPTY);
 						
@@ -572,12 +572,12 @@ public class WQPLayerBuildingService {
 	public String addGetCapabilitiesInfo(OGCServices serviceType, String serverContent) {
 		/*
 		 * For now we are assuming all GetCapabilities responses are XML.
-		 * 
+		 *
 		 * We are going to take the easy way out.  Instead of creating an XML
 		 * document and parsing it and figuring out where specific elements are
 		 * blah blah blah, we are just going to insert our specific XML blob in
 		 * the location it needs to be.
-		 * 
+		 *
 		 * The main reason I am doing this is because its fast and cheap.  A
 		 * very large String of XML is smaller in memory than an entire XML DOM
 		 * object of the same string.
@@ -610,11 +610,11 @@ public class WQPLayerBuildingService {
 				 * WFS requests will center around GetFeature so we need to add
 				 * the "searchParams" parameter definition to the GetFeature operation
 				 * description.
-				 * 
+				 *
 				 * We will look for string token: "<ows:Operation name="GetFeature">"
 				 * and then look for the closing "</ows:DCP>" tag (a required child
 				 * element for an operation http://schemas.opengis.net/ows/1.1.0/owsOperationsMetadata.xsd).
-				 * 
+				 *
 				 * Once we found the closing </ows:DCP> tag of the GetFeature operation, we insert
 				 * our XML after it and append the rest of the document below it.  If we dont find
 				 * this tag we'll just insert it right before the closing </ows:Operation> tag.
@@ -740,10 +740,10 @@ public class WQPLayerBuildingService {
 		
 		/*
 		 * Upload the zipped shapefile
-		 * 
+		 *
 		 * Build the REST URI for uploading shapefiles.  Looks like:
 		 * 		http://HOST:PORT/CONTEXT/rest/workspaces/WORKSPACE_NAME/datastores/LAYER_NAME/file.shp
-		 * 
+		 *
 		 * Where the "file.shp" is a GeoServer syntax that is required but does not change per request.
 		 * We also duplicate the LAYER_NAME in the datastore path so we can let GeoServer separate the
 		 * shapefiles easily between directories (it has an issue w/ tons of shapefiles in a single directory
@@ -772,7 +772,7 @@ public class WQPLayerBuildingService {
 		
 		/*
 		 * TODO:
-		 * 
+		 *
 		 * The final step is to force GeoServer to "enable" the layer.  Sometimes
 		 * we have seen GeoServer correctly upload and accept a ShapeFile along
 		 * with building the datastore and layer but forget to "Enable" the layer

@@ -25,7 +25,7 @@ public class SimplePointProviderHandlerTest {
 	private List<FeatureDAO> featureList;
 	
 	@Before
-	public void init() throws Exception {		
+	public void init() throws Exception {
 		xmlReader = mock(SAXParser.class);
 		featureBuilder = mock(SimpleFeatureBuilder.class);
 		featureList = new ArrayList<FeatureDAO>();
@@ -40,7 +40,7 @@ public class SimplePointProviderHandlerTest {
 	public void testStartElementNotInteresting() {
 		SimplePointProviderHandler providerHandler = new SimplePointProviderHandler(this.xmlReader, this.featureList, this.featureBuilder);
 		
-		assertEquals(SourceProvider.UNKNOWN, providerHandler.getCurrentProvider());		
+		assertEquals(SourceProvider.UNKNOWN, providerHandler.getCurrentProvider());
 		
 		try {
 			providerHandler.startElement("uri", "localName", "qName", null);
@@ -48,14 +48,14 @@ public class SimplePointProviderHandlerTest {
 			fail("Error calling startElement(): " + e.getMessage());
 		}
 		
-		assertEquals(SourceProvider.UNKNOWN, providerHandler.getCurrentProvider());		
+		assertEquals(SourceProvider.UNKNOWN, providerHandler.getCurrentProvider());
 	}
 	
 	@Test
 	public void testStartElementInteresting() {
 		SimplePointProviderHandler providerHandler = new SimplePointProviderHandler(this.xmlReader, this.featureList, this.featureBuilder);
 		
-		assertEquals(SourceProvider.UNKNOWN, providerHandler.getCurrentProvider());		
+		assertEquals(SourceProvider.UNKNOWN, providerHandler.getCurrentProvider());
 		
 		try {
 			providerHandler.startElement("uri", "localName", "Organization", null);
@@ -65,14 +65,14 @@ public class SimplePointProviderHandlerTest {
 		
 		verify(this.xmlReader).setContentHandler(any(SimplePointLocationHandler.class));
 		
-		assertEquals(SourceProvider.UNKNOWN, providerHandler.getCurrentProvider());	
+		assertEquals(SourceProvider.UNKNOWN, providerHandler.getCurrentProvider());
 	}
 	
 	@Test
 	public void testEndElementNotInteresting() {
 		SimplePointProviderHandler providerHandler = new SimplePointProviderHandler(this.xmlReader, this.featureList, this.featureBuilder);
 		
-		assertEquals(SourceProvider.UNKNOWN, providerHandler.getCurrentProvider());		
+		assertEquals(SourceProvider.UNKNOWN, providerHandler.getCurrentProvider());
 		
 		try {
 			providerHandler.endElement("uri", "localName", "qName");
@@ -80,14 +80,14 @@ public class SimplePointProviderHandlerTest {
 			fail("Error calling endElement(): " + e.getMessage());
 		}
 		
-		assertEquals(SourceProvider.UNKNOWN, providerHandler.getCurrentProvider());		
+		assertEquals(SourceProvider.UNKNOWN, providerHandler.getCurrentProvider());
 	}
 	
 	@Test
 	public void testEndElementInteresting() {
 		SimplePointProviderHandler providerHandler = new SimplePointProviderHandler(this.xmlReader, this.featureList, this.featureBuilder);
 		
-		assertEquals(SourceProvider.UNKNOWN, providerHandler.getCurrentProvider());		
+		assertEquals(SourceProvider.UNKNOWN, providerHandler.getCurrentProvider());
 		
 		/**
 		 * Set up the contents character array to simulate parsing xml
@@ -105,6 +105,6 @@ public class SimplePointProviderHandlerTest {
 			fail("Error calling startElement(): " + e.getMessage());
 		}
 		
-		assertEquals(SourceProvider.NWIS, providerHandler.getCurrentProvider());	
+		assertEquals(SourceProvider.NWIS, providerHandler.getCurrentProvider());
 	}
 }

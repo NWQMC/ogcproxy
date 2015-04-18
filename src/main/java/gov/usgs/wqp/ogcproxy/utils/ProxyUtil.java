@@ -26,7 +26,7 @@ import org.apache.log4j.Logger;
  * @author prusso
  *<br /><br />
  *	This class exposes many utility methods used in the proxying of data between
- *	a client and a server.  The majority of the methods here are statically 
+ *	a client and a server.  The majority of the methods here are statically
  *	provided so they can be exposed and utilized outside of the package this
  *	utility resides in.
  */
@@ -48,7 +48,7 @@ public class ProxyUtil {
 	 * <br /><br />
 	 * This method separates all dynamic search parameters from any OGC specific
 	 * parameters.  Search parameters are used for creating dynamic layers.
-	 * 
+	 *
 	 * @param requestParams
 	 * @param ogcParams
 	 * @param searchParams
@@ -71,7 +71,7 @@ public class ProxyUtil {
 		
 		/**
 		 * We need to capture the pure servlet parameter key for our searchParams parameter.
-		 * 
+		 *
 		 * Since this can be case INSENSITIVE but we use its value as a key in a map, we need
 		 * to know what the exact character sequence is going forward.
 		 */
@@ -105,15 +105,15 @@ public class ProxyUtil {
 	    }
 	    log.debug("ProxyUtil.separateParameters() OGC PARAMETER MAP:\n[" + ogcParams + "]");
 		
-		if (containsSearchQuery) {			
+		if (containsSearchQuery) {
 			String searchParamString = requestParams.get(servletSearchParamName);
 			
 			/**
 			 * This is a "create layer" request.  We need to first see if it exists
 			 * already.
-			 * 
+			 *
 			 * http://www.waterqualitydata.us/Station/search?countrycode=US&statecode=US%3A04|US%3A06&countycode=US%3A04%3A001|US%3A04%3A007|US%3A06%3A011|US%3A06%3A101&within=10&lat=46.12&long=-89.15&siteType=Estuary&organization=BCHMI&siteid=usgs-station&huc=010801*&sampleMedia=Air&characteristicType=Biological&characteristicName=Soluble+Reactive+Phosphorus+(SRP)&pCode=00065&startDateLo=01-01-1991&startDateHi=02-02-1992&providers=NWIS&providers=STEWARDS&providers=STORET&bBox=-89.68%2C-89.15%2C45.93%2C46.12&mimeType=csv&zip=yes
-			 */			
+			 */
 			
 			WQPUtils.parseSearchParams(searchParamString, searchParams);
 			
@@ -152,7 +152,7 @@ public class ProxyUtil {
 				encodedValue = value;
 			}
             requestBuffer.append(encodedValue);
-        }        
+        }
 
         return requestBuffer.toString();
     }
@@ -214,7 +214,7 @@ public class ProxyUtil {
      * getRequestedService()
      * <br /><br />
      * It's possible for a base request (by path) to go to one OGC service but actually
-     * request another OGC service.  This is accomplished by filling in the "service" 
+     * request another OGC service.  This is accomplished by filling in the "service"
      * parameter with a service different from the one on the path.
      * <br /><br />
      * This method will return the final service requested.  If an unknown service
