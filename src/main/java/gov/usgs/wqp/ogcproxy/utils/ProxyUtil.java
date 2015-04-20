@@ -81,6 +81,7 @@ public class ProxyUtil {
 	    for (Map.Entry<String, String> pairs : requestParams.entrySet()) {
 	        
 	        String key = pairs.getKey();
+	        containsSearchQuery = ProxyUtil.searchParamKey.equalsIgnoreCase(key);
 	        
 	        /*
 	         * OGC Spec for WFS and WMS states clearly that parameters shall NOT be
@@ -91,13 +92,12 @@ public class ProxyUtil {
 	         * upper cases all of its parameters including this specific parameter.  We
 	         * will make the "searchParams" case insensitive
 	         */
-	        if (key.toLowerCase().equals(ProxyUtil.searchParamKey.toLowerCase())) {
-	        	containsSearchQuery = true;
+	        if (containsSearchQuery) {
 	        	servletSearchParamName = key;
 	        	continue;
 	        }
 	        
-	        if (key.equals(ProxyUtil.testParamKey)) {
+	        if ( ProxyUtil.testParamKey.equals(key) ) {
 	        	continue;
 	        }
 	        
@@ -170,11 +170,13 @@ public class ProxyUtil {
             while (headerValueEnumeration.hasMoreElements()) {
             	
                 String requestHeaderValue = headerValueEnumeration.nextElement();
-                if (!ignoredClientRequestHeaderSet.contains(requestHeaderName)) {
-                    serverRequest.addHeader(requestHeaderName, requestHeaderValue);
-                    log.debug("Mapped client request header \"" + requestHeaderName + ": " + requestHeaderValue + "\"");
+                
+                String logMsg = " client request header \"" +requestHeaderName + ": " + requestHeaderValue + "\"";
+                if ( ignoredClientRequestHeaderSet.contains(requestHeaderName) ) {
+                    log.debug("Ignored" +logMsg);
                 } else {
-                    log.debug("Ignored client request header \"" + requestHeaderName + ": " + requestHeaderValue + "\"");
+                    serverRequest.addHeader(requestHeaderName, requestHeaderValue);
+                    log.debug("Mapped" +logMsg);
                 }
             }
 
@@ -191,15 +193,17 @@ public class ProxyUtil {
     }
     
     public static void generateClientResponseHeaders(HttpServletResponse clientResponse, HttpResponse serverResponse, Set<String> ignoredServerResponseHeaderSet) {
-        Header[] proxyResponseHeaders = serverResponse.getAllHeaders();
-        for (Header header : proxyResponseHeaders) {
-            String responseHeaderName = header.getName();
-            String responseHeaderValue = header.getValue();
-            if (!ignoredServerResponseHeaderSet.contains(responseHeaderName)) {
-                clientResponse.addHeader(responseHeaderName, responseHeaderValue);
-                log.debug("Mapped server response header \"" + responseHeaderName + ": " + responseHeaderValue + "\"");
+        
+        for (Header header : serverResponse.getAllHeaders()) {
+            String name  = header.getName();
+            String value = header.getValue();
+            
+            String logMsg = " server response header \"" + name + ": " + value + "\"";
+            if ( ignoredServerResponseHeaderSet.contains(name) ) {
+                log.debug("Ignored" +logMsg);
             } else {
-                log.debug("Ignored server response header \"" + responseHeaderName + ": " + responseHeaderValue + "\"");
+                clientResponse.addHeader(name, value);
+                log.debug("Mapped" +logMsg );
             }
         }
     }

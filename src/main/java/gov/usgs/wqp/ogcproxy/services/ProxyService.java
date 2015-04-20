@@ -1,6 +1,6 @@
 package gov.usgs.wqp.ogcproxy.services;
 
-import static org.springframework.util.StringUtils.isEmpty;
+import static org.springframework.util.StringUtils.*;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WFSParameters;
@@ -402,7 +402,7 @@ public class ProxyService {
 		// to know what the exact character sequence is going forward.
 		List<String> layerParams = new LinkedList<String>();
 		String layerParam = wxsParams.get(layerParamName);
-		if ((layerParam != null) && ( ! layerParam.equals("") )) {
+		if ( isEmpty(layerParam) ) {
 			dataSource = ProxyDataSourceParameter.getTypeFromString(layerParam);
 
 			if (dataSource != ProxyDataSourceParameter.UNKNOWN) {
@@ -410,7 +410,7 @@ public class ProxyService {
 			}
 		}
 		
-		if ((queryLayerParam != null) && ( ! queryLayerParam.equals("") )) {
+		if ( isEmpty(queryLayerParam) ) {
 			queryLayerValue = ProxyDataSourceParameter.getTypeFromString(layerParam);
 
 			if (queryLayerValue != ProxyDataSourceParameter.UNKNOWN) {
@@ -765,7 +765,7 @@ public class ProxyService {
 		// We now need to do some inspection on the data.  If the original OGC
 		// request is a GetCapabilities, we need to insert the service's specific
 		// information into the response.
-		if (ProxyUtil.OGC_GET_CAPABILITIES_REQUEST_VALUE.toLowerCase().equals(ogcRequestType.toLowerCase())) {
+		if (ProxyUtil.OGC_GET_CAPABILITIES.toLowerCase().equals(ogcRequestType.toLowerCase())) {
 			// This is a GetCapabilities call.  We need to include the service
 			// specific GetCapabilities information in the result so we conform
 			// to the OGC spec
