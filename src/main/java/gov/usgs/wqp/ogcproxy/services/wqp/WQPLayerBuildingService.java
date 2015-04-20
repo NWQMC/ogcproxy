@@ -55,6 +55,9 @@ import org.xml.sax.SAXException;
 public class WQPLayerBuildingService {
 	private static Logger log = SystemUtils.getLogger(WQPLayerBuildingService.class);
 	
+	public static final String DYNAMIC_LAYER_PREFIX = "dynamicSites_";
+	
+	
 	/*
 	 * Beans		===========================================================
 	 * ========================================================================
@@ -130,8 +133,6 @@ public class WQPLayerBuildingService {
 	private static String workingDirectory      = "";
 	private static String shapefileDirectory    = "";
 	
-	protected ThreadSafeClientConnManager clientConnectionManager;
-	protected HttpClient httpClient;
 	private static int connection_ttl            = 15 * 60 * 1000; // 15 minutes, default is infinite
 	private static int connections_max_total     = 256;
 	private static int connections_max_route     = 32;
@@ -143,6 +144,10 @@ public class WQPLayerBuildingService {
 				// the layer and datasource for that shapefile are available.  This is a wait time before
 				// we mark the layer AVAILABLE
 	
+	protected ThreadSafeClientConnManager clientConnectionManager;
+	protected HttpClient httpClient;
+	
+	
 	
 	/* ====================================================================== */
 	private static final WQPLayerBuildingService INSTANCE = new WQPLayerBuildingService();
@@ -151,9 +156,7 @@ public class WQPLayerBuildingService {
 	/**
 	 * Private Constructor for Singleton Pattern
 	 */
-	private WQPLayerBuildingService() {
-		initialized = false;
-	}
+	private WQPLayerBuildingService() {}
 	
 	/**
 	 * Singleton accessor
@@ -667,9 +670,9 @@ public class WQPLayerBuildingService {
 	
 	
 	private String buildDynamicLayer(SearchParameters<String, List<String>> searchParams, String geoServerURI, String geoServerUser, String geoServerPass) throws OGCProxyException {
-		String layerName = WQPUtils.layerPrefix + searchParams.unsignedHashCode();
+		String layerName = DYNAMIC_LAYER_PREFIX + searchParams.unsignedHashCode();
 		
-		String dataFilename = WQPUtils.retrieveSearchParamData(this.httpClient, searchParams, simpleStationRequest, workingDirectory, layerName);
+		String dataFilename = WQPUtils.retrieveSearchParamData(httpClient, searchParams, simpleStationRequest, workingDirectory, layerName);
 		
 		if (isEmpty(dataFilename)) {
 			/*

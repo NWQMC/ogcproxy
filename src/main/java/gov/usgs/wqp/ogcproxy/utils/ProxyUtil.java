@@ -33,14 +33,14 @@ import org.apache.log4j.Logger;
 public class ProxyUtil {
 	private static Logger log = SystemUtils.getLogger(ProxyUtil.class);
 	
+	public static final String OGC_GET_CAPABILITIES  = "GetCapabilities";
+	
 	public static final String OGC_SERVICE_PARAMETER = "service";
 	
-	public static final String OGC_GET_CAPABILITIES_REQUEST_VALUE = "GetCapabilities";
+	public static final String searchParamKey        = WQPParameters.getStringFromType(WQPParameters.searchParams);
+	public static final String testParamKey          = "test-wms";
 	
-	public static final String searchParamKey = WQPParameters.getStringFromType(WQPParameters.searchParams);
-	public static final String testParamKey = "test-wms";
-	
-	public static final String PROXY_LAYER_ERROR = "wms_no_layer_error.xml";
+	public static final String PROXY_LAYER_ERROR     = "wms_no_layer_error.xml";
 	
 	
 	/**
@@ -121,9 +121,17 @@ public class ProxyUtil {
 		return true;
 	}
 	
-	public static String getServerRequestURIAsString(final HttpServletRequest clientrequest, final Map<String,String> wmsParams, final String forwardURL, final String context) {
-        String proxyPath = new StringBuilder(clientrequest.getContextPath()).
-                append(clientrequest.getServletPath()).toString();
+	
+	/**
+	 * Builds query string
+	 * @param clientrequest
+	 * @param wmsParams
+	 * @param forwardURL
+	 * @param context
+	 * @return
+	 */
+	public static String getServerRequestURIAsString(HttpServletRequest clientrequest, Map<String,String> wmsParams, String forwardURL, String context) {
+        String proxyPath = clientrequest.getContextPath() + clientrequest.getServletPath();
         
         /*
          * With the proxyPath we need to replace the ogcproxy context with the
@@ -261,7 +269,6 @@ public class ProxyUtil {
      * @return
      */
     public static String getCaseSensitiveParameter(String ourParam, Map<String,String> requestParams) {
-    	String result = ourParam;
     	
     	for (String key : requestParams.keySet()) {
     		if ( key.equalsIgnoreCase(ourParam) ) {
@@ -269,6 +276,6 @@ public class ProxyUtil {
 	        }
     	}
     	
-    	return result;
+    	return ourParam;
     }
 }

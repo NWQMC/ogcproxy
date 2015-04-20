@@ -61,7 +61,6 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import org.springframework.web.context.request.async.DeferredResult;
 
 
 @Service
@@ -109,7 +108,7 @@ public class ProxyService {
 	 * Local ===========================================================
 	 */
 	protected ThreadSafeClientConnManager clientConnectionManager;
-	protected HttpClient httpClient;
+	protected HttpClient serverClient;
 
 	
 
@@ -281,23 +280,6 @@ public class ProxyService {
 	}
 
 
-	public void performProxyRequest(HttpServletRequest request,
-			HttpServletResponse response, Map<String, String> requestParams,
-			DeferredResult<String> finalResult) {
-		
-		initialize();
-
-		String result = "success";
-		String ogcRequestType = (requestParams.get("request") == null) ? "" : requestParams.get("request");
-		if (!proxyRequest(request, response, requestParams, ogcRequestType, OGCServices.UNKNOWN,
-				ProxyDataSourceParameter.UNKNOWN)) {
-			log.error("ProxyService.performProxyRequest() Error:  Unable to proxy client request.");
-			result = "failed";
-		}
-
-		finalResult.setResult(result);
-	}
-
 	/**
 	 * This method provides WMS request proxying along with intercepting
 	 * WMS requests and providing additional functionality based on the
@@ -450,9 +432,9 @@ public class ProxyService {
 		}
 
 		log.info("ProxyService.performRequest() INFO: Proxy request is completed.");
-		return;
 	}
 	
+
 	
 	
 	/**
@@ -584,12 +566,9 @@ public class ProxyService {
 			final Map<String, String> ogcParams, String ogcRequestType,
 			OGCServices serviceType, ProxyDataSourceParameter dataSource) throws OGCProxyException {
 		
-		HttpClient serverClient = this.httpClient;
-
 		try {
 			HttpContext localContext = new BasicHttpContext();
-			HttpResponse methodReponse = serverClient.execute(serverRequest,
-					localContext);
+			HttpResponse methodReponse = serverClient.execute(serverRequest, localContext);
 			handleServerResponse(clientRequest, clientResponse, methodReponse,
 					ogcParams, ogcRequestType, serviceType, dataSource);
 		} catch (ClientProtocolException e) {

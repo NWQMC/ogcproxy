@@ -43,7 +43,6 @@ import org.apache.log4j.Logger;
 public class WQPUtils {
 	private static Logger log = SystemUtils.getLogger(WQPUtils.class);
 	
-	public static final String layerPrefix = "dynamicSites_";
 	
 	public static void parseSearchParams(String searchParamString, Map<String, List<String>> searchParams) {
 		if (searchParams == null) {

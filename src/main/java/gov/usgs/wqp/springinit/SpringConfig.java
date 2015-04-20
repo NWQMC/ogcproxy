@@ -114,9 +114,6 @@ public class SpringConfig extends WebMvcConfigurerAdapter {
 	
 	@Bean
 	public RESTService restService() {
-		RESTService restService = RESTService.getInstance();
-		restService.initialize();
-		
-		return restService;
+		return RESTService.getInstance();
 	}
 }
