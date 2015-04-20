@@ -69,7 +69,7 @@ public class ProxyUtil {
 		
 		log.debug("ProxyUtil.separateParameters() REQUEST PARAMS:\n" + requestParams);
 		
-		/**
+		/*
 		 * We need to capture the pure servlet parameter key for our searchParams parameter.
 		 *
 		 * Since this can be case INSENSITIVE but we use its value as a key in a map, we need
@@ -82,7 +82,7 @@ public class ProxyUtil {
 	        
 	        String key = pairs.getKey();
 	        
-	        /**
+	        /*
 	         * OGC Spec for WFS and WMS states clearly that parameters shall NOT be
 	         * case sensitive.  We ran into some case sensitivity issues in GeoServer
 	         * so we made the conscious decision to make all parameter mappings be
@@ -108,10 +108,8 @@ public class ProxyUtil {
 		if (containsSearchQuery) {
 			String searchParamString = requestParams.get(servletSearchParamName);
 			
-			/**
-			 * This is a "create layer" request.  We need to first see if it exists
-			 * already.
-			 *
+			/*
+			 * This is a "create layer" request.  We need to first see if it exists  salready.
 			 * http://www.waterqualitydata.us/Station/search?countrycode=US&statecode=US%3A04|US%3A06&countycode=US%3A04%3A001|US%3A04%3A007|US%3A06%3A011|US%3A06%3A101&within=10&lat=46.12&long=-89.15&siteType=Estuary&organization=BCHMI&siteid=usgs-station&huc=010801*&sampleMedia=Air&characteristicType=Biological&characteristicName=Soluble+Reactive+Phosphorus+(SRP)&pCode=00065&startDateLo=01-01-1991&startDateHi=02-02-1992&providers=NWIS&providers=STEWARDS&providers=STORET&bBox=-89.68%2C-89.15%2C45.93%2C46.12&mimeType=csv&zip=yes
 			 */
 			
@@ -127,7 +125,7 @@ public class ProxyUtil {
         String proxyPath = new StringBuilder(clientrequest.getContextPath()).
                 append(clientrequest.getServletPath()).toString();
         
-        /**
+        /*
          * With the proxyPath we need to replace the ogcproxy context with the
          * passed in context
          */
@@ -157,16 +155,20 @@ public class ProxyUtil {
         return requestBuffer.toString();
     }
     
+	
     public static String getClientRequestURIAsString(HttpServletRequest clientRequest) {
         return clientRequest.getRequestURL().toString();
     }
     
+    
     public static void generateServerRequestHeaders(HttpServletRequest clientRequest, HttpUriRequest serverRequest, final Set<String> ignoredClientRequestHeaderSet) {
-        Enumeration<String> headerNameEnumeration = clientRequest.getHeaderNames();
+    	Enumeration<String> headerNameEnumeration = clientRequest.getHeaderNames();
         while (headerNameEnumeration.hasMoreElements()) {
             String requestHeaderName = headerNameEnumeration.nextElement();
+            
             Enumeration<String> headerValueEnumeration = clientRequest.getHeaders(requestHeaderName);
             while (headerValueEnumeration.hasMoreElements()) {
+            	
                 String requestHeaderValue = headerValueEnumeration.nextElement();
                 if (!ignoredClientRequestHeaderSet.contains(requestHeaderName)) {
                     serverRequest.addHeader(requestHeaderName, requestHeaderValue);

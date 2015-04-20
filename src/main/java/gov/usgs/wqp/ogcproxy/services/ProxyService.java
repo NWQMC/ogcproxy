@@ -143,78 +143,61 @@ public class ProxyService {
 			initialized = true;
 			
 			try {
-				threadTimeout = Long.parseLong(environment
-						.getProperty("proxy.thread.timeout"));
+				threadTimeout = Long.parseLong(environment.getProperty("proxy.thread.timeout"));
 			} catch (Exception e) {
 				log.error("ProxyService() Constructor Exception: Failed to parse property [proxy.thread.timeout] "
-						+ "- Keeping cache timeout period default to ["
-						+ threadTimeout
-						+ "].\n"
-						+ e.getMessage()
-						+ "\n");
+						+ "- Keeping cache timeout period default to ["+ threadTimeout+ "].\n"
+						+ e.getMessage()+ "\n");
 			}
 
 			try {
-				threadSleep = Long.parseLong(environment
-						.getProperty("proxy.thread.sleep"));
+				threadSleep = Long.parseLong(environment.getProperty("proxy.thread.sleep"));
 			} catch (Exception e) {
 				log.error("ProxyService() Constructor Exception: Failed to parse property [proxy.thread.sleep] "
-						+ "- Keeping thread sleep default to ["
-						+ threadSleep + "].\n" + e.getMessage() + "\n");
+						+ "- Keeping thread sleep default to ["+ threadSleep + "].\n" + e.getMessage() + "\n");
 			}
 
 			try {
 				String defaultProto = geoserverProtocol;
-				geoserverProtocol = environment
-						.getProperty("wqp.geoserver.proto");
+				geoserverProtocol = environment.getProperty("wqp.geoserver.proto");
 				if (isEmpty(geoserverProtocol)) {
 					log.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.proto] "
-							+ "- Setting geoserver protocol default to ["
-							+ defaultProto + "].\n");
+							+ "- Setting geoserver protocol default to ["+ defaultProto + "].\n");
 					geoserverProtocol = defaultProto;
 				}
 			} catch (Exception e) {
 				log.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.proto] "
-						+ "- Setting geoserver protocol default to ["
-						+ geoserverProtocol + "].\n");
+						+ "- Setting geoserver protocol default to ["+ geoserverProtocol + "].\n");
 			}
 
 			try {
 				String defaultHost = geoserverHost;
-				geoserverHost = environment
-						.getProperty("wqp.geoserver.host");
+				geoserverHost = environment.getProperty("wqp.geoserver.host");
 				if (isEmpty(geoserverHost)) {
 					log.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.host] "
-							+ "- Setting geoserver host default to ["
-							+ defaultHost + "].\n");
+							+ "- Setting geoserver host default to ["+ defaultHost + "].\n");
 					geoserverHost = defaultHost;
 				}
 			} catch (Exception e) {
 				log.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.host] "
-						+ "- Setting geoserver host default to ["
-						+ geoserverHost + "].\n");
+						+ "- Setting geoserver host default to ["+ geoserverHost + "].\n");
 			}
 
 			try {
 				String defaultPort = geoserverPort;
-				geoserverPort = environment
-						.getProperty("wqp.geoserver.port");
+				geoserverPort = environment.getProperty("wqp.geoserver.port");
 				if (isEmpty(geoserverPort)) {
 					log.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.port] "
-							+ "- Setting geoserver port default to ["
-							+ defaultPort + "].\n");
+							+ "- Setting geoserver port default to ["+ defaultPort + "].\n");
 					geoserverPort = defaultPort;
 				}
 			} catch (Exception e) {
 				log.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.port] "
-						+ "- Setting geoserver port default to ["
-						+ geoserverPort + "].\n");
+						+ "- Setting geoserver port default to ["+ geoserverPort + "].\n");
 			}
 
-			forwardUrl = geoserverProtocol + "://" + geoserverHost
-					+ ":" + geoserverPort;
-			log.info("ProxyService() Constructor Info: Setting GeoServer forwarding URL to ["
-					+ forwardUrl + "]");
+			forwardUrl = geoserverProtocol + "://" + geoserverHost+ ":" + geoserverPort;
+			log.info("ProxyService() Constructor Info: Setting GeoServer forwarding URL to ["+ forwardUrl + "]");
 
 			try {
 				String defaultContext = geoserverContext;
@@ -222,14 +205,12 @@ public class ProxyService {
 						.getProperty("wqp.geoserver.context");
 				if (isEmpty(geoserverContext)) {
 					log.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.context] "
-							+ "- Setting geoserver context default to ["
-							+ defaultContext + "].\n");
+							+ "- Setting geoserver context default to ["+ defaultContext + "].\n");
 					geoserverContext = defaultContext;
 				}
 			} catch (Exception e) {
 				log.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.context] "
-						+ "- Setting geoserver context default to ["
-						+ geoserverContext + "].\n");
+						+ "- Setting geoserver context default to ["+ geoserverContext + "].\n");
 			}
 
 			try {
@@ -238,14 +219,12 @@ public class ProxyService {
 						.getProperty("wqp.geoserver.workspace");
 				if (isEmpty(geoserverWorkspace)) {
 					log.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.workspace] "
-							+ "- Setting geoserver workspace default to ["
-							+ defaultWorkspace + "].\n");
+							+ "- Setting geoserver workspace default to ["+ defaultWorkspace + "].\n");
 					geoserverWorkspace = defaultWorkspace;
 				}
 			} catch (Exception e) {
 				log.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.workspace] "
-						+ "- Setting geoserver workspace default to ["
-						+ geoserverWorkspace + "].\n");
+						+ "- Setting geoserver workspace default to ["+ geoserverWorkspace + "].\n");
 			}
 
 			// Set the pass-through behavior. If a searchParam request
@@ -253,15 +232,11 @@ public class ProxyService {
 			// "known" value, we can either pass it through and work as
 			// expected or return an error
 			try {
-				layerPassthrough = Boolean.parseBoolean(environment
-						.getProperty("proxy.layerparam.passthrough"));
+				layerPassthrough = Boolean.parseBoolean(environment.getProperty("proxy.layerparam.passthrough"));
 			} catch (Exception e) {
 				log.error("ProxyService() Constructor Exception: Failed to parse property [proxy.layerparam.passthrough] "
-						+ "- Proxy Layer Passthrough setting default to ["
-						+ layerPassthrough
-						+ "].\n"
-						+ e.getMessage()
-						+ "\n");
+						+ "- Proxy Layer Passthrough setting default to ["+ layerPassthrough+ "].\n"
+						+ e.getMessage()+ "\n");
 			}
 
 			// Initialize connection manager, this is thread-safe. if we
@@ -271,17 +246,13 @@ public class ProxyService {
 					SchemeRegistryFactory.createDefault(),
 					connection_ttl, TimeUnit.MILLISECONDS);
 			clientConnectionManager.setMaxTotal(connections_max_total);
-			clientConnectionManager
-					.setDefaultMaxPerRoute(connections_max_route);
+			clientConnectionManager.setDefaultMaxPerRoute(connections_max_route);
 
 			HttpParams httpParams = new BasicHttpParams();
-			HttpConnectionParams.setSoTimeout(httpParams,
-					client_socket_timeout);
-			HttpConnectionParams.setConnectionTimeout(httpParams,
-					client_connection_timeout);
+			HttpConnectionParams.setSoTimeout(httpParams, client_socket_timeout);
+			HttpConnectionParams.setConnectionTimeout(httpParams, client_connection_timeout);
 
-			httpClient = new DefaultHttpClient(clientConnectionManager,
-					httpParams);
+			serverClient = new DefaultHttpClient(clientConnectionManager, httpParams);
 
 			// Ignored headers relating to proxing requests
 			// don't parameterize, need to swtich host from proxy to server
@@ -337,8 +308,7 @@ public class ProxyService {
 	 * @param requestParams
 	 * @param finalResult
 	 */
-	public void performWMSRequest(HttpServletRequest request,
-			HttpServletResponse response, Map<String, String> requestParams) {
+	public void performWMSRequest(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
 		
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
 		Map<String, String> wmsParams = new HashMap<String, String>();
@@ -366,8 +336,7 @@ public class ProxyService {
 	 * @param requestParams
 	 * @param finalResult
 	 */
-	public void performWFSRequest(HttpServletRequest request,
-			HttpServletResponse response, Map<String, String> requestParams) {
+	public void performWFSRequest(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
 		
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
 		Map<String, String> wfsParams = new HashMap<String, String>();
@@ -382,8 +351,7 @@ public class ProxyService {
 	}
 	
 	// NEW POST OGC XML WMS
-	public void performPostWMSRequest(HttpServletRequest request,
-			HttpServletResponse response, Map<String, String> requestParams) {
+	public void performPostWMSRequest(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
 		
 		String layerParamName             = requestParams.get(WFSParameters.typeName.toString());
 		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
@@ -393,8 +361,7 @@ public class ProxyService {
 		performGetRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
 	}
 	// NEW POST OGC XML WFS
-	public void performPostWFSRequest(HttpServletRequest request,
-			HttpServletResponse response, Map<String, String> requestParams) {
+	public void performPostWFSRequest(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
 		
 		String layerParamName             = requestParams.get(WFSParameters.typeName.toString());
 		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
@@ -421,7 +388,7 @@ public class ProxyService {
 		
 		initialize();
 
-		ProxyDataSourceParameter dataSource	  = ProxyDataSourceParameter.UNKNOWN;
+		ProxyDataSourceParameter dataSource	     = ProxyDataSourceParameter.UNKNOWN;
 		ProxyDataSourceParameter queryLayerValue = ProxyDataSourceParameter.UNKNOWN;
 		
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
@@ -458,7 +425,7 @@ public class ProxyService {
 		if (searchParams.size() > 0) {
 			// Did we find a legitimate layer value or do we need to return an
 			// error (we must have a layer value to do a dynamic search)?
-			if ((layerParams.size() == 0) && ( ! layerPassthrough )) {
+			if ((layerParams.size() == 0) && ! layerPassthrough ) {
 				return;
 			}
 
@@ -468,10 +435,7 @@ public class ProxyService {
 					+ dataSource + "]");
 			if (dataSource == ProxyDataSourceParameter.WQP_SITES) {
 				ProxyServiceResult result = wqpLayerBuildingService
-						.getDynamicLayer(
-								wxsParams, searchParams,
-								layerParams, ogcService,
-								ProxyDataSourceParameter.WQP_SITES);
+						.getDynamicLayer(wxsParams, searchParams, layerParams, ogcService, ProxyDataSourceParameter.WQP_SITES);
 
 				if (result != ProxyServiceResult.SUCCESS) {
 					return;
@@ -500,29 +464,22 @@ public class ProxyService {
 	 * @param requestParams
 	 * @return
 	 */
-	private boolean proxyRequest(HttpServletRequest clientRequest,
-			HttpServletResponse clientResponse,
-			Map<String, String> requestParams,
-			String ogcRequestType, OGCServices serviceType,
-			ProxyDataSourceParameter dataSource) {
+	private boolean proxyRequest(HttpServletRequest clientRequest, HttpServletResponse clientResponse, Map<String, String> requestParams,
+			String ogcRequestType, OGCServices serviceType, ProxyDataSourceParameter dataSource) {
 		
 		try {
-			HttpUriRequest serverRequest = generateServerRequest(clientRequest,
-					requestParams);
-			handleServerRequest(clientRequest, clientResponse, serverRequest,
-					requestParams, ogcRequestType, serviceType, dataSource);
+			HttpUriRequest serverRequest = generateServerRequest(clientRequest, requestParams);
+			handleServerRequest(clientRequest, clientResponse, serverRequest, requestParams, ogcRequestType, serviceType, dataSource);
 		} catch (OGCProxyException e) {
-			log.error("ProxyService.proxyRequest() Error: proxying client request: "
-					+ e.getMessage());
+			log.error("ProxyService.proxyRequest() Error: proxying client request: " + e.getMessage());
 			return false;
 		}
 
 		return true;
 	}
 
-	private HttpUriRequest generateServerRequest(
-			HttpServletRequest clientRequest,
-			final Map<String, String> ogcParams) throws OGCProxyException {
+	private HttpUriRequest generateServerRequest( HttpServletRequest clientRequest, final Map<String, String> ogcParams) 
+			throws OGCProxyException {
 		
 		HttpUriRequest serverRequest = null;
 		
@@ -533,8 +490,7 @@ public class ProxyService {
 							ProxyService.forwardUrl,
 							ProxyService.geoserverContext);
 
-			log.info("ProxyService.generateServerRequest(): request to GeoServer is: [\n"
-					+ serverRequestURIAsString + "]");
+			log.info("ProxyService.generateServerRequest(): request to GeoServer is: [\n" + serverRequestURIAsString + "]");
 
 			// instantiating to URL then calling toURI gives us some error
 			// checking as URI(String) appears too forgiving.
@@ -557,18 +513,15 @@ public class ProxyService {
 			} else if ("OPTIONS".equals(clientRequestMethod)) {
 				serverRequest = new HttpOptions(serverRequestURI);
 			} else {
-				String msg = "ProxyService.generateServerRequest() Exception : Unsupported request method ["
-						+ serverRequest + "].";
+				String msg = "ProxyService.generateServerRequest() Exception : Unsupported request method [" + serverRequest + "].";
 				log.error(msg);
 
 				OGCProxyExceptionID id = OGCProxyExceptionID.UNSUPPORTED_REQUEST_METHOD;
-				throw new OGCProxyException(id, "ProxyService",
-						"generateServerRequest()", msg);
+				throw new OGCProxyException(id, "ProxyService", "generateServerRequest()", msg);
 			}
 
 			// 3) Map client request headers to server request
-			ProxyUtil.generateServerRequestHeaders(clientRequest,
-					serverRequest, ProxyService.ignoredClientRequestHeaderSet);
+			ProxyUtil.generateServerRequestHeaders(clientRequest, serverRequest, ProxyService.ignoredClientRequestHeaderSet);
 
 			// 4) Copy client request body to server request
 			int contentLength = clientRequest.getContentLength();
@@ -672,8 +625,7 @@ public class ProxyService {
 		// HttpServletResponse.sendError(int, String)
 		// will display some custom html (we don't want that here).
 		// HttpServletResponse.setStatus(int, String)
-		// is deprecated and i'm not certain there is (will be) an functional
-		// implementation behind it.
+		// is deprecated and i'm not certain there is (will be) an functional implementation behind it.
 		StatusLine serverStatusLine = serverResponse.getStatusLine();
 		int statusCode = serverStatusLine.getStatusCode();
 		clientResponse.setStatus(statusCode);
@@ -681,35 +633,29 @@ public class ProxyService {
 				+ statusCode);
 
 		// 2) Map server response headers to client response
-		ProxyUtil.generateClientResponseHeaders(clientResponse, serverResponse,
-				ProxyService.ignoredServerResponseHeaderSet);
+		ProxyUtil.generateClientResponseHeaders(clientResponse, serverResponse, ProxyService.ignoredServerResponseHeaderSet);
 
 		// 3) Copy server response body to client response
 		HttpEntity methodEntity = serverResponse.getEntity();
 		if (methodEntity != null) {
 
-			InputStream is = null;
+			InputStream  is = null;
 			OutputStream os = null;
 
 			boolean contentCompressed = false;
 
-//			String encoding = "none";
 			if (methodEntity.getContentEncoding() != null) {
 				String contentEncoding = methodEntity.getContentEncoding().getValue();
-				if ((contentEncoding != null) && (contentEncoding.toLowerCase().equals("gzip"))) {
+				if ( "gzip".equalsIgnoreCase(contentEncoding) ) {
 					contentCompressed = true;
-//					encoding = contentEncoding;
 				}
 			}
 
 			long responseBytes = 0;
 
 			try {
-
-				// !!! Are you here to edit this to enable response body content
-				// rewrite?
-				// You may want to remove or edit the "Content-Length" header
-				// !!!
+				// !!! Are you here to edit this to enable response body content rewrite?
+				// You may want to remove or edit the "Content-Length" header !!!
 				try {
 					is = methodEntity.getContent();
 				} catch (IOException e) {

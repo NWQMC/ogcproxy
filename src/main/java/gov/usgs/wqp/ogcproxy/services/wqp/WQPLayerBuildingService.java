@@ -465,10 +465,8 @@ public class WQPLayerBuildingService {
 			 */
 			switch (layerCache.getCurrentStatus()) {
 				case INITIATED: {
-					String msg1 = "WQPLayerBuildingService.getDynamicLayer() Created new DynamicLayerCache for key [" +
-							searchParams.unsignedHashCode() +
-							"].  Setting status to BUILDING and creating layer...";
-					log.info(msg1);
+					log.info("WQPLayerBuildingService.getDynamicLayer() Created new DynamicLayerCache for key [" +
+							searchParams.unsignedHashCode() +"].  Setting status to BUILDING and creating layer...");
 					
 					/*
 					 * We just created a new cache object.  This means there is no
@@ -491,12 +489,11 @@ public class WQPLayerBuildingService {
 					if (isEmpty(layerName)) {
 						layerCache.setCurrentStatus(DynamicLayerStatus.EMPTY);
 						
-						String msg2 = "WQPLayerBuildingService.getDynamicLayer() Unable to create layer [" + layerCache.getLayerName() +
+						log.info("WQPLayerBuildingService.getDynamicLayer() Unable to create layer [" + layerCache.getLayerName() +
 								"] for key ["+ searchParams.unsignedHashCode() +
 								"].  Its status is [" + DynamicLayerStatus.getStringFromType(layerCache.getCurrentStatus()) +
 								"].  Since it is an empty request this means the search parameters did not " +
-								"result in any matching criteria.";
-						log.info(msg2);
+								"result in any matching criteria.");
 						return ProxyServiceResult.EMPTY;
 					}
 					
@@ -508,21 +505,19 @@ public class WQPLayerBuildingService {
 					layerCache.setLayerName(layerName);
 					layerCache.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
 					
-					String msg2 = "WQPLayerBuildingService.getDynamicLayer() Finished building layer for key ["+
+					log.info("WQPLayerBuildingService.getDynamicLayer() Finished building layer for key ["+
 							searchParams.unsignedHashCode() +
 							"].  Layer name is [" + layerCache.getLayerName() + "].  Setting status to " +
-							"AVAILABLE and continuing on to GeoServer WMS request...";
-					log.info(msg2);
+							"AVAILABLE and continuing on to GeoServer WMS request...");
 					break;
 				}
 				
 				case EMPTY: {
-					String msg1 = "WQPLayerBuildingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
+					log.info("WQPLayerBuildingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
 							"] for key ["+ searchParams.unsignedHashCode() +
 							"] and its status is [" + DynamicLayerStatus.getStringFromType(layerCache.getCurrentStatus()) +
 							"].  Since it is an empty request this means the search parameters did not " +
-							"result in any matching criteria.";
-					log.info(msg1);
+							"result in any matching criteria.");
 					return ProxyServiceResult.EMPTY;
 				}
 				
@@ -532,11 +527,10 @@ public class WQPLayerBuildingService {
 				}
 				
 				default: {
-					String msg1 = "WQPLayerBuildingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
+					log.info("WQPLayerBuildingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
 							"] for key ["+ searchParams.unsignedHashCode() +
 							"] and its status is [" + DynamicLayerStatus.getStringFromType(layerCache.getCurrentStatus()) +
-							"].  Continuing on to GeoServer WMS request...";
-					log.info(msg1);
+							"].  Continuing on to GeoServer WMS request...");
 					break;
 				}
 			}
@@ -558,6 +552,7 @@ public class WQPLayerBuildingService {
 		 */
 		for (String layerParam : layerParams) {
 			String currentLayers = ogcParams.get(layerParam);
+			
 			if (isEmpty(currentLayers) || (currentLayers.equals(dataSource.toString()))) {
 				currentLayers = geoserverWorkspace + ":" + layerCache.getLayerName();
 			} else {
