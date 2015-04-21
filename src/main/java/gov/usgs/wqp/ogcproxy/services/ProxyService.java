@@ -8,6 +8,7 @@ import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
+import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.RequestWrapper;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
 import gov.usgs.wqp.ogcproxy.utils.ProxyServiceResult;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
@@ -47,6 +48,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.SchemeRegistryFactory;
@@ -493,19 +495,26 @@ public class ProxyService {
 
 			// 4) Copy client request body to server request
 			int contentLength = clientRequest.getContentLength();
+			String body = "";
+			// revise the length to the length of the body without the searchParams
+			if (clientRequest instanceof RequestWrapper) {
+				body = ((RequestWrapper)clientRequest).getPostBodySansSearchParams();
+				contentLength = body.length();
+			}
+			
 			if (contentLength > 0) {
-				if (serverRequest instanceof HttpEntityEnclosingRequest) {
+				// is this a POST (or PUT)
+				if (serverRequest instanceof HttpEntityEnclosingRequest) {	// TODO asdf
 					try {
-						// !!! Are you here to edit this to enable request body
-						// content rewrite?
-						// You may want to remove or edit the "Content-Length"
-						// header !!!
-						InputStreamEntity serverRequestEntity = new InputStreamEntity(
-								clientRequest.getInputStream(), contentLength);
-						serverRequestEntity.setContentType(clientRequest
-								.getContentType());
-						((HttpEntityEnclosingRequest) serverRequest)
-								.setEntity(serverRequestEntity);
+						HttpEntityEnclosingRequest entityRequest = (HttpEntityEnclosingRequest) serverRequest;
+						
+						InputStreamEntity serverRequestEntity = new InputStreamEntity(clientRequest.getInputStream(), contentLength);
+						serverRequestEntity.setContentType(clientRequest.getContentType());
+						((HttpEntityEnclosingRequest) serverRequest).setEntity(serverRequestEntity);
+												
+				        HttpEntity entity = new ByteArrayEntity(body.getBytes("UTF-8"));
+				        entityRequest.setEntity(entity);
+				 
 					} catch (IOException e) {
 						String msg = "ProxyService.generateServerRequest() Exception : Error reading client request body [" + e.getMessage() + "].";
 						log.error(msg);

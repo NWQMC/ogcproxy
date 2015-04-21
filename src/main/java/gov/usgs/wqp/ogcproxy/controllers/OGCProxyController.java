@@ -3,6 +3,7 @@ package gov.usgs.wqp.ogcproxy.controllers;
 import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WFSParameters;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.OgcWfsParser;
+import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.RequestWrapper;
 import gov.usgs.wqp.ogcproxy.services.ProxyService;
 import gov.usgs.wqp.ogcproxy.services.RESTService;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
@@ -103,7 +104,7 @@ public class OGCProxyController {
 		
 		OgcWfsParser ogcParser =  new OgcWfsParser(request);
 		Map<String, String> requestParams = ogcParser.requestParamsPayloadToMap();
-		ProxyUtil.getRequestedService(OGCServices.WMS, requestParams);
+		request = new RequestWrapper(request, ogcParser.getBodyMinusSearchParams());
 		
 		ogcService = ProxyUtil.getRequestedService(ogcService, requestParams);
 
