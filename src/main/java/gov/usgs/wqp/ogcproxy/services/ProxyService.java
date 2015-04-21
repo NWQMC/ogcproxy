@@ -293,15 +293,15 @@ public class ProxyService {
 	public void performWMSRequest(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
 		
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
-		Map<String, String> wmsParams = new HashMap<String, String>();
-		ProxyUtil.separateParameters(requestParams, wmsParams, searchParams);
+		Map<String, String> ogcParams = new HashMap<String, String>();
+		ProxyUtil.separateParameters(requestParams, ogcParams, searchParams);
 		
 		String layerParamName             = ProxyUtil.getCaseSensitiveParameter(WMSParameters.layers.toString(), requestParams);
 		String servletQueryLayerParamName = ProxyUtil.getCaseSensitiveParameter(WMSParameters.query_layers.toString(), requestParams);
-		String queryLayerParam            = wmsParams.get(servletQueryLayerParamName);
-		String errorValue                 = wmsParams.get(WMSParameters.format.toString());
+		String queryLayerParam            = ogcParams.get(servletQueryLayerParamName);
+		String errorValue                 = ogcParams.get(WMSParameters.format.toString());
 		
-		performGetRequest(request, response, requestParams, OGCServices.WMS, layerParamName, layerParamName, servletQueryLayerParamName, queryLayerParam, errorValue);
+		performRequest(request, response, requestParams, OGCServices.WMS, layerParamName, layerParamName, servletQueryLayerParamName, queryLayerParam, errorValue);
 	}
 
 	/**
@@ -321,38 +321,17 @@ public class ProxyService {
 	public void performWFSRequest(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
 		
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
-		Map<String, String> wfsParams = new HashMap<String, String>();
-		ProxyUtil.separateParameters(requestParams, wfsParams, searchParams);
+		Map<String, String> ogcParams = new HashMap<String, String>();
+		ProxyUtil.separateParameters(requestParams, ogcParams, searchParams);
 		
-		String layerParamName             = wfsParams.get(WFSParameters.typeName.toString());
+		String layerParamName             = ogcParams.get(WFSParameters.typeName.toString());
 		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
 		String layerParamNameToAdd        = servletQueryLayerParamName;
 		String queryLayerParam            = layerParamName;
 
-		performGetRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
+		performRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
 	}
 	
-	// NEW POST OGC XML WMS
-	public void performPostWMSRequest(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
-		
-		String layerParamName             = requestParams.get(WFSParameters.typeName.toString());
-		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
-		String layerParamNameToAdd        = servletQueryLayerParamName;
-		String queryLayerParam            = layerParamName;
-
-		performGetRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
-	}
-	// NEW POST OGC XML WFS
-	public void performPostWFSRequest(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
-		
-		String layerParamName             = requestParams.get(WFSParameters.typeName.toString());
-		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
-		String layerParamNameToAdd        = servletQueryLayerParamName;
-		String queryLayerParam            = layerParamName;
-
-		performGetRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
-	}
-
 	/**
 	 * This method provides WMS/WFS request proxying along with intercepting
 	 * WMS/WFS requests and providing additional functionality based on the
@@ -363,7 +342,7 @@ public class ProxyService {
 	 * @param requestParams
 	 * @param finalResult
 	 */
-	public void performGetRequest(HttpServletRequest request,
+	public void performRequest(HttpServletRequest request,
 			HttpServletResponse response, Map<String, String> requestParams,
 			OGCServices ogcService, String layerParamName, String layerParamNameToAdd,
 			String servletQueryLayerParamName, String queryLayerParam, String errorValue) {
@@ -374,8 +353,8 @@ public class ProxyService {
 		ProxyDataSourceParameter queryLayerValue = ProxyDataSourceParameter.UNKNOWN;
 		
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
-		Map<String, String> wxsParams = new HashMap<String, String>();
-		ProxyUtil.separateParameters(requestParams, wxsParams, searchParams);
+		Map<String, String> ogcParams = new HashMap<String, String>();
+		ProxyUtil.separateParameters(requestParams, ogcParams, searchParams);
 		
 		// Lets see if the layers and/or queryParameter parameter is what
 		// we are expecting and decide what to do depending on its value.
@@ -383,7 +362,7 @@ public class ProxyService {
 		// Since this can be case INSENSITIVE but we use its value as a key in a map, we need
 		// to know what the exact character sequence is going forward.
 		List<String> layerParams = new LinkedList<String>();
-		String layerParam = wxsParams.get(layerParamName);
+		String layerParam = ogcParams.get(layerParamName);
 		if ( isEmpty(layerParam) ) {
 			dataSource = ProxyDataSourceParameter.getTypeFromString(layerParam);
 
@@ -416,8 +395,9 @@ public class ProxyService {
 			log.info("ProxyService.performRequest() Info: Kicking off search parameter logic for data source ["
 					+ dataSource + "]");
 			if (dataSource == ProxyDataSourceParameter.WQP_SITES) {
+				// TODO asdf this must handle the POST
 				ProxyServiceResult result = wqpLayerBuildingService
-						.getDynamicLayer(wxsParams, searchParams, layerParams, ogcService, ProxyDataSourceParameter.WQP_SITES);
+						.getDynamicLayer(ogcParams, searchParams, layerParams, ogcService, ProxyDataSourceParameter.WQP_SITES);
 
 				if (result != ProxyServiceResult.SUCCESS) {
 					return;
@@ -426,12 +406,18 @@ public class ProxyService {
 		}
 		
 		// We now need to perform the proxy call to the GeoServer and return the result to the client
-		String ogcRequestType = (wxsParams.get("request") == null) ? "" : wxsParams.get("request");
-		if ( ! proxyRequest(request, response, wxsParams, ogcRequestType, ogcService, dataSource) ) {
+		String ogcRequestType = ogcParams.get("request");
+		if (ogcRequestType == null) {
+			ogcRequestType = "";
+		}
+		
+		boolean proxySuccess = proxyRequest(request, response, ogcParams, ogcRequestType, ogcService, dataSource);
+		
+		if (proxySuccess) {
+			log.info("ProxyService.performRequest() INFO: Proxy request is completed successfully.");
+		} else {
 			log.error("ProxyService.performRequest() Error:  Unable to proxy client request.");
 		}
-
-		log.info("ProxyService.performRequest() INFO: Proxy request is completed.");
 	}
 	
 
@@ -450,6 +436,7 @@ public class ProxyService {
 			String ogcRequestType, OGCServices serviceType, ProxyDataSourceParameter dataSource) {
 		
 		try {
+			// TODO asdf this must handle the POST
 			HttpUriRequest serverRequest = generateServerRequest(clientRequest, requestParams);
 			handleServerRequest(clientRequest, clientResponse, serverRequest, requestParams, ogcRequestType, serviceType, dataSource);
 		} catch (OGCProxyException e) {
@@ -467,19 +454,18 @@ public class ProxyService {
 		
 		try {
 			// 1) Generate Server URI
-			String serverRequestURIAsString = ProxyUtil
-					.getServerRequestURIAsString(clientRequest, ogcParams,
-							ProxyService.forwardUrl,
-							ProxyService.geoserverContext);
+			String serverRequestURIAsString = ProxyUtil.getServerRequestURIAsString(clientRequest, ogcParams,
+							ProxyService.forwardUrl, ProxyService.geoserverContext);
 
 			log.info("ProxyService.generateServerRequest(): request to GeoServer is: [\n" + serverRequestURIAsString + "]");
 
 			// instantiating to URL then calling toURI gives us some error
 			// checking as URI(String) appears too forgiving.
-			URI serverRequestURI = (new URL(serverRequestURIAsString)).toURI();
+			URI serverRequestURI = new URL(serverRequestURIAsString).toURI();
 
 			// 2 ) Create request base on client request method
 			String clientRequestMethod = clientRequest.getMethod();
+			
 			if ("HEAD".equals(clientRequestMethod)) {
 				serverRequest = new HttpHead(serverRequestURI);
 			} else if ("GET".equals(clientRequestMethod)) {
@@ -521,22 +507,18 @@ public class ProxyService {
 						((HttpEntityEnclosingRequest) serverRequest)
 								.setEntity(serverRequestEntity);
 					} catch (IOException e) {
-						String msg = "ProxyService.generateServerRequest() Exception : Error reading client request body ["
-								+ e.getMessage() + "].";
+						String msg = "ProxyService.generateServerRequest() Exception : Error reading client request body [" + e.getMessage() + "].";
 						log.error(msg);
 
 						OGCProxyExceptionID id = OGCProxyExceptionID.ERROR_READING_CLIENT_REQUEST_BODY;
-						throw new OGCProxyException(id, "ProxyService",
-								"generateServerRequest()", msg);
+						throw new OGCProxyException(id, "ProxyService", "generateServerRequest()", msg);
 					}
 				} else {
-					String msg = "ProxyService.generateServerRequest() Exception : Content in request body unsupported for client request method ["
-							+ serverRequest.getMethod() + "].";
+					String msg = "ProxyService.generateServerRequest() Exception : Content in request body unsupported for client request method [" + serverRequest.getMethod() + "].";
 					log.error(msg);
 
 					OGCProxyExceptionID id = OGCProxyExceptionID.UNSUPPORTED_CONTENT_FOR_REQUEST_METHOD;
-					throw new OGCProxyException(id, "ProxyService",
-							"generateServerRequest()", msg);
+					throw new OGCProxyException(id, "ProxyService", "generateServerRequest()", msg);
 				}
 			}
 

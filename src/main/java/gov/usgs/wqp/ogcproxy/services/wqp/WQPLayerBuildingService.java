@@ -429,6 +429,7 @@ public class WQPLayerBuildingService {
 	public ProxyServiceResult getDynamicLayer(Map<String,String> ogcParams, SearchParameters<String,
 			List<String>> searchParams, List<String> layerParams, OGCServices originatingService,
 			ProxyDataSourceParameter dataSource) {
+
 		initialize();
 		
 		/*
@@ -553,14 +554,14 @@ public class WQPLayerBuildingService {
 		 * We finally got a layer name (and its been added to GeoServer, lets
 		 * add this layer to the layer parameter in the OGC request
 		 */
+		// TODO why are we replacing an increasingly concatenated layer list to each layerParam
+		String sep="";
 		for (String layerParam : layerParams) {
 			String currentLayers = ogcParams.get(layerParam);
 			
-			if (isEmpty(currentLayers) || (currentLayers.equals(dataSource.toString()))) {
-				currentLayers = geoserverWorkspace + ":" + layerCache.getLayerName();
-			} else {
-				currentLayers += "," + geoserverWorkspace + ":" + layerCache.getLayerName();
-			}
+			currentLayers += sep + geoserverWorkspace + ":" + layerCache.getLayerName();
+			sep = ",";
+			
 			ogcParams.put(layerParam, currentLayers);
 		}
 		
