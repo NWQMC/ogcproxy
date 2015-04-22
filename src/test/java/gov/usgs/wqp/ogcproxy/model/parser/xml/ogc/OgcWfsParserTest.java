@@ -360,8 +360,8 @@ public class OgcWfsParserTest {
 		System.out.println();
 		
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
-		Map<String, String> wxsParams = new HashMap<String, String>();
-		ProxyUtil.separateParameters(requestParams, wxsParams, searchParams);
+		Map<String, String> ogcParams = new HashMap<String, String>();
+		ProxyUtil.separateParameters(requestParams, ogcParams, searchParams);
 		
 		System.out.println();
 		System.out.println(searchParams);

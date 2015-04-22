@@ -105,14 +105,12 @@ public class ProxyUtil {
 	    }
 	    log.debug("ProxyUtil.separateParameters() OGC PARAMETER MAP:\n[" + ogcParams + "]");
 		
-		if (containsSearchQuery) {
-			String searchParamString = requestParams.get(servletSearchParamName);
-			
+		String searchParamString = requestParams.get(servletSearchParamName);
+		if (searchParamString != null) {
 			/*
 			 * This is a "create layer" request.  We need to first see if it exists  salready.
 			 * http://www.waterqualitydata.us/Station/search?countrycode=US&statecode=US%3A04|US%3A06&countycode=US%3A04%3A001|US%3A04%3A007|US%3A06%3A011|US%3A06%3A101&within=10&lat=46.12&long=-89.15&siteType=Estuary&organization=BCHMI&siteid=usgs-station&huc=010801*&sampleMedia=Air&characteristicType=Biological&characteristicName=Soluble+Reactive+Phosphorus+(SRP)&pCode=00065&startDateLo=01-01-1991&startDateHi=02-02-1992&providers=NWIS&providers=STEWARDS&providers=STORET&bBox=-89.68%2C-89.15%2C45.93%2C46.12&mimeType=csv&zip=yes
 			 */
-			
 			WQPUtils.parseSearchParams(searchParamString, searchParams);
 			
 			log.debug("ProxyUtil.separateParameters() SEARCH PARAMETER MAP:\n[" + searchParams + "]");
