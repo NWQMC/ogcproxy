@@ -210,11 +210,11 @@ public class SimplePointFeature implements FeatureDAO {
 	}
 	
 	public SimpleFeature getSimpleFeature() {
-		if(this.featureIsDirty) {
+		if (this.featureIsDirty) {
 			this.simpleFeature = null;
 		}
 		
-		if(this.simpleFeature == null) {
+		if (this.simpleFeature == null) {
 			/**
 			 * Must be in order of the SimpleFeatureType defined below in getFeatureType()
 			 */
@@ -250,9 +250,9 @@ public class SimplePointFeature implements FeatureDAO {
 	}
 	
 	public static SimpleFeatureType getFeatureType() throws SchemaException, NoSuchAuthorityCodeException, FactoryException {
-		if(SimplePointFeature.FEATURETYPE == null) {
+		if (SimplePointFeature.FEATURETYPE == null) {
 			synchronized(SimplePointFeature.class) {
-				if(SimplePointFeature.FEATURETYPE == null) {
+				if (SimplePointFeature.FEATURETYPE == null) {
 					SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
 			        builder.setName("Location");
 			        builder.setCRS(CRS.decode("EPSG:4326")); // <- Coordinate reference system

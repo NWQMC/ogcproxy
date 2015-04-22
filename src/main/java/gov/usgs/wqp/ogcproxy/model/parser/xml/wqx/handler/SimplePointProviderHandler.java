@@ -96,9 +96,9 @@ import org.xml.sax.helpers.DefaultHandler;
  * 		</WQX-Outbound>
  * }
  * </pre>
- * 
- * 
- * 
+ *
+ *
+ *
  * @author prusso
  *
  */
@@ -142,7 +142,7 @@ public class SimplePointProviderHandler extends DefaultHandler {
 		//log.debug(msg);
 		contents.reset();
 		
-		if(SimplePointProviderHandler.SUBHANDLER_ELEMENT.equals(qName)) {
+		if (SimplePointProviderHandler.SUBHANDLER_ELEMENT.equals(qName)) {
 			try {
 				xmlReader.setContentHandler(new SimplePointLocationHandler(this, this.xmlReader, this.simplePointFeatures, this.currentProvider, this.featureBuilder));
 			} catch (SchemaException e) {
@@ -172,7 +172,7 @@ public class SimplePointProviderHandler extends DefaultHandler {
 		//System.out.println(msg);
 		//log.debug(msg);
 		
-		if(SimplePointProviderHandler.PROVIDER_NAME_ELEMENT.equals(qName)) {
+		if (SimplePointProviderHandler.PROVIDER_NAME_ELEMENT.equals(qName)) {
 			this.currentProvider = SourceProvider.getTypeFromString(contents.toString());
 		}
 	}

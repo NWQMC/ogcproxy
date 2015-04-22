@@ -26,7 +26,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 /**
  * This class takes the place of the old Spring servlet.xml configuration that
- * used to reside in /WEB-INF. 
+ * used to reside in /WEB-INF.
  */
 
 @Configuration
@@ -35,14 +35,14 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 @PropertySource(value = {"file:${catalina.base}/conf/ogcproxy.properties"})		// Unfortunately this is Tomcat specific.  For us its ok
 public class SpringConfig extends WebMvcConfigurerAdapter {
 	@Autowired
-	private Environment environment; 
+	private Environment environment;
 	
 	/**
 	 * Expose the resources (properties defined above) as an Environment to all
 	 * classes.  Must declare a class variable with:
-	 * 
+	 *
 	 * 		@Autowired
-	 *		private Environment environment; 
+	 *		private Environment environment;
 	 */
 	@Bean
 	public static PropertySourcesPlaceholderConfigurer propertyPlaceHolderConfigurer() {
@@ -61,9 +61,9 @@ public class SpringConfig extends WebMvcConfigurerAdapter {
 	 * The caveat of mapping DispatcherServlet to "/" is that by default it breaks the ability to serve
 	 * static resources like images and CSS files. To remedy this, I need to configure Spring MVC to
 	 * enable defaultServletHandling.
-	 * 
+	 *
 	 * 		equivalent for <mvc:default-servlet-handler/> tag
-	 * 
+	 *
 	 * To do that, my WebappConfig needs to extend WebMvcConfigurerAdapter and override the following method:
 	 */
 	@Override
@@ -114,9 +114,6 @@ public class SpringConfig extends WebMvcConfigurerAdapter {
 	
 	@Bean
 	public RESTService restService() {
-		RESTService restService = RESTService.getInstance();
-		restService.initialize();
-		
-		return restService;
+		return RESTService.getInstance();
 	}
 }

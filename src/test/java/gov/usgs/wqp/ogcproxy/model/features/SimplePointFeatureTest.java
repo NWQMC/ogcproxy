@@ -39,7 +39,7 @@ public class SimplePointFeatureTest {
 	private List<FeatureAttributeType> defaultFeatureAttribs;
 	
 	@Before
-	public void init() throws Exception {		
+	public void init() throws Exception {
 		/**
 		 * Create necessary support classes
 		 */
@@ -71,7 +71,7 @@ public class SimplePointFeatureTest {
 		
 		/**
 		 * Start our tests
-		 * 
+		 *
 		 * Create our SimplePointFeature
 		 */
 		SimplePointFeature currentPointFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.UNKNOWN);
@@ -79,7 +79,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Check typical feature values
 		 */
-		assertEquals(0, currentPointFeature.getLatitude(), 0);		
+		assertEquals(0, currentPointFeature.getLatitude(), 0);
 		assertEquals(0, currentPointFeature.getLongitude(), 0);
 		assertEquals("", currentPointFeature.getName());
 		assertEquals(defaultPoint, currentPointFeature.getPoint());
@@ -90,7 +90,7 @@ public class SimplePointFeatureTest {
 		 * Check complex feature BaseAttributeType datastructure
 		 */
 		List<BaseAttributeType> baseTypes = currentPointFeature.listBaseAttributes();
-		for(BaseAttributeType baseType : this.defaultBaseAttribs) {
+		for (BaseAttributeType baseType : this.defaultBaseAttribs) {
 			assertTrue(baseTypes.contains(baseType));
 		}
 		assertEquals(SourceProvider.getStringFromType(SourceProvider.UNKNOWN), currentPointFeature.getBaseAttribute(BaseAttributeType.Provider));
@@ -101,7 +101,7 @@ public class SimplePointFeatureTest {
 		
 		
 		List<FeatureAttributeType> featureTypes = currentPointFeature.listFeatureAttributes();
-		for(FeatureAttributeType featureType : this.defaultFeatureAttribs) {
+		for (FeatureAttributeType featureType : this.defaultFeatureAttribs) {
 			assertTrue(featureTypes.contains(featureType));
 		}
 		assertEquals("", currentPointFeature.getFeatureAttribute(FeatureAttributeType.name));
@@ -134,7 +134,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Get the simpleFeature
 		 */
-		SimpleFeature generatedFeature = currentPointFeature.getSimpleFeature();	
+		SimpleFeature generatedFeature = currentPointFeature.getSimpleFeature();
 		
 		/**
 		 * Check that our isDirty flag has gone away.
@@ -143,12 +143,12 @@ public class SimplePointFeatureTest {
 		
 		/**
 		 * Now check the actual SimpleFeature created
-		 * 
+		 *
 		 * 		Attribute Name 		= 	"name"
 		 * 		Attribute Point 	= 	"the_geom"
 		 * 		Attribute Provider 	= 	"provider"
 		 * 		Attribute Type 		= 	"type"
-		 * 
+		 *
 		 */
 		Object theName = generatedFeature.getAttribute("name");
 		assertEquals(theName.getClass(), String.class);
@@ -181,7 +181,7 @@ public class SimplePointFeatureTest {
 		
 		/**
 		 * Start our tests
-		 * 
+		 *
 		 * Create our SimplePointFeature
 		 */
 		SimplePointFeature currentPointFeature = new SimplePointFeature(this.usedFeatureBuilder, defaultProvider, defaultName, defaultType, defaultLong, defaultLat);
@@ -200,7 +200,7 @@ public class SimplePointFeatureTest {
 		 * Check complex feature BaseAttributeType datastructure
 		 */
 		List<BaseAttributeType> baseTypes = currentPointFeature.listBaseAttributes();
-		for(BaseAttributeType baseType : this.defaultBaseAttribs) {
+		for (BaseAttributeType baseType : this.defaultBaseAttribs) {
 			assertTrue(baseTypes.contains(baseType));
 		}
 		assertEquals(SourceProvider.getStringFromType(defaultProvider), currentPointFeature.getBaseAttribute(BaseAttributeType.Provider));
@@ -211,7 +211,7 @@ public class SimplePointFeatureTest {
 		
 		
 		List<FeatureAttributeType> featureTypes = currentPointFeature.listFeatureAttributes();
-		for(FeatureAttributeType featureType : this.defaultFeatureAttribs) {
+		for (FeatureAttributeType featureType : this.defaultFeatureAttribs) {
 			assertTrue(featureTypes.contains(featureType));
 		}
 		assertEquals(defaultName, currentPointFeature.getFeatureAttribute(FeatureAttributeType.name));
@@ -253,12 +253,12 @@ public class SimplePointFeatureTest {
 		
 		/**
 		 * Now check the actual SimpleFeature created
-		 * 
+		 *
 		 * 		Attribute Name 		= 	"name"
 		 * 		Attribute Point 	= 	"the_geom"
 		 * 		Attribute Provider 	= 	"provider"
 		 * 		Attribute Type 		= 	"type"
-		 * 
+		 *
 		 */
 		Object theName = generatedFeature.getAttribute("name");
 		assertEquals(theName.getClass(), String.class);
@@ -343,12 +343,12 @@ public class SimplePointFeatureTest {
 		
 		/**
 		 * Now check the actual SimpleFeature created
-		 * 
+		 *
 		 * 		Attribute Name 		= 	"name"
 		 * 		Attribute Point 	= 	"the_geom"
 		 * 		Attribute Provider 	= 	"provider"
 		 * 		Attribute Type 		= 	"type"
-		 * 
+		 *
 		 */
 		SimpleFeature generatedFeature = testableFeature.getSimpleFeature();
 		
@@ -408,7 +408,7 @@ public class SimplePointFeatureTest {
 		 */
 		Object initialName = initialFeature.getAttribute("name");
 		assertEquals(initialName.getClass(), String.class);
-		assertEquals(testName, (String)initialName);	
+		assertEquals(testName, (String)initialName);
 		
 		/**
 		 * Check that our isDirty flag has gone away.
@@ -435,12 +435,12 @@ public class SimplePointFeatureTest {
 		
 		/**
 		 * Now check the actual SimpleFeature created
-		 * 
+		 *
 		 * 		Attribute Name 		= 	"name"
 		 * 		Attribute Point 	= 	"the_geom"
 		 * 		Attribute Provider 	= 	"provider"
 		 * 		Attribute Type 		= 	"type"
-		 * 
+		 *
 		 */
 		SimpleFeature generatedFeature = testableFeature.getSimpleFeature();
 		
@@ -505,7 +505,7 @@ public class SimplePointFeatureTest {
 		 */
 		Object initialName = initialFeature.getAttribute("name");
 		assertEquals(initialName.getClass(), String.class);
-		assertEquals(testName, (String)initialName);	
+		assertEquals(testName, (String)initialName);
 		
 		/**
 		 * Check that our isDirty flag has gone away.
@@ -528,7 +528,7 @@ public class SimplePointFeatureTest {
 		 * Test our new Point
 		 */
 		Point newPoint = this.geometryFactory.createPoint(new Coordinate(newLong, testLat));
-		assertEquals(newPoint, testableFeature.getPoint());	
+		assertEquals(newPoint, testableFeature.getPoint());
 		assertEquals(newPoint, testableFeature.getFeatureAttribute(FeatureAttributeType.point));
 		
 		/**
@@ -543,12 +543,12 @@ public class SimplePointFeatureTest {
 		
 		/**
 		 * Now check the actual SimpleFeature created
-		 * 
+		 *
 		 * 		Attribute Name 		= 	"name"
 		 * 		Attribute Point 	= 	"the_geom"
 		 * 		Attribute Provider 	= 	"provider"
 		 * 		Attribute Type 		= 	"type"
-		 * 
+		 *
 		 */
 		SimpleFeature generatedFeature = testableFeature.getSimpleFeature();
 		
@@ -595,8 +595,8 @@ public class SimplePointFeatureTest {
 		/**
 		 * Test our Point
 		 */
-		assertEquals(defaultPoint, testableFeature.getPoint());	
-		assertEquals(defaultPoint, testableFeature.getFeatureAttribute(FeatureAttributeType.point));	
+		assertEquals(defaultPoint, testableFeature.getPoint());
+		assertEquals(defaultPoint, testableFeature.getFeatureAttribute(FeatureAttributeType.point));
 		
 		/**
 		 * Test that its dirty
@@ -613,7 +613,7 @@ public class SimplePointFeatureTest {
 		 */
 		Object initialName = initialFeature.getAttribute("name");
 		assertEquals(initialName.getClass(), String.class);
-		assertEquals(testName, (String)initialName);		
+		assertEquals(testName, (String)initialName);
 		
 		/**
 		 * Check that our isDirty flag has gone away.
@@ -636,7 +636,7 @@ public class SimplePointFeatureTest {
 		 * Test our new Point
 		 */
 		Point newPoint = this.geometryFactory.createPoint(new Coordinate(testLong, newLat));
-		assertEquals(newPoint, testableFeature.getPoint());	
+		assertEquals(newPoint, testableFeature.getPoint());
 		assertEquals(newPoint, testableFeature.getFeatureAttribute(FeatureAttributeType.point));
 		
 		/**
@@ -646,12 +646,12 @@ public class SimplePointFeatureTest {
 		
 		/**
 		 * Now check the actual SimpleFeature created
-		 * 
+		 *
 		 * 		Attribute Name 		= 	"name"
 		 * 		Attribute Point 	= 	"the_geom"
 		 * 		Attribute Provider 	= 	"provider"
 		 * 		Attribute Type 		= 	"type"
-		 * 
+		 *
 		 */
 		SimpleFeature generatedFeature = testableFeature.getSimpleFeature();
 		
@@ -693,7 +693,7 @@ public class SimplePointFeatureTest {
 		 * Test our Point
 		 */
 		assertEquals(defaultPoint, testableFeature.getPoint());
-		assertEquals(defaultPoint, testableFeature.getFeatureAttribute(FeatureAttributeType.point));		
+		assertEquals(defaultPoint, testableFeature.getFeatureAttribute(FeatureAttributeType.point));
 		
 		/**
 		 * Test that its dirty
@@ -710,7 +710,7 @@ public class SimplePointFeatureTest {
 		 */
 		Object initialName = initialFeature.getAttribute("name");
 		assertEquals(initialName.getClass(), String.class);
-		assertEquals(testName, (String)initialName);	
+		assertEquals(testName, (String)initialName);
 		
 		/**
 		 * Check that our isDirty flag has gone away.
@@ -741,7 +741,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Test our new Point
 		 */
-		assertEquals(newPoint, testableFeature.getPoint());	
+		assertEquals(newPoint, testableFeature.getPoint());
 		assertEquals(newPoint, testableFeature.getFeatureAttribute(FeatureAttributeType.point));
 		
 		/**
@@ -751,12 +751,12 @@ public class SimplePointFeatureTest {
 		
 		/**
 		 * Now check the actual SimpleFeature created
-		 * 
+		 *
 		 * 		Attribute Name 		= 	"name"
 		 * 		Attribute Point 	= 	"the_geom"
 		 * 		Attribute Provider 	= 	"provider"
 		 * 		Attribute Type 		= 	"type"
-		 * 
+		 *
 		 */
 		SimpleFeature generatedFeature = testableFeature.getSimpleFeature();
 		
@@ -816,7 +816,7 @@ public class SimplePointFeatureTest {
 		 */
 		Object initialName = initialFeature.getAttribute("name");
 		assertEquals(initialName.getClass(), String.class);
-		assertEquals(testName, (String)initialName);	
+		assertEquals(testName, (String)initialName);
 		
 		/**
 		 * Check that our isDirty flag has gone away.
@@ -843,12 +843,12 @@ public class SimplePointFeatureTest {
 		
 		/**
 		 * Now check the actual SimpleFeature created
-		 * 
+		 *
 		 * 		Attribute Name 		= 	"name"
 		 * 		Attribute Point 	= 	"the_geom"
 		 * 		Attribute Provider 	= 	"provider"
 		 * 		Attribute Type 		= 	"type"
-		 * 
+		 *
 		 */
 		SimpleFeature generatedFeature = testableFeature.getSimpleFeature();
 		

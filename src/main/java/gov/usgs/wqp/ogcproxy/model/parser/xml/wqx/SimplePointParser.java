@@ -19,7 +19,7 @@ import org.xml.sax.SAXException;
 /**
  * Java Parser 		- 	Parse Execution Time [0.806693000] seconds for 28,185
  * Xerces Parser 	-	Parse Execution Time [0.726449000] seconds for 28,185
- * 
+ *
  * @author prusso
  *
  */
@@ -42,7 +42,7 @@ public class SimplePointParser {
 	
 	public SimplePointParser(String xmlFile, SimpleFeatureBuilder featureBuilder) throws ParserConfigurationException, SAXException, NoSuchAuthorityCodeException, SchemaException, FactoryException {
 		this.inputFile = xmlFile;
-		this.saxParser = new SAXParser();		
+		this.saxParser = new SAXParser();
 		this.simplePointFeatures = new ArrayList<FeatureDAO>();
 		
 		this.featureBuilder = featureBuilder;

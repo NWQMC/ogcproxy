@@ -19,7 +19,6 @@ import java.util.List;
 public enum WMSOperations {
 	/**
 	 * http://docs.geoserver.org/stable/en/user/services/wms/reference.html
-	 * 
 	 */
 	Exceptions,
 	GetCapabilities,
@@ -64,8 +63,8 @@ public enum WMSOperations {
 		List<WMSParameters> params = WMSOperations.getParameters(type);
 		List<WMSParameters> requiredParams = new ArrayList<WMSParameters>();
 		
-		for(WMSParameters param : params) {
-			if(isRequired(param)) {
+		for (WMSParameters param : params) {
+			if (isRequired(param)) {
 				requiredParams.add(param);
 			}
 		}

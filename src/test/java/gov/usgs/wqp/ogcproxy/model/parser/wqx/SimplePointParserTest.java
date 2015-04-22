@@ -46,6 +46,6 @@ public class SimplePointParserTest {
 		assertThat(spp.getSimplePointFeatures(), instanceOf(List.class));
 		
 		assertNotNull(spp.getSpHander());
-		assertThat(spp.getSpHander(), instanceOf(SimplePointProviderHandler.class));		
+		assertThat(spp.getSpHander(), instanceOf(SimplePointProviderHandler.class));
 	}
 }

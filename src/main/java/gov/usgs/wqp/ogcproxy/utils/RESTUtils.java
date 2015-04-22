@@ -27,7 +27,7 @@ public class RESTUtils {
 	public static String get(String uri, String user, String pass, String mediaType) {
 		Client client = Client.create();
 		
-		if(user != null) {
+		if (user != null) {
 			client.addFilter(new HTTPBasicAuthFilter(user, pass));
 		}
 		
@@ -52,7 +52,7 @@ public class RESTUtils {
 	public static String post(String uri, String data, String user, String pass, String mediaType) {
 		Client client = Client.create();
 		
-		if(user != null) {
+		if (user != null) {
 			client.addFilter(new HTTPBasicAuthFilter(user, pass));
 		}
 		
@@ -77,7 +77,7 @@ public class RESTUtils {
 	public static String postFile(String uri, String filename, String user, String pass, String mediaType) {
 		Client client = Client.create();
 		
-		if(user != null) {
+		if (user != null) {
 			client.addFilter(new HTTPBasicAuthFilter(user, pass));
 		}
 		
@@ -85,7 +85,7 @@ public class RESTUtils {
 		File file = new File(filename);
         
         String response;
-        if(file.exists()) {
+        if (file.exists()) {
         	try {
         		response = service.type(mediaType).accept(mediaType).post(String.class, file);
         	} catch(UniformInterfaceException e) {
@@ -105,19 +105,19 @@ public class RESTUtils {
 		return response;
 	}
 	
-	public static String putDataFile(String uri, String user, String pass, String mediaType, String filename) {		
-		ClientConfig config = new DefaultClientConfig(); 
+	public static String putDataFile(String uri, String user, String pass, String mediaType, String filename) {
+		ClientConfig config = new DefaultClientConfig();
         Client client = Client.create(config);
 		
-		if(user != null) {
+		if (user != null) {
 			client.addFilter(new HTTPBasicAuthFilter(user, pass));
 		}
     
-        WebResource service = client.resource(uri); 
+        WebResource service = client.resource(uri);
         File file = new File(filename);
                 
         String response;
-        if(file.exists()) {
+        if (file.exists()) {
         	try {
         		response = service.type(mediaType).accept(mediaType).put(String.class, file);
         	} catch(UniformInterfaceException e) {
@@ -140,7 +140,7 @@ public class RESTUtils {
 	public static String delete(String uri, String user, String pass, String mediaType) {
 		Client client = Client.create();
 		
-		if(user != null) {
+		if (user != null) {
 			client.addFilter(new HTTPBasicAuthFilter(user, pass));
 		}
 		

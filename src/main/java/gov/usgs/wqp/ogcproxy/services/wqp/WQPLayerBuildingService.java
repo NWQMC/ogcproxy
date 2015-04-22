@@ -1,5 +1,6 @@
 package gov.usgs.wqp.ogcproxy.services.wqp;
 
+import static org.springframework.util.StringUtils.*;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
@@ -11,7 +12,7 @@ import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.SimplePointParser;
 import gov.usgs.wqp.ogcproxy.model.sources.DataInputType;
 import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
-import gov.usgs.wqp.ogcproxy.utils.ProxyUtil.ProxyServiceResult;
+import gov.usgs.wqp.ogcproxy.utils.ProxyServiceResult;
 import gov.usgs.wqp.ogcproxy.utils.RESTUtils;
 import gov.usgs.wqp.ogcproxy.utils.ShapeFileUtils;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +55,9 @@ import org.xml.sax.SAXException;
 
 public class WQPLayerBuildingService {
 	private static Logger log = SystemUtils.getLogger(WQPLayerBuildingService.class);
+	
+	public static final String DYNAMIC_LAYER_PREFIX = "dynamicSites_";
+	
 	
 	/*
 	 * Beans		===========================================================
@@ -94,7 +99,7 @@ public class WQPLayerBuildingService {
 			"</Layer>";
 	
 	/**
-	 * WFS GetFeature allows the use of the searchParams parameter.  Declare it in the GetCapabilities 
+	 * WFS GetFeature allows the use of the searchParams parameter.  Declare it in the GetCapabilities
 	 * document with the ows:AnyValue indicator (http://schemas.opengis.net/ows/1.1.0/owsDomainType.xsd)
 	 */
 	private static final String WFS_GET_CAPABILITIES_CONTENT = "<ows:Parameter name=\"searchParams\">" +
@@ -129,8 +134,6 @@ public class WQPLayerBuildingService {
 	private static String workingDirectory      = "";
 	private static String shapefileDirectory    = "";
 	
-	protected ThreadSafeClientConnManager clientConnectionManager;
-	protected HttpClient httpClient;
 	private static int connection_ttl            = 15 * 60 * 1000; // 15 minutes, default is infinite
 	private static int connections_max_total     = 256;
 	private static int connections_max_route     = 32;
@@ -142,6 +145,10 @@ public class WQPLayerBuildingService {
 				// the layer and datasource for that shapefile are available.  This is a wait time before
 				// we mark the layer AVAILABLE
 	
+	protected ThreadSafeClientConnManager clientConnectionManager;
+	protected HttpClient httpClient;
+	
+	
 	
 	/* ====================================================================== */
 	private static final WQPLayerBuildingService INSTANCE = new WQPLayerBuildingService();
@@ -150,13 +157,11 @@ public class WQPLayerBuildingService {
 	/**
 	 * Private Constructor for Singleton Pattern
 	 */
-	private WQPLayerBuildingService() {
-		initialized = false;
-	}
+	private WQPLayerBuildingService() {}
 	
 	/**
 	 * Singleton accessor
-	 * 
+	 *
 	 * @return WQPLayerBuildingService instance
 	 */
 	public static WQPLayerBuildingService getInstance() {
@@ -186,7 +191,7 @@ public class WQPLayerBuildingService {
 		if (initialized) {
 			return;
 		}
-		synchronized(WQPLayerBuildingService.class) {
+		synchronized (WQPLayerBuildingService.class) {
 			if (initialized) {
 				return;
 			}
@@ -197,7 +202,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultProto = geoserverProtocol;
 				geoserverProtocol = environment.getProperty("wqp.geoserver.proto");
-				if ((geoserverProtocol == null) || (geoserverProtocol.equals(""))) {
+				if (isEmpty(geoserverProtocol)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.proto] " +
 							  "- Setting geoserver protocol default to [" + defaultProto + "].\n");
 					geoserverProtocol = defaultProto;
@@ -210,7 +215,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultHost = geoserverHost;
 				geoserverHost = environment.getProperty("wqp.geoserver.host");
-				if ((geoserverHost == null) || (geoserverHost.equals(""))) {
+				if (isEmpty(geoserverHost)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.host] " +
 							  "- Setting geoserver host default to [" + defaultHost + "].\n");
 					geoserverHost = defaultHost;
@@ -223,7 +228,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultPort = geoserverPort;
 				geoserverPort = environment.getProperty("wqp.geoserver.port");
-				if ((geoserverPort == null) || (geoserverPort.equals(""))) {
+				if (isEmpty(geoserverPort)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.port] " +
 							  "- Setting geoserver port default to [" + defaultPort + "].\n");
 					geoserverPort = defaultPort;
@@ -236,7 +241,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultContext = geoserverContext;
 				geoserverContext = environment.getProperty("wqp.geoserver.context");
-				if ((geoserverContext == null) || (geoserverContext.equals(""))) {
+				if (isEmpty(geoserverContext)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.context] " +
 							  "- Setting geoserver context default to [" + defaultContext + "].\n");
 					geoserverContext = defaultContext;
@@ -249,7 +254,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultWorkspace = geoserverWorkspace;
 				geoserverWorkspace = environment.getProperty("wqp.geoserver.workspace");
-				if ((geoserverWorkspace == null) || (geoserverWorkspace.equals(""))) {
+				if (isEmpty(geoserverWorkspace)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.workspace] " +
 							  "- Setting geoserver workspace default to [" + defaultWorkspace + "].\n");
 					geoserverWorkspace = defaultWorkspace;
@@ -277,7 +282,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultDatastore = geoserverDatastore;
 				geoserverDatastore = environment.getProperty("wqp.geoserver.datastore");
-				if ((geoserverDatastore == null) || (geoserverDatastore.equals(""))) {
+				if (isEmpty(geoserverDatastore)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.datastore] " +
 							  "- Setting geoserver datastore default to [" + defaultDatastore + "].\n");
 					geoserverDatastore = defaultDatastore;
@@ -302,7 +307,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultProto = simpleStationProtocol;
 				simpleStationProtocol = environment.getProperty("layerbuilder.simplestation.proto");
-				if ((simpleStationProtocol == null) || (simpleStationProtocol.equals(""))) {
+				if (isEmpty(simpleStationProtocol)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.proto] " +
 							  "- Setting simplestation protocol default to [" + defaultProto + "].\n");
 					simpleStationProtocol = defaultProto;
@@ -316,7 +321,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultHost = simpleStationHost;
 				simpleStationHost = environment.getProperty("layerbuilder.simplestation.host");
-				if ((simpleStationHost == null) || (simpleStationHost.equals(""))) {
+				if (isEmpty(simpleStationHost)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.host] " +
 							  "- Setting simplestation host default to [" + defaultHost + "].\n");
 					simpleStationHost = defaultHost;
@@ -330,7 +335,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultPort = simpleStationPort;
 				simpleStationPort = environment.getProperty("layerbuilder.simplestation.port");
-				if ((simpleStationPort == null) || (simpleStationPort.equals(""))) {
+				if (isEmpty(simpleStationPort)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.port] " +
 							  "- Setting simplestation port default to [" + defaultPort + "].\n");
 					simpleStationPort = defaultPort;
@@ -344,7 +349,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultContext = simpleStationContext;
 				simpleStationContext = environment.getProperty("layerbuilder.simplestation.context");
-				if ((simpleStationContext == null) || (simpleStationContext.equals(""))) {
+				if (isEmpty(simpleStationContext)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.context] " +
 							  "- Setting simplestation context default to [" + defaultContext + "].\n");
 					simpleStationContext = defaultContext;
@@ -358,7 +363,7 @@ public class WQPLayerBuildingService {
 			try {
 				String defaultPath = simpleStationPath;
 				simpleStationPath = environment.getProperty("layerbuilder.simplestation.path");
-				if ((simpleStationPath == null) || (simpleStationPath.equals(""))) {
+				if (isEmpty(simpleStationPath)) {
 					log.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.path] " +
 							  "- Setting simplestation path default to [" + defaultPath + "].\n");
 					simpleStationPath = defaultPath;
@@ -423,32 +428,33 @@ public class WQPLayerBuildingService {
 	}
 	
 	public ProxyServiceResult getDynamicLayer(Map<String,String> ogcParams, SearchParameters<String,
-			List<String>> searchParams, List<String> layerParams, OGCServices originatingService,
+			List<String>> searchParams, Collection<String> layerParams, OGCServices originatingService,
 			ProxyDataSourceParameter dataSource) {
+
 		initialize();
 		
 		/*
 		 * Next we need to see if this layer has already been requested
 		 * and is available.
-		 * 
+		 *
 		 * Good WMS test requests are:
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;characteristicName:Hafnium&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A53;characteristicName:Gasoline&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A55;characteristicName:Uranium&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A55;characteristicName:Atrazine&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wms?request=GetFeatureInfo&service=WMS&srs=EPSG:4326&styles=&transparent=true&version=1.1.1&format=image/png&bbox=-123.3984375,30.29701788337205,-49.5703125,50.62507306341435&height=616&width=1680&layers=wqp_sites&query_layers=wqp_sites&info_format=text/html&x=776&y=299&searchParams=huc:06*%7C07*%3BsampleMedia:Water%3BcharacteristicType:Nutrient
-		 * 
+		 *
 		 * Good WFS test requests are:
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wfs?service=WFS&request=GetFeature&version=1.0.0&typeName=qw_portal_map:dynamicSites_1789281855&styles=&outputFormat=application/json
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wfs?request=GetFeature&version=1.0.0&typeName=qw_portal_map:dynamicSites_1789281855&styles=&outputFormat=application/json
-		 * 
+		 *
 		 * 		http://172.16.81.145:8080/ogcproxy/wfs?request=GetFeature&version=1.0.0&typeName=wqp_sites&searchParams=countrycode:US;statecode:US%3A51;huc:06*%7C07*%3BsampleMedia:Water%3BcharacteristicType:Nutrient&styles=&outputFormat=application/json
 		 */
 		
@@ -464,10 +470,8 @@ public class WQPLayerBuildingService {
 			 */
 			switch (layerCache.getCurrentStatus()) {
 				case INITIATED: {
-					String msg1 = "WQPLayerBuildingService.getDynamicLayer() Created new DynamicLayerCache for key [" +
-							searchParams.unsignedHashCode() +
-							"].  Setting status to BUILDING and creating layer...";							
-					log.info(msg1);
+					log.info("WQPLayerBuildingService.getDynamicLayer() Created new DynamicLayerCache for key [" +
+							searchParams.unsignedHashCode() +"].  Setting status to BUILDING and creating layer...");
 					
 					/*
 					 * We just created a new cache object.  This means there is no
@@ -480,48 +484,42 @@ public class WQPLayerBuildingService {
 					 * We now call the simplestation url with our search params
 					 * (along with a mimeType=xml) in order to retrieve the data
 					 * that creates the layer:
-					 * 
+					 *
 					 * 		http://www.waterqualitydata.us/simplestation/search?countycode=US%3A40%3A109&characteristicName=Atrazine&mimeType=xml
-					 * 
+					 *
 					 * Documentation is from http://waterqualitydata.us/webservices_documentation.jsp
 					 * except we call "simplestation" instead of "Station"
 					 */
-					String layerName = buildDynamicLayer(searchParams, geoserverRestPutShapefileURI, geoserverUser, geoserverPass);	
-					if ((layerName == null) || (layerName.equals(""))) {
+					String layerName = buildDynamicLayer(searchParams, geoserverRestPutShapefileURI, geoserverUser, geoserverPass);
+					if (isEmpty(layerName)) {
 						layerCache.setCurrentStatus(DynamicLayerStatus.EMPTY);
 						
-						String msg2 = "WQPLayerBuildingService.getDynamicLayer() Unable to create layer [" + layerCache.getLayerName() +
+						log.info("WQPLayerBuildingService.getDynamicLayer() Unable to create layer [" + layerCache.getLayerName() +
 								"] for key ["+ searchParams.unsignedHashCode() +
 								"].  Its status is [" + DynamicLayerStatus.getStringFromType(layerCache.getCurrentStatus()) +
 								"].  Since it is an empty request this means the search parameters did not " +
-								"result in any matching criteria.";
-						log.info(msg2);
+								"result in any matching criteria.");
 						return ProxyServiceResult.EMPTY;
 					}
 					
-					/*
-					 * TODO
-					 * Also check to see if the layer is enabled in GeoServer...
-					 */
+					//TODO Also check to see if the layer is enabled in GeoServer...
 					
 					layerCache.setLayerName(layerName);
 					layerCache.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
 					
-					String msg2 = "WQPLayerBuildingService.getDynamicLayer() Finished building layer for key ["+
+					log.info("WQPLayerBuildingService.getDynamicLayer() Finished building layer for key ["+
 							searchParams.unsignedHashCode() +
 							"].  Layer name is [" + layerCache.getLayerName() + "].  Setting status to " +
-							"AVAILABLE and continuing on to GeoServer WMS request...";
-					log.info(msg2);
+							"AVAILABLE and continuing on to GeoServer WMS request...");
 					break;
 				}
 				
 				case EMPTY: {
-					String msg1 = "WQPLayerBuildingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
+					log.info("WQPLayerBuildingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
 							"] for key ["+ searchParams.unsignedHashCode() +
 							"] and its status is [" + DynamicLayerStatus.getStringFromType(layerCache.getCurrentStatus()) +
 							"].  Since it is an empty request this means the search parameters did not " +
-							"result in any matching criteria.";
-					log.info(msg1);
+							"result in any matching criteria.");
 					return ProxyServiceResult.EMPTY;
 				}
 				
@@ -531,18 +529,17 @@ public class WQPLayerBuildingService {
 				}
 				
 				default: {
-					String msg1 = "WQPLayerBuildingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
+					log.info("WQPLayerBuildingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
 							"] for key ["+ searchParams.unsignedHashCode() +
 							"] and its status is [" + DynamicLayerStatus.getStringFromType(layerCache.getCurrentStatus()) +
-							"].  Continuing on to GeoServer WMS request...";
-					log.info(msg1);
+							"].  Continuing on to GeoServer WMS request...");
 					break;
 				}
 			}
 		} catch (OGCProxyException e) {
 			log.error(e.traceBack());
 			
-			if(layerCache != null) {
+			if (layerCache != null) {
 				layerCache.setCurrentStatus(DynamicLayerStatus.ERROR);
 				layerCachingService.removeLayerCache(layerCache.getSearchParameters().unsignedHashCode() + "");
 			}
@@ -555,14 +552,13 @@ public class WQPLayerBuildingService {
 		 * We finally got a layer name (and its been added to GeoServer, lets
 		 * add this layer to the layer parameter in the OGC request
 		 */
+		String sep = ",";
 		for (String layerParam : layerParams) {
-			String currentLayers = ogcParams.get(layerParam);
-			if((currentLayers == null) || (currentLayers.equals("")) || (currentLayers.equals(dataSource.toString()))) {
-				currentLayers = geoserverWorkspace + ":" + layerCache.getLayerName();
-			} else {
-				currentLayers += "," + geoserverWorkspace + ":" + layerCache.getLayerName();
+			String currentLayer = ogcParams.get(layerParam);
+			if (  ! isEmpty(currentLayer) ) {
+				currentLayer += sep + geoserverWorkspace + ":" + layerCache.getLayerName();
+				ogcParams.put(layerParam, currentLayer);
 			}
-			ogcParams.put(layerParam, currentLayers);
 		}
 		
 		return ProxyServiceResult.SUCCESS;
@@ -571,12 +567,12 @@ public class WQPLayerBuildingService {
 	public String addGetCapabilitiesInfo(OGCServices serviceType, String serverContent) {
 		/*
 		 * For now we are assuming all GetCapabilities responses are XML.
-		 * 
+		 *
 		 * We are going to take the easy way out.  Instead of creating an XML
 		 * document and parsing it and figuring out where specific elements are
 		 * blah blah blah, we are just going to insert our specific XML blob in
 		 * the location it needs to be.
-		 * 
+		 *
 		 * The main reason I am doing this is because its fast and cheap.  A
 		 * very large String of XML is smaller in memory than an entire XML DOM
 		 * object of the same string.
@@ -592,7 +588,7 @@ public class WQPLayerBuildingService {
 				 * closing </Layer> tag and insert our stuff before it.
 				 */
 				int closingParentTag = serverContent.lastIndexOf("</Layer>");
-				if(closingParentTag == -1) {
+				if (closingParentTag == -1) {
 					log.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WMS GetCapabilities response from mapping service does not contain a closing </Layer> element.  Returning silently...");
 					return serverContent;
 				}
@@ -609,27 +605,27 @@ public class WQPLayerBuildingService {
 				 * WFS requests will center around GetFeature so we need to add
 				 * the "searchParams" parameter definition to the GetFeature operation
 				 * description.
-				 * 
+				 *
 				 * We will look for string token: "<ows:Operation name="GetFeature">"
 				 * and then look for the closing "</ows:DCP>" tag (a required child
 				 * element for an operation http://schemas.opengis.net/ows/1.1.0/owsOperationsMetadata.xsd).
-				 * 
+				 *
 				 * Once we found the closing </ows:DCP> tag of the GetFeature operation, we insert
 				 * our XML after it and append the rest of the document below it.  If we dont find
 				 * this tag we'll just insert it right before the closing </ows:Operation> tag.
 				 */
 				int getFeatureTag = serverContent.lastIndexOf("<ows:Operation name=\"GetFeature\">");
-				if(getFeatureTag == -1) {
+				if (getFeatureTag == -1) {
 					log.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WFS GetCapabilities response from mapping service does not contain a <ows:Operation name=\"GetFeature\"> element.  Returning silently...");
 					return serverContent;
 				}
 				
 				int insertTag = serverContent.indexOf("</ows:DCP>", getFeatureTag);
-				if(insertTag == -1) {
+				if (insertTag == -1) {
 					log.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WFS GetCapabilities response from mapping service does not contain a closing </ows:DCP> element from the location of the <ows:Operation name=\"GetFeature\"> tag.  Looking for closing Operation tag.");
 					
 					insertTag = serverContent.indexOf("</ows:Operation>", getFeatureTag);
-					if(insertTag == -1) {
+					if (insertTag == -1) {
 						log.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WFS GetCapabilities response from mapping service does not contain a closing </ows:Operation> element from the location of the <ows:Operation name=\"GetFeature\"> tag.  Returning silently...");
 						return serverContent;
 					}
@@ -671,11 +667,11 @@ public class WQPLayerBuildingService {
 	
 	
 	private String buildDynamicLayer(SearchParameters<String, List<String>> searchParams, String geoServerURI, String geoServerUser, String geoServerPass) throws OGCProxyException {
-		String layerName = WQPUtils.layerPrefix + searchParams.unsignedHashCode();
+		String layerName = DYNAMIC_LAYER_PREFIX + searchParams.unsignedHashCode();
 		
-		String dataFilename = WQPUtils.retrieveSearchParamData(this.httpClient, searchParams, simpleStationRequest, workingDirectory, layerName);
+		String dataFilename = WQPUtils.retrieveSearchParamData(httpClient, searchParams, simpleStationRequest, workingDirectory, layerName);
 		
-		if ((dataFilename == null) || (dataFilename.equals(""))) {
+		if (isEmpty(dataFilename)) {
 			/*
 			 * Did not receive any data from the server for this request.  Cannot create layer.
 			 */
@@ -739,10 +735,10 @@ public class WQPLayerBuildingService {
 		
 		/*
 		 * Upload the zipped shapefile
-		 * 
+		 *
 		 * Build the REST URI for uploading shapefiles.  Looks like:
 		 * 		http://HOST:PORT/CONTEXT/rest/workspaces/WORKSPACE_NAME/datastores/LAYER_NAME/file.shp
-		 * 
+		 *
 		 * Where the "file.shp" is a GeoServer syntax that is required but does not change per request.
 		 * We also duplicate the LAYER_NAME in the datastore path so we can let GeoServer separate the
 		 * shapefiles easily between directories (it has an issue w/ tons of shapefiles in a single directory
@@ -771,7 +767,7 @@ public class WQPLayerBuildingService {
 		
 		/*
 		 * TODO:
-		 * 
+		 *
 		 * The final step is to force GeoServer to "enable" the layer.  Sometimes
 		 * we have seen GeoServer correctly upload and accept a ShapeFile along
 		 * with building the datastore and layer but forget to "Enable" the layer
@@ -864,7 +860,7 @@ public class WQPLayerBuildingService {
 		 */
 		TimeProfiler.startTimer("WQPLayerBuildingService.createShapeFile() INFO: GeoTools - SimpleFeature List Creation Time");
 		List<SimpleFeature> features = new ArrayList<SimpleFeature>();
-		for(FeatureDAO feature : featureList) {
+		for (FeatureDAO feature : featureList) {
 			features.add(feature.getSimpleFeature());
 		}
 		TimeProfiler.endTimer("WQPLayerBuildingService.createShapeFile() INFO: GeoTools - SimpleFeature List Creation Time", log);
@@ -873,7 +869,7 @@ public class WQPLayerBuildingService {
 		 * Write the features to the shapefile
 		 */
 		TimeProfiler.startTimer("WQPLayerBuildingService.createShapeFile() INFO: OVERALL GeoTools ShapeFile Creation Time");
-		if(!ShapeFileUtils.writeToShapeFile(newDataStore, featureType, features, path, filename)) {
+		if (!ShapeFileUtils.writeToShapeFile(newDataStore, featureType, features, path, filename)) {
 			String error = "Unable to write shape file";
 			log.error(error);
 			return false;

@@ -11,16 +11,16 @@ public class SearchParameters<T, K> extends ConcurrentHashMap<String, List<Strin
 	@Override
 	public List<String> put(String key, List<String> value) {
 		/**
-		 * We need to keep track of these hash keys.  If we replace an existing 
+		 * We need to keep track of these hash keys.  If we replace an existing
 		 * one we have to make sure we remove it before placing it.
 		 */
-		if(super.containsKey(key)) {
+		if (super.containsKey(key)) {
 			this.remove(key);
 		}
 		
 		int newHash = this.prime + key.hashCode();
 		
-		for(String s : value) {
+		for (String s : value) {
 			newHash = newHash * this.prime + s.hashCode();
 		}
 		
@@ -33,13 +33,13 @@ public class SearchParameters<T, K> extends ConcurrentHashMap<String, List<Strin
 	public List<String> remove(Object key) {
 		List<String> oldValue = super.remove(key);
 		
-		if(oldValue == null) {
+		if (oldValue == null) {
 			return null;
 		}
 		
 		int oldHash = this.prime + ((String)key).hashCode();
 		
-		for(String s : oldValue) {
+		for (String s : oldValue) {
 			oldHash = oldHash * this.prime + s.hashCode();
 		}
 		
@@ -58,7 +58,7 @@ public class SearchParameters<T, K> extends ConcurrentHashMap<String, List<Strin
 		 * Since we want to use the hash as a descriptor for a layer, we want
 		 * to use unsigned values for the hash.
 		 */
-		if(this.currentHash > 0) {
+		if (this.currentHash > 0) {
 			return (long)this.currentHash;
 		}
 		

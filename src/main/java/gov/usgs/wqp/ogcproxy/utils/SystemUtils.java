@@ -46,16 +46,16 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 	
 	public static Logger getLogger(Class<?> T) {
 		URL logFile = T.getResource("/log4j.properties");
-		if(logFile == null) {
+		if (logFile == null) {
 			logFile = T.getResource("./log4j.properties");
 		}
-		if(logFile == null) {
+		if (logFile == null) {
 			logFile = T.getResource("conf/log4j.properties");
 		}
 
-		Logger log = Logger.getLogger(T.getName());	
+		Logger log = Logger.getLogger(T.getName());
 		
-		if(logFile != null) {
+		if (logFile != null) {
 			PropertyConfigurator.configure(logFile);
 		}
 
@@ -63,8 +63,8 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 	}
 	
 	public static boolean filenameIsValid(String name) {
-		for(char character : SystemUtils.ILLEGAL_CHARACTERS) {
-			if(name.indexOf(character) != -1) {
+		for (char character : SystemUtils.ILLEGAL_CHARACTERS) {
+			if (name.indexOf(character) != -1) {
 				return false;
 			}
 		}
@@ -77,14 +77,14 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 		
 		File directory = new File(path);
 		
-		if(!directory.exists()) {
+		if (!directory.exists()) {
 			String msg = "SystemUtils.createZipFromFilematch() Error: Directory " + path + " does not exist";
 			log.error(msg);
 			return false;
 		}
 		
 		File existingFile = new File(zipFileName);
-		if(existingFile.exists()) {
+		if (existingFile.exists()) {
 			String msg = "SystemUtils.createZipFromFilematch() Warning: Zip file " + zipFileName + " exists.  Deleting prior to new shapefile creation.";
 			log.info(msg);
 			existingFile.delete();
@@ -92,12 +92,12 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 		
 		FilenameFilter filter = new FilenameFilter() {
 			public boolean accept(File dir, String name) {
-				if(name.indexOf(filename) != -1) {
+				if (name.indexOf(filename) != -1) {
 					return true;
 				}
 				return false;
 			}
-		};			
+		};
 		
 		String[] directoryFiles = directory.list(filter);
 
@@ -146,7 +146,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
         			 e.getMessage() + "]";
 	   			log.error(msg);
 	   			
-	   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_ERROR;					
+	   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_ERROR;
 	   			throw new OGCProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
 		}
     	ByteArrayOutputStream byteout = new java.io.ByteArrayOutputStream();
@@ -161,7 +161,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
             			 e.getMessage() + "]";
 		   			log.error(msg);
 		   			
-		   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_ERROR;					
+		   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_ERROR;
 		   			throw new OGCProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
 			}
     	    if (res > 0) {
@@ -177,7 +177,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
         			 e.getMessage() + "]";
    			log.error(msg);
    			
-   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_NOT_UTF8;					
+   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_NOT_UTF8;
    			throw new OGCProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
 		}
     	
@@ -185,7 +185,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
     }
     
     public static byte[] compressStringToGzip(String content) throws OGCProxyException {
-    	if((content == null) || (content.length() == 0)) {
+    	if ((content == null) || (content.length() == 0)) {
     		content = "";
     	}
     	
@@ -198,7 +198,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
        			 e.getMessage() + "]";
   			log.error(msg);
   			
-  			OGCProxyExceptionID id = OGCProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;					
+  			OGCProxyExceptionID id = OGCProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;
   			throw new OGCProxyException(id, "ProxyUtil", "compressStringToGzip()", msg);
 		}
         try {
@@ -208,7 +208,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 	       			 e.getMessage() + "]";
 	  			log.error(msg);
 	  			
-	  			OGCProxyExceptionID id = OGCProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;					
+	  			OGCProxyExceptionID id = OGCProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;
 	  			throw new OGCProxyException(id, "SystemUtils", "compressStringToGzip()", msg);
 		}
         try {

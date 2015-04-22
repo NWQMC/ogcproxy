@@ -19,7 +19,7 @@ import org.opengis.feature.simple.SimpleFeatureType;
  * @author prusso
  *<br /><br />
  *	This class exposes many utility methods used in the creation of shapefiles.
- *	The majority of the methods here are statically provided so they can be 
+ *	The majority of the methods here are statically provided so they can be
  *	exposed and utilized outside of the package this utility resides in.
  */
 public class ShapeFileUtils {
@@ -36,10 +36,10 @@ public class ShapeFileUtils {
          * Write the features to the shapefile
          */
 		// ==============
-		if(profile)
+		if (profile)
 			TimeProfiler.startTimer("GeoTools - Create Transaction time");
         Transaction transaction = new DefaultTransaction("create");
-        if(profile)
+        if (profile)
         	TimeProfiler.endTimer("GeoTools - Create Transaction time", log);
 		// ==============
         
@@ -53,7 +53,7 @@ public class ShapeFileUtils {
 		}
 		
 		// ==============
-		if(profile)
+		if (profile)
 			TimeProfiler.startTimer("GeoTools - Create SimpleFeatureSource time");
         SimpleFeatureSource featureSource;
 		try {
@@ -63,7 +63,7 @@ public class ShapeFileUtils {
 			log.error(e.getMessage());
 			return false;
 		}
-		if(profile)
+		if (profile)
 			TimeProfiler.endTimer("GeoTools - Create SimpleFeatureSource time", log);
 		// ==============
 		
@@ -75,28 +75,28 @@ public class ShapeFileUtils {
              * class to wrap our list of features.
              */
             // ==============
-            if(profile)
+            if (profile)
     			TimeProfiler.startTimer("GeoTools - SimpleFeatureCollection Creation time");
             SimpleFeatureCollection collection = new ListFeatureCollection(featureType, features);
-            if(profile)
+            if (profile)
     			TimeProfiler.endTimer("GeoTools - SimpleFeatureCollection Creation time", log);
     		// ==============
     		
             featureStore.setTransaction(transaction);
             try {
             	// ==============
-            	if(profile)
+            	if (profile)
         			TimeProfiler.startTimer("GeoTools - SimpleFeatureCollection Population time");
                 featureStore.addFeatures(collection);
-                if(profile)
+                if (profile)
         			TimeProfiler.endTimer("GeoTools - SimpleFeatureCollection Population time", log);
         		// ==============
         		
         		// ==============
-                if(profile)
+                if (profile)
         			TimeProfiler.startTimer("GeoTools - Transaction Commit time");
                 transaction.commit();
-                if(profile)
+                if (profile)
         			TimeProfiler.endTimer("GeoTools - Transaction Commit time", log);
         		// ==============
             } catch (Exception e) {

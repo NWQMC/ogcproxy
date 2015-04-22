@@ -11,7 +11,7 @@ public enum ProxyDataSourceParameter {
 	WQP_SITES, UNKNOWN;
 
 	public static ProxyDataSourceParameter getTypeFromString(String string) {
-		if (string != null && string.contains("wqp_sites")) {
+		if (string != null && string.toLowerCase().contains("wqp_sites")) {
 			return WQP_SITES;
 		}
 		return UNKNOWN;

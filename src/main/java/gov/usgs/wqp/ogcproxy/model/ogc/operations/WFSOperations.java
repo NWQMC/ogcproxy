@@ -19,7 +19,6 @@ import java.util.List;
 public enum WFSOperations {
 	/**
 	 * http://docs.geoserver.org/stable/en/user/services/wfs/reference.html
-	 * 
 	 */
 	GetCapabilities,
 	DescribeFeatureType,
@@ -44,12 +43,12 @@ public enum WFSOperations {
 				return Arrays.asList(service, version, request, typeNames, exceptions, outputFormat);
 	
 			case GetFeature:
-				return Arrays.asList(service, version, request, typeNames, featureID, 
+				return Arrays.asList(service, version, request, typeNames, featureID,
 							count, maxFeatures, sortBy, propertyName, srsName, bbox);
 	
 			case GetCapabilities:
 			case LockFeature:
-			case Transaction:	
+			case Transaction:
 			case GetGMLObject:
 			case CreateStoredQuery:
 			case ListStoredQueries:
@@ -59,7 +58,7 @@ public enum WFSOperations {
 				return Arrays.asList(service, version, request, typeNames, valueReference);
 	
 			case GetFeatureWithLock:
-				return Arrays.asList(service, version, request, typeNames, featureID, 
+				return Arrays.asList(service, version, request, typeNames, featureID,
 						 count, maxFeatures, sortBy, propertyName, srsName, bbox, expiry);
 	
 			case DropStoredQuery:
@@ -76,8 +75,8 @@ public enum WFSOperations {
 		List<WFSParameters> params = WFSOperations.getParameters(type);
 		List<WFSParameters> requiredParams = new ArrayList<WFSParameters>();
 		
-		for(WFSParameters param : params) {
-			if(isRequired(param)) {
+		for (WFSParameters param : params) {
+			if (isRequired(param)) {
 				requiredParams.add(param);
 			}
 		}

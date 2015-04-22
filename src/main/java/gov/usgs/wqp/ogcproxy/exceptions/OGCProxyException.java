@@ -6,7 +6,7 @@ public class OGCProxyException extends Exception {
 	private final OGCProxyExceptionID exceptionid;		// uniquely generated id for this exception
 	private final String classname; 					// the name of the class that threw the exception
 	private final String method; 						// the name of the method that threw the exception
-	private final String message; 						// a detailed message 
+	private final String message; 						// a detailed message
 	private final OGCProxyException previous; 			// the exception which was caught
 	private String delimeter = "\n"; 					// line separator
 	
@@ -28,11 +28,11 @@ public class OGCProxyException extends Exception {
 		this.method    		= method;
 		this.message   		= message;
 		this.previous  		= previous;
-	}  
+	}
 
 	public String traceBack() {
 		return traceBack("\n");
-	}  
+	}
 
 	public String traceBack(final String sep) {
 		this.delimeter = sep;
@@ -47,9 +47,9 @@ public class OGCProxyException extends Exception {
 			text.append(line("Id          : " + e.exceptionid));
 			text.append(line("Message     : " + e.message));
 			e = e.previous;
-		}  
+		}
 		return text.toString();
-	}  
+	}
 
 	private String line(final String s) {
 		return s + this.delimeter;
@@ -79,7 +79,7 @@ public class OGCProxyException extends Exception {
 
 	public OGCProxyException getPrevious() {
 		return this.previous;
-	}	
+	}
 
 	public String getMessageOnly() {
 		return this.message;
