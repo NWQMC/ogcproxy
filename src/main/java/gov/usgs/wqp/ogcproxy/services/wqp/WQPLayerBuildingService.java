@@ -1,6 +1,6 @@
 package gov.usgs.wqp.ogcproxy.services.wqp;
 
-import static org.springframework.util.StringUtils.isEmpty;
+import static org.springframework.util.StringUtils.*;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -427,7 +428,7 @@ public class WQPLayerBuildingService {
 	}
 	
 	public ProxyServiceResult getDynamicLayer(Map<String,String> ogcParams, SearchParameters<String,
-			List<String>> searchParams, List<String> layerParams, OGCServices originatingService,
+			List<String>> searchParams, Collection<String> layerParams, OGCServices originatingService,
 			ProxyDataSourceParameter dataSource) {
 
 		initialize();
@@ -501,10 +502,7 @@ public class WQPLayerBuildingService {
 						return ProxyServiceResult.EMPTY;
 					}
 					
-					/*
-					 * TODO
-					 * Also check to see if the layer is enabled in GeoServer...
-					 */
+					//TODO Also check to see if the layer is enabled in GeoServer...
 					
 					layerCache.setLayerName(layerName);
 					layerCache.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
@@ -554,15 +552,13 @@ public class WQPLayerBuildingService {
 		 * We finally got a layer name (and its been added to GeoServer, lets
 		 * add this layer to the layer parameter in the OGC request
 		 */
-		// TODO why are we replacing an increasingly concatenated layer list to each layerParam
-		String sep="";
+		String sep = ",";
 		for (String layerParam : layerParams) {
-			String currentLayers = ogcParams.get(layerParam);
-			
-			currentLayers += sep + geoserverWorkspace + ":" + layerCache.getLayerName();
-			sep = ",";
-			
-			ogcParams.put(layerParam, currentLayers);
+			String currentLayer = ogcParams.get(layerParam);
+			if (  ! isEmpty(currentLayer) ) {
+				currentLayer += sep + geoserverWorkspace + ":" + layerCache.getLayerName();
+				ogcParams.put(layerParam, currentLayer);
+			}
 		}
 		
 		return ProxyServiceResult.SUCCESS;

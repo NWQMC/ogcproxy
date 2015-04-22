@@ -108,13 +108,12 @@ public class OGCProxyController {
 		
 		ogcService = ProxyUtil.getRequestedService(ogcService, requestParams);
 
-		String layerParamName             = requestParams.get(WFSParameters.typeName.toString());
+		String layerParamName             = WFSParameters.typeName.toString();
 		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
-		String layerParamNameToAdd        = servletQueryLayerParamName;
 		String queryLayerParam            = layerParamName;
 
 		proxyService.performRequest(request, response, requestParams, ogcService, layerParamName, 
-				layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
+				servletQueryLayerParamName, queryLayerParam, null);
 	}
 
 	

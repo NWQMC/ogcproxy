@@ -23,7 +23,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -303,7 +303,7 @@ public class ProxyService {
 		String queryLayerParam            = ogcParams.get(servletQueryLayerParamName);
 		String errorValue                 = ogcParams.get(WMSParameters.format.toString());
 		
-		performRequest(request, response, requestParams, OGCServices.WMS, layerParamName, layerParamName, servletQueryLayerParamName, queryLayerParam, errorValue);
+		performRequest(request, response, requestParams, OGCServices.WMS, layerParamName, servletQueryLayerParamName, queryLayerParam, errorValue);
 	}
 
 	/**
@@ -328,10 +328,9 @@ public class ProxyService {
 		
 		String layerParamName             = ogcParams.get(WFSParameters.typeName.toString());
 		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
-		String layerParamNameToAdd        = servletQueryLayerParamName;
 		String queryLayerParam            = layerParamName;
 
-		performRequest(request, response, requestParams, OGCServices.WFS, layerParamName, layerParamNameToAdd, servletQueryLayerParamName, queryLayerParam, null);
+		performRequest(request, response, requestParams, OGCServices.WFS, layerParamName, servletQueryLayerParamName, queryLayerParam, null);
 	}
 	
 	/**
@@ -346,7 +345,7 @@ public class ProxyService {
 	 */
 	public void performRequest(HttpServletRequest request,
 			HttpServletResponse response, Map<String, String> requestParams,
-			OGCServices ogcService, String layerParamName, String layerParamNameToAdd,
+			OGCServices ogcService, String layerParamName,
 			String servletQueryLayerParamName, String queryLayerParam, String errorValue) {
 		
 		initialize();
@@ -363,17 +362,17 @@ public class ProxyService {
 		// We need to capture the pure servlet parameter key for our searchParams parameter.
 		// Since this can be case INSENSITIVE but we use its value as a key in a map, we need
 		// to know what the exact character sequence is going forward.
-		List<String> layerParams = new LinkedList<String>();
+		Set<String> layerParams = new HashSet<String>();
 		String layerParam = ogcParams.get(layerParamName);
-		if ( isEmpty(layerParam) ) {
+		if ( ! isEmpty(layerParam) ) {
 			dataSource = ProxyDataSourceParameter.getTypeFromString(layerParam);
 
 			if (dataSource != ProxyDataSourceParameter.UNKNOWN) {
-				layerParams.add(layerParamNameToAdd);
+				layerParams.add(layerParamName);
 			}
 		}
 		
-		if ( isEmpty(queryLayerParam) ) {
+		if ( ! isEmpty(queryLayerParam) ) {
 			queryLayerValue = ProxyDataSourceParameter.getTypeFromString(layerParam);
 
 			if (queryLayerValue != ProxyDataSourceParameter.UNKNOWN) {
@@ -498,13 +497,18 @@ public class ProxyService {
 			String body = "";
 			// revise the length to the length of the body without the searchParams
 			if (clientRequest instanceof RequestWrapper) {
+				String dynamicLayerName[] = ogcParams.get(WFSParameters.typeName.toString()).split(",");
 				body = ((RequestWrapper)clientRequest).getPostBodySansSearchParams();
+				if (dynamicLayerName.length == 2) {
+					body = ((RequestWrapper)clientRequest).getPostBodySansSearchParams().replaceAll(dynamicLayerName[0], dynamicLayerName[1]);
+				}
+				// TODO asdf need to replace typeName with dynamic layer name here
 				contentLength = body.length();
 			}
 			
 			if (contentLength > 0) {
 				// is this a POST (or PUT)
-				if (serverRequest instanceof HttpEntityEnclosingRequest) {	// TODO asdf
+				if (serverRequest instanceof HttpEntityEnclosingRequest) {
 					try {
 						HttpEntityEnclosingRequest entityRequest = (HttpEntityEnclosingRequest) serverRequest;
 						
