@@ -497,10 +497,10 @@ public class ProxyService {
 			String body = "";
 			// revise the length to the length of the body without the searchParams
 			if (clientRequest instanceof RequestWrapper) {
-				String dynamicLayerName[] = ogcParams.get(WFSParameters.typeName.toString()).split(",");
+				String dynamicLayerName = ogcParams.get(WFSParameters.typeName.toString());
 				body = ((RequestWrapper)clientRequest).getPostBodySansSearchParams();
-				if (dynamicLayerName.length == 2) {
-					body = ((RequestWrapper)clientRequest).getPostBodySansSearchParams().replaceAll(dynamicLayerName[0], dynamicLayerName[1]);
+				if ( ! isEmpty(dynamicLayerName) ) {
+					body = ((RequestWrapper)clientRequest).getPostBodySansSearchParams().replaceAll(ProxyDataSourceParameter.WQP_SITES.toString(), dynamicLayerName);
 				}
 				// TODO asdf need to replace typeName with dynamic layer name here
 				contentLength = body.length();
