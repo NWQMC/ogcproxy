@@ -552,13 +552,15 @@ public class WQPLayerBuildingService {
 		 * We finally got a layer name (and its been added to GeoServer, lets
 		 * add this layer to the layer parameter in the OGC request
 		 */
-		String sep = ",";
 		for (String layerParam : layerParams) {
 			String currentLayer = ogcParams.get(layerParam);
-			if (  ! isEmpty(currentLayer) ) {
-				currentLayer += sep + geoserverWorkspace + ":" + layerCache.getLayerName();
-				ogcParams.put(layerParam, currentLayer);
+			if ( isEmpty(currentLayer) 
+					|| (currentLayer.equals(dataSource.toString())) ) {
+				currentLayer = geoserverWorkspace + ":" + layerCache.getLayerName();
+			} else {
+				currentLayer += "," + geoserverWorkspace + ":" + layerCache.getLayerName();
 			}
+			ogcParams.put(layerParam, currentLayer);
 		}
 		
 		return ProxyServiceResult.SUCCESS;
