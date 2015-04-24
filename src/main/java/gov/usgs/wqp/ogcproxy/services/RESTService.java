@@ -68,7 +68,7 @@ public class RESTService {
 	 */
 	public ProxyDataSourceParameter resolveSite(String site) {
 		ProxyDataSourceParameter siteValue = ProxyDataSourceParameter.UNKNOWN;
-		if ( StringUtils.isEmpty(site) ) {
+		if ( ! StringUtils.isEmpty(site) ) {
 			siteValue = ProxyDataSourceParameter.getTypeFromString(site);
 		}
 		return siteValue;
