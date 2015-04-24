@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -136,6 +137,7 @@ public class OGCProxyController {
 	}
 	
 	
+	@ResponseBody
 	@RequestMapping(value="/rest/cachestatus/{site}", method=RequestMethod.GET)
     public DeferredResult<ModelAndView> restCacheStatus(@PathVariable String site) {
 		DeferredResult<ModelAndView> finalResult = new DeferredResult<ModelAndView>();
@@ -145,6 +147,7 @@ public class OGCProxyController {
 		return finalResult;
 	}
 	
+	@ResponseBody
 	@RequestMapping(value="/rest/clearcache/{site}", method=RequestMethod.GET)
     public DeferredResult<ModelAndView> restClearCache(@PathVariable String site) {
 		DeferredResult<ModelAndView> finalResult = new DeferredResult<ModelAndView>();
