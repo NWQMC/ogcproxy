@@ -21,6 +21,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.sun.jndi.toolkit.url.UrlUtil;
+
 
 public class OgcWfsParser {
 	
@@ -71,7 +73,7 @@ public class OgcWfsParser {
 		bodyMinusSearchParams = XmlUtils.domToString(doc);
 		
 		if (params!=null) {
-			params = params.replaceAll("%3A", ":").replaceAll("%7C", "|");
+			params = UrlUtil.decode(params);
 		}
 		return params;
 	}
@@ -109,6 +111,9 @@ public class OgcWfsParser {
     	// did we find the searchParams
     	if ( "searchParams".equalsIgnoreCase(propertyName) ) {
         	String searchParams = textForMatchingTag(node.getLastChild().getPreviousSibling(), "Literal");
+        	if (searchParams.toLowerCase().startsWith("searchparams=")) {
+        		searchParams = searchParams.substring(13);
+        	}
         	return searchParams;
         }
 		return "";
