@@ -56,7 +56,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.version>3.2.3.RELEASE</spring.version>
-		<gt.version>13.0</gt.version>
+		<gt.version>12.0</gt.version>
           <warName>ogcproxy</warName>
 	</properties>
 
