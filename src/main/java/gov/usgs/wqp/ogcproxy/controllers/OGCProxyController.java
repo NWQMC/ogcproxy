@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,6 +28,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
+@EnableAsync
 public class OGCProxyController {
 	private static Logger log = SystemUtils.getLogger(OGCProxyController.class);
 	
@@ -134,7 +136,6 @@ public class OGCProxyController {
 	}
 	
 	
-	@Async
 	@RequestMapping(value="/rest/cachestatus/{site}", method=RequestMethod.GET)
     public DeferredResult<ModelAndView> restCacheStatus(@PathVariable String site) {
 		DeferredResult<ModelAndView> finalResult = new DeferredResult<ModelAndView>();
@@ -144,7 +145,6 @@ public class OGCProxyController {
 		return finalResult;
 	}
 	
-	@Async
 	@RequestMapping(value="/rest/clearcache/{site}", method=RequestMethod.GET)
     public DeferredResult<ModelAndView> restClearCache(@PathVariable String site) {
 		DeferredResult<ModelAndView> finalResult = new DeferredResult<ModelAndView>();
