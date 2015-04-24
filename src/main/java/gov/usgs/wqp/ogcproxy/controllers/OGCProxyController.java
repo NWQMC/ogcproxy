@@ -18,18 +18,15 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.ModelAndView;
 
 @Controller
-@EnableAsync
 public class OGCProxyController {
 	private static Logger log = SystemUtils.getLogger(OGCProxyController.class);
 	
@@ -66,34 +63,32 @@ public class OGCProxyController {
 	
 	//http://www.waterqualitydata.us/qw_portal_map/ows?service=WPS&version=1.0.0&request=Execute&identifier=gs:SingleWpsStatus
 	
-	@Async
 	@RequestMapping(value="**/wms", method={RequestMethod.GET})
-    public void wmsProxy(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
+    public DeferredResult<String>  wmsProxy(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
 		log.info("OGCProxyController.wmsProxy() INFO - Performing request.");
-		handleActualServiceCallGet(request, response, requestParams, OGCServices.WMS);
+		return handleActualServiceCallGet(request, response, requestParams, OGCServices.WMS);
 	}
 	
-	@Async
 	@RequestMapping(value="**/wfs", method=RequestMethod.GET)
-    public void wfsProxyGet(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
+    public DeferredResult<String> wfsProxyGet(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
 		log.info("OGCProxyController.wfsProxy() INFO - Performing request.");
-		handleActualServiceCallGet(request, response, requestParams, OGCServices.WFS);
+		return handleActualServiceCallGet(request, response, requestParams, OGCServices.WFS);
 	}
 
 	/**
 	 * This is here because the URL is a default request service but could receive a request of either WFS/WMS service
 	 */
-	public void handleActualServiceCallGet(HttpServletRequest request,
+	public DeferredResult<String> handleActualServiceCallGet(HttpServletRequest request,
 			HttpServletResponse response, Map<String, String> requestParams, OGCServices ogcService) {
 		
 		ogcService = ProxyUtil.getRequestedService(ogcService, requestParams);
 		
 		if (ogcService == OGCServices.WMS) {
 			log.info("OGCProxyController.handleActualServiceCallGet() INFO - Performing WMS request.");
-			proxyService.performWMSRequest(request, response, requestParams);
+			return proxyService.performWMSRequest(request, response, requestParams);
 		} else {
 			log.info("OGCProxyController.handleActualServiceCallGet() INFO - Performing WFS request.");
-			proxyService.performWFSRequest(request, response, requestParams);
+			return proxyService.performWFSRequest(request, response, requestParams);
 		}
 	}
 

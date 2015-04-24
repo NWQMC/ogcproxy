@@ -63,6 +63,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.async.DeferredResult;
 
 
 @Service
@@ -292,7 +293,7 @@ public class ProxyService {
 	 * @param requestParams
 	 * @param finalResult
 	 */
-	public void performWMSRequest(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
+	public DeferredResult<String> performWMSRequest(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
 		
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
 		Map<String, String> ogcParams = new HashMap<String, String>();
@@ -303,7 +304,7 @@ public class ProxyService {
 		String queryLayerParam            = ogcParams.get(servletQueryLayerParamName);
 		String errorValue                 = ogcParams.get(WMSParameters.format.toString());
 		
-		performRequest(request, response, requestParams, OGCServices.WMS, layerParamName, servletQueryLayerParamName, queryLayerParam, errorValue);
+		return performRequest(request, response, requestParams, OGCServices.WMS, layerParamName, servletQueryLayerParamName, queryLayerParam, errorValue);
 	}
 
 	/**
@@ -320,7 +321,7 @@ public class ProxyService {
 	 * @param requestParams
 	 * @param finalResult
 	 */
-	public void performWFSRequest(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
+	public DeferredResult<String>  performWFSRequest(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
 		
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
 		Map<String, String> ogcParams = new HashMap<String, String>();
@@ -330,7 +331,7 @@ public class ProxyService {
 		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
 		String queryLayerParam            = layerParamName;
 
-		performRequest(request, response, requestParams, OGCServices.WFS, layerParamName, servletQueryLayerParamName, queryLayerParam, null);
+		return performRequest(request, response, requestParams, OGCServices.WFS, layerParamName, servletQueryLayerParamName, queryLayerParam, null);
 	}
 	
 	/**
@@ -343,12 +344,13 @@ public class ProxyService {
 	 * @param requestParams
 	 * @param finalResult
 	 */
-	public void performRequest(HttpServletRequest request,
+	public DeferredResult<String> performRequest(HttpServletRequest request,
 			HttpServletResponse response, Map<String, String> requestParams,
 			OGCServices ogcService, String layerParamName,
 			String servletQueryLayerParamName, String queryLayerParam, String errorValue) {
 		
 		initialize();
+		DeferredResult<String> deferredResult       = new DeferredResult<String>();
 
 		ProxyDataSourceParameter dataSource	     = ProxyDataSourceParameter.UNKNOWN;
 		ProxyDataSourceParameter queryLayerValue = ProxyDataSourceParameter.UNKNOWN;
@@ -388,7 +390,8 @@ public class ProxyService {
 			// Did we find a legitimate layer value or do we need to return an
 			// error (we must have a layer value to do a dynamic search)?
 			if ((layerParams.size() == 0) && ! layerPassthrough ) {
-				return;
+				deferredResult.setResult(ProxyUtil.PROXY_LAYER_ERROR);
+				return deferredResult;
 			}
 
 			// We can now proceed with the request. Depending on the value of
@@ -401,7 +404,8 @@ public class ProxyService {
 						.getDynamicLayer(ogcParams, searchParams, layerParams, ogcService, ProxyDataSourceParameter.WQP_SITES);
 
 				if (result != ProxyServiceResult.SUCCESS) {
-					return;
+					deferredResult.setResult(result.toString());
+					return deferredResult;
 				}
 			}
 		}
@@ -416,9 +420,12 @@ public class ProxyService {
 		
 		if (proxySuccess) {
 			log.info("ProxyService.performRequest() INFO: Proxy request is completed successfully.");
+			deferredResult.setResult(ProxyServiceResult.SUCCESS.toString());
 		} else {
 			log.error("ProxyService.performRequest() Error:  Unable to proxy client request.");
+			deferredResult.setResult(ProxyServiceResult.ERROR.toString());
 		}
+		return deferredResult;
 	}
 	
 
