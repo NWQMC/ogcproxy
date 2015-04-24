@@ -11,6 +11,8 @@ import java.util.Map;
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
+import com.sun.jndi.toolkit.url.UrlUtil;
+
 public class OgcWfsParserTest {
 
 	final String SEARCH_PARAMS = "countrycode:US;statecode:US%3A55%7CUS%3A28%7CUS%3A32;characteristicName:Atrazine";
@@ -374,4 +376,28 @@ public class OgcWfsParserTest {
 		assertEquals("Atrazine", searchParams.get("characteristicName").get(0));
 	}
 
+	@Test
+	public void testUrlDecode_pipeAndColon() throws Exception {
+		String encoded   = "countrycode:US;statecode:US%3A55%7CUS%3A28%7CUS%3A32;characteristicName:Atrazine";
+		String expected  = "countrycode:US;statecode:US:55|US:28|US:32;characteristicName:Atrazine";
+		
+		String actual    = UrlUtil.decode(encoded);
+		
+		assertEquals(expected, actual);
+	}
+	@Test
+	public void testStringIndexing() throws Exception {
+		String searchParams = "searchparams=countrycode";
+		String expected     = "countrycode";
+
+		if (searchParams.toLowerCase().startsWith("searchparams=")) {
+			searchParams = searchParams.substring(13);
+		}
+		
+		assertEquals(expected, searchParams);
+	}
+
+	
+	
+	
 }
