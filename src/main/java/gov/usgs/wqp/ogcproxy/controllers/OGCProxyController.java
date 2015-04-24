@@ -137,7 +137,6 @@ public class OGCProxyController {
 	}
 	
 	
-	@ResponseBody
 	@RequestMapping(value="/rest/cachestatus/{site}", method=RequestMethod.GET)
     public DeferredResult<ModelAndView> restCacheStatus(@PathVariable String site) {
 		DeferredResult<ModelAndView> finalResult = new DeferredResult<ModelAndView>();
@@ -147,7 +146,6 @@ public class OGCProxyController {
 		return finalResult;
 	}
 	
-	@ResponseBody
 	@RequestMapping(value="/rest/clearcache/{site}", method=RequestMethod.GET)
     public DeferredResult<ModelAndView> restClearCache(@PathVariable String site) {
 		DeferredResult<ModelAndView> finalResult = new DeferredResult<ModelAndView>();
