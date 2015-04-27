@@ -1,10 +1,9 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>gov.usgs.cida.wqp</groupId>
 	<artifactId>ogcproxy</artifactId>
-	<version>0.5.0-SNAPSHOT</version>
+	<version>0.5.0</version>
 	<packaging>war</packaging>
 
 	<name>ogcproxy</name>
@@ -142,7 +141,7 @@
 		<connection>git:http://cida-eros-stash.er.usgs.gov:7999/wqp/ogcproxy.git</connection>
         	<developerConnection>scm:git:ssh://git@cida-eros-stash.er.usgs.gov:7999/wqp/ogcproxy.git</developerConnection>
         	<url>http://internal.cida.usgs.gov/stash/projects/WQP/repos/ogcproxy/browse</url>
-   		<tag>HEAD</tag>
+   		<tag>ogcproxy-0.5.0</tag>
   	</scm>
 
 	<dependencies>
