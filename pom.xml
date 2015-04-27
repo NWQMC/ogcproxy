@@ -56,7 +56,8 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<spring.version>3.2.3.RELEASE</spring.version>
 		<gt.version>12.0</gt.version>
-          <warName>ogcproxy</warName>
+        <warName>ogcproxy</warName>
+		<cida.maven.url>http://internal.cida.usgs.gov/maven</cida.maven.url>
 	</properties>
 
 	<build>
@@ -143,6 +144,22 @@
         	<url>http://internal.cida.usgs.gov/stash/projects/WQP/repos/ogcproxy/browse</url>
    		<tag>HEAD</tag>
   	</scm>
+
+
+	<distributionManagement>
+		<repository>
+			<id>cida-releases</id>
+			<name>CIDA Releases</name>
+			<url>${cida.maven.url}/content/repositories/cida-releases</url>
+		</repository>
+		<snapshotRepository>
+			<id>cida-snapshots</id>
+			<name>CIDA Snapshots</name>
+			<url>${cida.maven.url}/content/repositories/cida-snapshots</url>
+		</snapshotRepository>
+	</distributionManagement>
+
+
 
 	<dependencies>
 		<!-- JUnit dependencies -->
