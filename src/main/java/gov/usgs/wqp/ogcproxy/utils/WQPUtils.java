@@ -15,7 +15,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +53,7 @@ public class WQPUtils {
 		
 		//log.info("WQPUtils.parseSearchParams() - SearchParamString = [" + searchParamString + "]");
 		
-		/**
+		/*
 		 * SearchParams is a list of key/value pairs depicting key=search param and value = search param value.
 		 *
 		 * Search Param Values can be lists of strings.
@@ -77,7 +79,7 @@ public class WQPUtils {
 		List<String> keyAndValues = Arrays.asList(searchParamString.split(";"));
 		
 		for (String pairs : keyAndValues) {
-			/**
+			/*
 			 * Search Param pairs consist of a key and value separated by a colon.
 			 *
 			 *    ** IMPORTANT **
@@ -104,62 +106,70 @@ public class WQPUtils {
 			String key = keyValue.get(0);
 			String stringValues = keyValue.get(1);
 			
-			List<String> values = Arrays.asList(stringValues.split("\\|"));
+			List<String> values = new ArrayList<String>( Arrays.asList(stringValues.split("\\|")) );
 			
-			searchParams.put(key, values);
+			if (searchParams.get(key) == null) {
+				searchParams.put(key, values);
+			} else {
+				searchParams.get(key).addAll(values);
+			}
 		}
 	}
 	
-	public static HttpUriRequest generateSimpleStationRequest(SearchParameters<String, List<String>> searchParams, String simpleStationURL) throws OGCProxyException {
+	public static HttpUriRequest generateSimpleStationRequest(Map<String, List<String>> searchParams, String simpleStationURL) throws OGCProxyException {
+		return generateSimpleStationRequest(searchParams, simpleStationURL, new LinkedList<String>());
+	}
+	public static HttpUriRequest generateSimpleStationRequest(Map<String, List<String>> searchParams, String simpleStationURL, List<String> multiparams)
+			throws OGCProxyException {
 		HttpUriRequest request = null;
 		        
-        StringBuilder requestURIBuffer = new StringBuilder(simpleStationURL + "?");
+        StringBuilder requestURI = new StringBuilder(simpleStationURL + "?");
         String sepParams = "";
         for (Map.Entry<String,List<String>> paramEntry : searchParams.entrySet()) {
             String param = paramEntry.getKey();
             List<String> values = paramEntry.getValue();
             
-            requestURIBuffer.append(sepParams).append(param).append("=");
+            requestURI.append(sepParams).append(param).append("=");
             sepParams="&";
             
-            /**
-             * Delineate multiple values per parameter with a semi-colon ';'
-             */
+            // Delineate multiple values per parameter with a semi-colon ';'
             StringBuffer joinedValues = new StringBuffer();
             String sepValues = "";
+            String theSep = ";";
+            
+            if ( multiparams.contains(param) ) {
+            	theSep = "&"+param+"=";
+            }
+            
             for (String rawValue : values) {
             	joinedValues.append(sepValues).append(rawValue);
-            	sepValues=";";
+            	sepValues=theSep;
             }
             
             String encodedValue;
 			try {
-				encodedValue = URLEncoder.encode(joinedValues.toString(), "UTF-8");
+				encodedValue = URLEncoder.encode(joinedValues.toString(), "UTF-8").replaceAll("%26","&").replaceAll("%3D","=");
 			} catch (UnsupportedEncodingException e) {
 				log.error("WQPUtils.generateSimpleStationRequest() Encoding parameter value exception:\n[" + e.getMessage() + "].  Using un-encoded value instead [" + joinedValues.toString() + "]");
 				encodedValue = joinedValues.toString();
 			}
-			requestURIBuffer.append(encodedValue);
+			requestURI.append(encodedValue);
         }
         
-        /**
-         * Add our mimeType argument
-         */
-        requestURIBuffer.append("&mimeType=xml");
+        // Add our mimeType argument
+        requestURI.append("&mimeType=xml");
         
         URI serverRequestURI;
 		try {
-			serverRequestURI = (new URL(requestURIBuffer.toString())).toURI();
+			serverRequestURI = (new URL(requestURI.toString())).toURI();
 		} catch (MalformedURLException e) {
-			String msg = "WQPUtils.generateSimpleStationRequest() Exception : Syntax error parsing server URL [" +
-  				  e.getMessage() + "].";
+			String msg = "WQPUtils.generateSimpleStationRequest() Exception : Syntax error parsing server URL [" + e.getMessage() + "].";
 			log.error(msg);
 			
 			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;
 			throw new OGCProxyException(id, "WQPUtils", "generateSimpleStationRequest()", msg);
       } catch (URISyntaxException e) {
-      	String msg = "WQPUtils.generateSimpleStationRequest() Exception : Syntax error parsing server URL [" +
-				  e.getMessage() + "].";
+      	    String msg = "WQPUtils.generateSimpleStationRequest() Exception : Syntax error parsing server URL [" + e.getMessage() + "].";
 			log.error(msg);
 			
 			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;
@@ -171,7 +181,9 @@ public class WQPUtils {
 	}
 	
 	public static String retrieveSearchParamData(HttpClient httpClient, SearchParameters<String, List<String>> searchParams, String simpleStationURL, String workingDirectory, String layerName) throws OGCProxyException {
-		HttpUriRequest serverRequest = WQPUtils.generateSimpleStationRequest(searchParams, simpleStationURL);
+		List<String> multiparams = new ArrayList<String>();
+		multiparams.add("providers");
+		HttpUriRequest serverRequest = WQPUtils.generateSimpleStationRequest(searchParams, simpleStationURL,multiparams);
 		
 		HttpResponse methodResponse;
 		
