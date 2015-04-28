@@ -293,18 +293,30 @@ public class ProxyService {
 	 * @param requestParams
 	 * @param finalResult
 	 */
-	public DeferredResult<String> performWMSRequest(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
+	public DeferredResult<String> performGetRequestWms(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
 		
-		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
-		Map<String, String> ogcParams = new HashMap<String, String>();
-		ProxyUtil.separateParameters(requestParams, ogcParams, searchParams);
+		String primaryLayerParam    = WMSParameters.layers.toString();
+		String secondaryLayerParam  = WMSParameters.query_layers.toString();
 		
-		String layerParamName             = ProxyUtil.getCaseSensitiveParameter(WMSParameters.layers.toString(), requestParams);
-		String servletQueryLayerParamName = ProxyUtil.getCaseSensitiveParameter(WMSParameters.query_layers.toString(), requestParams);
-		String queryLayerParam            = ogcParams.get(servletQueryLayerParamName);
-		String errorValue                 = ogcParams.get(WMSParameters.format.toString());
+		// get value ignoring case -- TOD not DRY
+		String primaryLayerActual    = ProxyUtil.getCaseSensitiveParameter(primaryLayerParam, requestParams);
+		String secondaryLayerActual  = ProxyUtil.getCaseSensitiveParameter(secondaryLayerParam, requestParams);
 		
-		return performRequest(request, response, requestParams, OGCServices.WMS, layerParamName, servletQueryLayerParamName, queryLayerParam, errorValue);
+		// put value with proper case - TODO not DRY
+		if ( ! primaryLayerParam.equals(primaryLayerActual) ) {
+			String value = requestParams.remove(primaryLayerActual);
+			if (value !=null ) {
+				requestParams.put(primaryLayerParam, value);
+			}
+		}
+		if ( ! secondaryLayerParam.equals(secondaryLayerActual) ) {
+			String value = requestParams.remove(secondaryLayerActual);
+			if (value !=null ) {
+				requestParams.put(secondaryLayerParam, value);
+			}
+		}
+				
+		return performRequest(request, response, requestParams, OGCServices.WMS, primaryLayerParam, secondaryLayerParam);
 	}
 
 	/**
@@ -321,17 +333,12 @@ public class ProxyService {
 	 * @param requestParams
 	 * @param finalResult
 	 */
-	public DeferredResult<String>  performWFSRequest(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
+	public DeferredResult<String>  performGetRequestWfs(HttpServletRequest request, HttpServletResponse response, Map<String, String> requestParams) {
 		
-		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
-		Map<String, String> ogcParams = new HashMap<String, String>();
-		ProxyUtil.separateParameters(requestParams, ogcParams, searchParams);
+		String primaryLayerParam    = WFSParameters.typeNames.toString();
+		String secondaryLayerParam  = WFSParameters.typeName.toString();
 		
-		String layerParamName             = ogcParams.get(WFSParameters.typeName.toString());
-		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
-		String queryLayerParam            = layerParamName;
-
-		return performRequest(request, response, requestParams, OGCServices.WFS, layerParamName, servletQueryLayerParamName, queryLayerParam, null);
+		return performRequest(request, response, requestParams, OGCServices.WFS, primaryLayerParam, secondaryLayerParam);
 	}
 	
 	/**
@@ -344,16 +351,13 @@ public class ProxyService {
 	 * @param requestParams
 	 * @param finalResult
 	 */
-	public DeferredResult<String> performRequest(HttpServletRequest request,
-			HttpServletResponse response, Map<String, String> requestParams,
-			OGCServices ogcService, String layerParamName,
-			String servletQueryLayerParamName, String queryLayerParam, String errorValue) {
+	public DeferredResult<String> performRequest(HttpServletRequest request, HttpServletResponse response, 
+			Map<String, String> requestParams, OGCServices ogcService, String primaryLayerParam, String secondaryLayerParam) {
 		
 		initialize();
-		DeferredResult<String> deferredResult       = new DeferredResult<String>();
+		DeferredResult<String> deferredResult    = new DeferredResult<String>();
 
 		ProxyDataSourceParameter dataSource	     = ProxyDataSourceParameter.UNKNOWN;
-		ProxyDataSourceParameter queryLayerValue = ProxyDataSourceParameter.UNKNOWN;
 		
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
 		Map<String, String> ogcParams = new HashMap<String, String>();
@@ -365,23 +369,22 @@ public class ProxyService {
 		// Since this can be case INSENSITIVE but we use its value as a key in a map, we need
 		// to know what the exact character sequence is going forward.
 		Set<String> layerParams = new HashSet<String>();
-		String layerParam = ogcParams.get(layerParamName);
-		if ( ! isEmpty(layerParam) ) {
-			dataSource = ProxyDataSourceParameter.getTypeFromString(layerParam);
+		
+		String primaryLayerValue = ogcParams.get(primaryLayerParam);
+		if ( ! isEmpty(primaryLayerValue) ) {
+			dataSource = ProxyDataSourceParameter.getTypeFromString(primaryLayerValue);
 
 			if (dataSource != ProxyDataSourceParameter.UNKNOWN) {
-				layerParams.add(layerParamName);
+				layerParams.add(primaryLayerParam);
 			}
 		}
-		
-		if ( ! isEmpty(queryLayerParam) ) {
-			queryLayerValue = ProxyDataSourceParameter.getTypeFromString(layerParam);
 
-			if (queryLayerValue != ProxyDataSourceParameter.UNKNOWN) {
-				if (ogcService == OGCServices.WFS) {
-					dataSource = queryLayerValue; // TODO is this really necessary
-				}
-				layerParams.add(servletQueryLayerParamName);
+		String secondaryLayerValue = ogcParams.get(secondaryLayerParam);
+		if ( ! isEmpty(secondaryLayerValue) ) {
+			dataSource = ProxyDataSourceParameter.getTypeFromString(secondaryLayerValue);
+
+			if (dataSource != ProxyDataSourceParameter.UNKNOWN) {
+				layerParams.add(secondaryLayerParam);
 			}
 		}
 		
