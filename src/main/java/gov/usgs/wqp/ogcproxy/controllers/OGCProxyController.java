@@ -85,10 +85,10 @@ public class OGCProxyController {
 		
 		if (ogcService == OGCServices.WMS) {
 			log.info("OGCProxyController.handleActualServiceCallGet() INFO - Performing WMS request.");
-			return proxyService.performWMSRequest(request, response, requestParams);
+			return proxyService.performGetRequestWms(request, response, requestParams);
 		} else {
 			log.info("OGCProxyController.handleActualServiceCallGet() INFO - Performing WFS request.");
-			return proxyService.performWFSRequest(request, response, requestParams);
+			return proxyService.performGetRequestWfs(request, response, requestParams);
 		}
 	}
 
@@ -106,12 +106,10 @@ public class OGCProxyController {
 		
 		ogcService = ProxyUtil.getRequestedService(ogcService, requestParams);
 
-		String layerParamName             = WFSParameters.typeName.toString();
-		String servletQueryLayerParamName = WFSParameters.typeNames.toString();
-		String queryLayerParam            = layerParamName;
+		String primaryLayerName   = WFSParameters.typeName.toString();
+		String secondaryLayerName = WFSParameters.typeNames.toString();
 
-		proxyService.performRequest(request, response, requestParams, ogcService, layerParamName, 
-				servletQueryLayerParamName, queryLayerParam, null);
+		proxyService.performRequest(request, response, requestParams, ogcService, primaryLayerName, secondaryLayerName);
 	}
 
 	
