@@ -173,9 +173,7 @@ public class OgcWfsParser {
 		} else {
 			line = builder.toString();
 		}
-		body = line.trim();
-//		line = line.replaceAll("\\s+<", "<");
-//		line = line.replaceAll("\\s+", " ");
+		body = line.trim().replaceAll("><", "> <");
 		
 		return body;
 	}
