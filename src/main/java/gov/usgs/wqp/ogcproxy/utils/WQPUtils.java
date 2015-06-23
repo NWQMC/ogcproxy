@@ -153,6 +153,7 @@ public class WQPUtils {
 				log.error("WQPUtils.generateSimpleStationRequest() Encoding parameter value exception:\n[" + e.getMessage() + "].  Using un-encoded value instead [" + joinedValues.toString() + "]");
 				encodedValue = joinedValues.toString();
 			}
+			
 			requestURI.append(encodedValue);
         }
         
@@ -161,6 +162,7 @@ public class WQPUtils {
         
         URI serverRequestURI;
 		try {
+			log.info("WQPUtils.generateSimpleStationRequest() " + requestURI.toString());
 			serverRequestURI = (new URL(requestURI.toString())).toURI();
 		} catch (MalformedURLException e) {
 			String msg = "WQPUtils.generateSimpleStationRequest() Exception : Syntax error parsing server URL [" + e.getMessage() + "].";
