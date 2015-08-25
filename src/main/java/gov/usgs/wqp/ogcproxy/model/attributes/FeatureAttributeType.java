@@ -10,7 +10,7 @@ import gov.usgs.wqp.ogcproxy.utils.StringUtils;
  *	in a dataset used for creating a shapefile.
  */
 public enum FeatureAttributeType {
-	provider, name, type, point, UNKNOWN;
+	provider, orgName, orgId, locationName, name, type, point, UNKNOWN;
 
 	public static FeatureAttributeType getTypeFromString(String string) {
 		return StringUtils.getTypeFromString(string, UNKNOWN);

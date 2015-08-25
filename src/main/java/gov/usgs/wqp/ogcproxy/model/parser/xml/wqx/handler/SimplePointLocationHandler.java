@@ -6,6 +6,7 @@ import gov.usgs.wqp.ogcproxy.model.providers.SourceProvider;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
 
 import java.io.CharArrayWriter;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -18,6 +19,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+
 /**
  * SimplePointLocationHandler parses the WQX_Outbound XML format for <MonitoringLocation> elements.
  * <br /><br />
@@ -29,9 +31,14 @@ import org.xml.sax.helpers.DefaultHandler;
  * 		        <ProviderName>STEWARDS</ProviderName>
  *
  * 		        <Organization>
+ *					<OrganizationDescription>*
+ *						<OrganizationIdentifier>USGS-IA</OrganizationIdentifier>*
+ *						<OrganizationFormalName>USGS Iowa Water Science Center</OrganizationFormalName>*
+ *					</OrganizationDescription>*
  * 		        	<MonitoringLocation>
  * 		                <MonitoringLocationIdentity>
  * 		                    <MonitoringLocationIdentifier>ARS-IAWC-IAWC225</MonitoringLocationIdentifier>
+ *							<MonitoringLocationName>Squaw Creek near Stanhope, IA</MonitoringLocationName>*
  * 		                    <ResolvedMonitoringLocationTypeName>Land</ResolvedMonitoringLocationTypeName>
  * 		                </MonitoringLocationIdentity>
  * 		                <MonitoringLocationGeospatial>
@@ -75,12 +82,21 @@ import org.xml.sax.helpers.DefaultHandler;
 public class SimplePointLocationHandler extends DefaultHandler {
 	static Logger log = SystemUtils.getLogger(SimplePointLocationHandler.class);
 	private List<FeatureDAO> simplePointFeatures;
+	private List<SimplePointFeature> currentFeatures;
 	private SourceProvider currentSourceProvider;
 	private SimplePointFeature currentPointFeature;
+	private String currentOrgId;
+	private String currentOrgName;
+	
+	public static final String ORGANIZATION_START = "OrganizationDescription";
+	public static final String ORGANIZATION_IDENTIFIER = "OrganizationIdentifier";
+	public static final String ORGANIZATION_NAME = "OrganizationFormalName";
 	
 	public static final String LOCATION_START = "MonitoringLocation";
 	public static final String LOCATION_IDENTIFIER = "MonitoringLocationIdentifier";
 	public static final String LOCATION_TYPE = "ResolvedMonitoringLocationTypeName";
+	public static final String LOCATION_NAME = "MonitoringLocationName";
+	
 	public static final String LATTITUDE = "LatitudeMeasure";
 	public static final String LONGITUDE = "LongitudeMeasure";
 	
@@ -99,6 +115,8 @@ public class SimplePointLocationHandler extends DefaultHandler {
 		this.featureBuilder = featureBuilder;
 		
 		this.currentPointFeature = null;
+		
+		this.currentFeatures = new LinkedList<SimplePointFeature>();
 	}
 	
 	public void startDocument() throws SAXException {
@@ -128,6 +146,34 @@ public class SimplePointLocationHandler extends DefaultHandler {
 		//String msg = "========== SimplePointLocationHandler.endElement() [" + qName + "] ==========";
 		//System.out.println(msg);
 		//log.debug(msg);
+		
+		/**
+		 * SimplePointFeature organization ID and Name element values stored for later use;
+		 */
+		if (SimplePointLocationHandler.ORGANIZATION_IDENTIFIER.equals(qName)) {
+			this.currentOrgId = contents.toString();
+			System.out.println("+++" + contents.toString());
+
+		}
+		if (SimplePointLocationHandler.ORGANIZATION_NAME.equals(qName)) {
+			this.currentOrgName = contents.toString();
+			System.out.println("+++" + contents.toString());
+		}
+		
+		/**
+		 * SimplePointFeature name element
+		 */
+		if (SimplePointLocationHandler.LOCATION_NAME.equals(qName)) {
+			if (this.currentPointFeature != null) {
+				this.currentPointFeature.setLocationName(contents.toString());
+			} else {
+				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
+						  localName + "] found but no SimplePointFeature object created!";
+				System.out.println(error);
+				log.debug(error);
+			}
+		}
+		
 		
 		/**
 		 * SimplePointFeature name element
@@ -221,13 +267,31 @@ public class SimplePointLocationHandler extends DefaultHandler {
 		 * The ending tag for this feature
 		 */
 		if (SimplePointLocationHandler.LOCATION_START.equals(qName)) {
+			// TODO this class should really return the currentFeatures rather than adding to an externally supplied collection
 			this.simplePointFeatures.add(this.currentPointFeature);
+			this.currentFeatures.add(this.currentPointFeature);
 		}
 		
 		/**
 		 * Tag flag to return handling to the parent
 		 */
 		if (SimplePointProviderHandler.SUBHANDLER_ELEMENT.equals(qName)) {
+			if (this.currentOrgId != null || this.currentOrgName != null) {
+				
+				for (SimplePointFeature feature: this.currentFeatures) {
+					if (this.currentOrgId != null) {
+						feature.setOrgId(this.currentOrgId);
+					}
+					if (this.currentOrgName != null) {
+						feature.setOrgName(this.currentOrgName);
+					}
+				}
+			}
+			this.currentFeatures = null;
+			this.currentFeatures = new LinkedList<SimplePointFeature>(); // TODO necessary? While it was for testing it might not be needed.
+			
+			this.currentOrgId = this.currentOrgName = null;
+			
 			this.xmlReader.setContentHandler(this.parentHandler);
 			return;
 		}
@@ -235,6 +299,7 @@ public class SimplePointLocationHandler extends DefaultHandler {
 	
 	public void characters(char[] ch, int start, int length) throws SAXException {
 		contents.write(ch, start, length);
+		System.out.println(contents.toString());
 	}
 
 	public SimplePointFeature getCurrentPointFeature() {
