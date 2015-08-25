@@ -148,19 +148,19 @@ public class SimplePointProviderHandler extends DefaultHandler {
 			} catch (SchemaException e) {
 				String error = "SimplePointProviderHandler.startElement() Exception: " + e.getMessage();
 				log.error(error);
-				System.out.println(error);
+				//System.out.println(error);
 				
 				throw new SAXException(error);
 			} catch (NoSuchAuthorityCodeException e) {
 				String error = "SimplePointProviderHandler.startElement() Exception: " + e.getMessage();
 				log.error(error);
-				System.out.println(error);
+				//System.out.println(error);
 				
 				throw new SAXException(error);
 			} catch (FactoryException e) {
 				String error = "SimplePointProviderHandler.startElement() Exception: " + e.getMessage();
 				log.error(error);
-				System.out.println(error);
+				//System.out.println(error);
 				
 				throw new SAXException(error);
 			}

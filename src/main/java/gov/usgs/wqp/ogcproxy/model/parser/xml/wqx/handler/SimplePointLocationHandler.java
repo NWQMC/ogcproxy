@@ -152,12 +152,9 @@ public class SimplePointLocationHandler extends DefaultHandler {
 		 */
 		if (SimplePointLocationHandler.ORGANIZATION_IDENTIFIER.equals(qName)) {
 			this.currentOrgId = contents.toString();
-			System.out.println("+++" + contents.toString());
-
 		}
 		if (SimplePointLocationHandler.ORGANIZATION_NAME.equals(qName)) {
 			this.currentOrgName = contents.toString();
-			System.out.println("+++" + contents.toString());
 		}
 		
 		/**
@@ -169,7 +166,7 @@ public class SimplePointLocationHandler extends DefaultHandler {
 			} else {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
 						  localName + "] found but no SimplePointFeature object created!";
-				System.out.println(error);
+				//System.out.println(error);
 				log.debug(error);
 			}
 		}
@@ -184,7 +181,7 @@ public class SimplePointLocationHandler extends DefaultHandler {
 			} else {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
 						  localName + "] found but no SimplePointFeature object created!";
-				System.out.println(error);
+				//System.out.println(error);
 				log.debug(error);
 			}
 		}
@@ -198,7 +195,7 @@ public class SimplePointLocationHandler extends DefaultHandler {
 			} else {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
 						  localName + "] found but no SimplePointFeature object created!";
-				System.out.println(error);
+				//System.out.println(error);
 				log.debug(error);
 			}
 		}
@@ -215,12 +212,12 @@ public class SimplePointLocationHandler extends DefaultHandler {
 				} catch (NumberFormatException e) {
 					String error = "SimplePointLocationHandler.endElement() ERROR: Latitude value [" + stringValue +
 							  "] could not be parsed as a double value.  Setting latitude to 0.0";
-					System.out.println(error);
+					//System.out.println(error);
 					log.debug(error);
 				} catch (NullPointerException e) {
 					String error = "SimplePointLocationHandler.endElement() ERROR: Latitude value is null and " +
 							  "could not be parsed as a double value.  Setting latitude to 0.0";
-					System.out.println(error);
+					//System.out.println(error);
 					log.debug(error);
 				}
 				
@@ -228,7 +225,7 @@ public class SimplePointLocationHandler extends DefaultHandler {
 			} else {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
 						  localName + "] found but no SimplePointFeature object created!";
-				System.out.println(error);
+				//System.out.println(error);
 				log.debug(error);
 			}
 		}
@@ -245,12 +242,12 @@ public class SimplePointLocationHandler extends DefaultHandler {
 				} catch (NumberFormatException e) {
 					String error = "SimplePointLocationHandler.endElement() ERROR: Longitude value [" + stringValue +
 							  "] could not be parsed as a double value.  Setting longitude to 0.0";
-					System.out.println(error);
+					//System.out.println(error);
 					log.debug(error);
 				} catch (NullPointerException e) {
 					String error = "SimplePointLocationHandler.endElement() ERROR: Longitude value is null and " +
 							  "could not be parsed as a double value.  Setting longitude to 0.0";
-					System.out.println(error);
+					//System.out.println(error);
 					log.debug(error);
 				}
 				
@@ -258,7 +255,7 @@ public class SimplePointLocationHandler extends DefaultHandler {
 			} else {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
 						  localName + "] found but no SimplePointFeature object created!";
-				System.out.println(error);
+				//System.out.println(error);
 				log.debug(error);
 			}
 		}
@@ -299,7 +296,6 @@ public class SimplePointLocationHandler extends DefaultHandler {
 	
 	public void characters(char[] ch, int start, int length) throws SAXException {
 		contents.write(ch, start, length);
-		System.out.println(contents.toString());
 	}
 
 	public SimplePointFeature getCurrentPointFeature() {
