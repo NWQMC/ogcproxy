@@ -39,10 +39,14 @@ import com.vividsolutions.jts.geom.Point;
 public class SimplePointFeature implements FeatureDAO {
 	private SourceProvider provider;
 	private String name;
+	private String locationName;
 	private String type;
 	private double longitude;
 	private double latitude;
 	private Point point;
+	
+	private String orgName;
+	private String orgId;
 	
 	private Map<BaseAttributeType, String> baseAttribs;
 	private Map<FeatureAttributeType, Object> featureAttribs;
@@ -138,6 +142,17 @@ public class SimplePointFeature implements FeatureDAO {
 		this.featureIsDirty = true;
 	}
 
+	public String getLocationName() {
+		return locationName;
+	}
+
+	public void setLocationName(String locationName) {
+		this.locationName = locationName;
+		baseAttribs.put(BaseAttributeType.LocationName, locationName);
+		featureAttribs.put(FeatureAttributeType.locationName, name);
+		this.featureIsDirty = true;
+	}
+
 	public String getType() {
 		return type;
 	}
@@ -149,6 +164,30 @@ public class SimplePointFeature implements FeatureDAO {
 		this.featureIsDirty = true;
 	}
 
+	public String getOrgName() {
+		return orgName;
+	}
+
+	// asdf
+	public void setOrgName(String orgName) {
+		this.orgName = orgName;
+		baseAttribs.put(BaseAttributeType.OrganizationName, orgName);
+		featureAttribs.put(FeatureAttributeType.orgName, orgName);
+		this.featureIsDirty = true;
+	}
+
+	public String getOrgId() {
+		return orgId;
+	}
+
+	public void setOrgId(String orgId) {
+		this.orgId = orgId;
+		baseAttribs.put(BaseAttributeType.OrganizationId, orgId);
+		featureAttribs.put(FeatureAttributeType.orgId, orgId);
+		this.featureIsDirty = true;
+	}
+	
+	
 	public double getLongitude() {
 		return longitude;
 	}
@@ -241,7 +280,10 @@ public class SimplePointFeature implements FeatureDAO {
 		sb.append("SimplePointFeature Instance:");
 		sb.append("\tProvider:\t" + SourceProvider.getStringFromType(this.provider) + "\n");
 		sb.append("\tName:\t\t" + this.name + "\n");
+		sb.append("\tLocation Name:\t" + this.locationName + "\n");
 		sb.append("\tType:\t\t" + this.type + "\n");
+		sb.append("\tOrgName:\t" + this.orgName + "\n");
+		sb.append("\tOrgId:\t\t" + this.orgId + "\n");
 		sb.append("\tLongitude:\t" + this.longitude + "\n");
 		sb.append("\tLatitude:\t" + this.latitude + "\n");
 		sb.append("\tPOINT: " + this.point + "\n");

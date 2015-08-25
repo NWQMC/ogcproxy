@@ -11,7 +11,7 @@ import gov.usgs.wqp.ogcproxy.utils.StringUtils;
  *	in a dataset used for creating a shapefile.
  */
 public enum BaseAttributeType {
-	Provider, LocationIdentifier, LocationType, Latitude, Longitude, UNKNOWN;
+	Provider, OrganizationName, OrganizationId, LocationName, LocationIdentifier, LocationType, Latitude, Longitude, UNKNOWN;
 
 	public static BaseAttributeType getTypeFromString(String string) {
 		return StringUtils.getTypeFromString(string, UNKNOWN);
