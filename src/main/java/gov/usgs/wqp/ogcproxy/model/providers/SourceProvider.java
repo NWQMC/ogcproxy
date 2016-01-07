@@ -11,7 +11,7 @@ import gov.usgs.wqp.ogcproxy.utils.StringUtils;
  *	possible in a dataset used for creating a shapefile.
  */
 public enum SourceProvider {
-	NWIS, STEWARDS, STORET, UNKNOWN;
+	NWIS, STEWARDS, STORET, BIODATA, UNKNOWN;
 
 	public static SourceProvider getTypeFromString(String string) {
 		return StringUtils.getTypeFromString(string, UNKNOWN);

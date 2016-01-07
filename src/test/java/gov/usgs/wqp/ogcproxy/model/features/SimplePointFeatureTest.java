@@ -4,9 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import gov.usgs.wqp.ogcproxy.model.attributes.BaseAttributeType;
-import gov.usgs.wqp.ogcproxy.model.attributes.FeatureAttributeType;
-import gov.usgs.wqp.ogcproxy.model.providers.SourceProvider;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +11,7 @@ import java.util.List;
 
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
+import org.geotools.referencing.CRS;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,6 +21,10 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
+
+import gov.usgs.wqp.ogcproxy.model.attributes.BaseAttributeType;
+import gov.usgs.wqp.ogcproxy.model.attributes.FeatureAttributeType;
+import gov.usgs.wqp.ogcproxy.model.providers.SourceProvider;
 
 public class SimplePointFeatureTest {
 	/**
@@ -868,4 +870,45 @@ public class SimplePointFeatureTest {
 		assertEquals(theType.getClass(), String.class);
 		assertEquals(testType, (String)theType);
 	}
+
+	@Test
+	public void testFeatureOrdering() {
+		//Might seem a little tedious/unnecessary, but if getFeatureType() and getSimpleFeature() do not
+		//match, the data will be all hosed.
+		SimpleFeatureType featureType = null;
+		try {
+			featureType = SimplePointFeature.getFeatureType();
+			assertEquals(CRS.decode("EPSG:4326"), featureType.getCoordinateReferenceSystem());
+		} catch (Exception e) {
+			fail("Failed requesting featureType: " + e.getMessage());
+		}
+		assertEquals("Location", featureType.getName().getLocalPart());
+		assertEquals(7, featureType.getAttributeCount());
+		assertEquals("the_geom", featureType.getAttributeDescriptors().get(0).getName().getLocalPart());
+		assertEquals("orgId", featureType.getAttributeDescriptors().get(1).getName().getLocalPart());
+		assertEquals("orgName", featureType.getAttributeDescriptors().get(2).getName().getLocalPart());
+		assertEquals("name", featureType.getAttributeDescriptors().get(3).getName().getLocalPart());
+		assertEquals("locName", featureType.getAttributeDescriptors().get(4).getName().getLocalPart());
+		assertEquals("type", featureType.getAttributeDescriptors().get(5).getName().getLocalPart());
+		assertEquals("provider", featureType.getAttributeDescriptors().get(6).getName().getLocalPart());
+	
+		SimplePointFeature currentPointFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.UNKNOWN);
+		currentPointFeature.setLatitude(43.3836014);
+		currentPointFeature.setLongitude(-88.9773314);
+		currentPointFeature.setOrgId("BBGGR");
+		currentPointFeature.setOrgName("Berry Berry Good Garden Rentals");
+		currentPointFeature.setName("BBGGR-00000123");
+		currentPointFeature.setLocationName("DS1 Well");
+		currentPointFeature.setType("Well");
+
+		SimpleFeature generatedFeature = currentPointFeature.getSimpleFeature();
+		assertEquals(geometryFactory.createPoint(new Coordinate(-88.9773314, 43.3836014)), generatedFeature.getAttribute("the_geom"));
+		assertEquals("BBGGR", generatedFeature.getAttribute("orgId"));
+		assertEquals("Berry Berry Good Garden Rentals", generatedFeature.getAttribute("orgName"));
+		assertEquals("BBGGR-00000123", generatedFeature.getAttribute("name"));
+		assertEquals("DS1 Well", generatedFeature.getAttribute("locName"));
+		assertEquals("Well", generatedFeature.getAttribute("type"));
+		assertEquals(SourceProvider.UNKNOWN.toString(), generatedFeature.getAttribute("provider"));
+	}
+
 }
