@@ -258,7 +258,10 @@ public class SimplePointFeature implements FeatureDAO {
 			 * Must be in order of the SimpleFeatureType defined below in getFeatureType()
 			 */
 			this.featureBuilder.add(this.point);
+			this.featureBuilder.add(this.orgId);
+			this.featureBuilder.add(this.orgName);
 			this.featureBuilder.add(this.name);
+			this.featureBuilder.add(this.locationName);
 			this.featureBuilder.add(this.type);
 			this.featureBuilder.add(SourceProvider.getStringFromType(this.provider));
 			this.simpleFeature = featureBuilder.buildFeature(null);
@@ -301,7 +304,10 @@ public class SimplePointFeature implements FeatureDAO {
 
 			        // add attributes in order
 			        builder.add("the_geom", Point.class);
+			        builder.length(32).add("orgId", String.class);
+			        builder.length(128).add("orgName", String.class);
 			        builder.length(32).add("name", String.class);
+			        builder.length(256).add("locName", String.class);
 			        builder.length(32).add("type", String.class);
 			        builder.length(32).add("provider", String.class);
 			        
