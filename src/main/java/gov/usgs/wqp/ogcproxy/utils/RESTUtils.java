@@ -2,15 +2,18 @@ package gov.usgs.wqp.ogcproxy.utils;
 
 import java.io.File;
 
-import org.apache.log4j.Logger;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.MediaType;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientHandlerException;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
+import org.apache.log4j.Logger;
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 
 /**
  * RESTUtils
@@ -24,141 +27,109 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 public class RESTUtils {
 	private static Logger log = SystemUtils.getLogger(RESTUtils.class);
 	
-	public static String get(String uri, String user, String pass, String mediaType) {
-		Client client = Client.create();
-		
-		if (user != null) {
-			client.addFilter(new HTTPBasicAuthFilter(user, pass));
-		}
-		
-		WebResource service = client.resource(uri);
-		
-		String response;
-		try {
-			response = service.type(mediaType).accept(mediaType).get(String.class);
-		} catch(UniformInterfaceException e) {
-			response = "RESTUtils.get() Exception: UniformInterfaceException Exception [" + e.getMessage() + "]";
-			log.error(response);
-		} catch(ClientHandlerException e) {
-			response = "RESTUtils.get() Exception: ClientHandlerException Exception [" + e.getMessage() + "]";
-			log.error(response);
-		} finally {
-			client.destroy();
-		}
-		
-		return response;
-	}
-	
-	public static String post(String uri, String data, String user, String pass, String mediaType) {
-		Client client = Client.create();
-		
-		if (user != null) {
-			client.addFilter(new HTTPBasicAuthFilter(user, pass));
-		}
-		
-		WebResource service = client.resource(uri);
-		
-		String response;
-		try {
-			response = service.type(mediaType).accept(mediaType).post(String.class, data);
-		} catch(UniformInterfaceException e) {
-			response = "RESTUtils.post() Exception: UniformInterfaceException Exception [" + e.getMessage() + "]";
-			log.error(response);
-		} catch(ClientHandlerException e) {
-			response = "RESTUtils.post() Exception: ClientHandlerException Exception [" + e.getMessage() + "]";
-			log.error(response);
-		} finally {
-			client.destroy();
-		}
-		
-		return response;
-	}
-	
-	public static String postFile(String uri, String filename, String user, String pass, String mediaType) {
-		Client client = Client.create();
-		
-		if (user != null) {
-			client.addFilter(new HTTPBasicAuthFilter(user, pass));
-		}
-		
-		WebResource service = client.resource(uri);
-		File file = new File(filename);
-        
-        String response;
-        if (file.exists()) {
-        	try {
-        		response = service.type(mediaType).accept(mediaType).post(String.class, file);
-        	} catch(UniformInterfaceException e) {
-    			response = "RESTUtils.postFile() Exception: UniformInterfaceException Exception [" + e.getMessage() + "]";
-    			log.error(response);
-    		} catch(ClientHandlerException e) {
-    			response = "RESTUtils.postFile() Exception: ClientHandlerException Exception [" + e.getMessage() + "]";
-    			log.error(response);
-    		}
-        } else {
-        	response = "RESTUtils.postFile() Exception: File of type [" + mediaType + "] DOES NOT EXIST";
-			log.error(response);
-        }
-        
-        client.destroy();
-		
-		return response;
-	}
-	
+//	public static String get(String uri, String user, String pass, String mediaType) {
+//		Client client = ClientBuilder.newClient();
+//		
+//		WebTarget service = client.target(uri);
+//		if (user != null) {
+//			service.register(HttpAuthenticationFeature.basic(user, pass));
+//		}
+//
+//		return service.request(mediaType).get(String.class);
+//	}
+//	
+//	public static String post(String uri, Entity<?> data, String user, String pass, String mediaType) {
+//		Client client = ClientBuilder.newClient();
+//		
+//		WebTarget service = client.target(uri);
+//		if (user != null) {
+//			service.register(HttpAuthenticationFeature.basic(user, pass));
+//		}
+//		
+//		return service.request(mediaType).post(data, String.class);
+//	}
+//	
+//	public static String postFile(String uri, String filename, String user, String pass, String mediaType) {
+//		Client client = Client.create();
+//		
+//		if (user != null) {
+//			client.addFilter(new HTTPBasicAuthFilter(user, pass));
+//		}
+//		
+//		WebResource service = client.resource(uri);
+//		File file = new File(filename);
+//        
+//        String response;
+//        if (file.exists()) {
+//        	try {
+//        		response = service.type(mediaType).accept(mediaType).post(String.class, file);
+//        	} catch(UniformInterfaceException e) {
+//    			response = "RESTUtils.postFile() Exception: UniformInterfaceException Exception [" + e.getMessage() + "]";
+//    			log.error(response);
+//    		} catch(ClientHandlerException e) {
+//    			response = "RESTUtils.postFile() Exception: ClientHandlerException Exception [" + e.getMessage() + "]";
+//    			log.error(response);
+//    		}
+//        } else {
+//        	response = "RESTUtils.postFile() Exception: File of type [" + mediaType + "] DOES NOT EXIST";
+//			log.error(response);
+//        }
+//        
+//        client.destroy();
+//		
+//		return response;
+//	}
+//	
 	public static String putDataFile(String uri, String user, String pass, String mediaType, String filename) {
-		ClientConfig config = new DefaultClientConfig();
-        Client client = Client.create(config);
+		ClientConfig clientConfig = new ClientConfig();
+		clientConfig.register(MultiPartFeature.class);
+		Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).build();
 		
+		WebTarget service = client.target(uri);
 		if (user != null) {
-			client.addFilter(new HTTPBasicAuthFilter(user, pass));
+			service.register(HttpAuthenticationFeature.basic(user, pass));
 		}
-    
-        WebResource service = client.resource(uri);
-        File file = new File(filename);
+
+		File file = new File(filename);
                 
         String response;
         if (file.exists()) {
-        	try {
-        		response = service.type(mediaType).accept(mediaType).put(String.class, file);
-        	} catch(UniformInterfaceException e) {
-    			response = "RESTUtils.putDataFile() Exception: UniformInterfaceException Exception [" + e.getMessage() + "]";
-    			log.error(response);
-    		} catch(ClientHandlerException e) {
-    			response = "RESTUtils.putDataFile() Exception: ClientHandlerException Exception [" + e.getMessage() + "]";
-    			log.error(response);
-    		}
+        	FileDataBodyPart fileDataBodyPart = new FileDataBodyPart("uploadFile", file, MediaType.APPLICATION_OCTET_STREAM_TYPE);
+        	FormDataMultiPart formDataMultiPart = new FormDataMultiPart();
+            formDataMultiPart.bodyPart(fileDataBodyPart);
+            response = service.request(mediaType).put(Entity.entity(formDataMultiPart, MediaType.MULTIPART_FORM_DATA), String.class);
         } else {
         	response = "RESTUtils.putDataFile() Exception: File of type [" + mediaType + "] DOES NOT EXIST";
 			log.error(response);
         }
         
-        client.destroy();
+        client.close();
         
         return response;
 	}
 	
-	public static String delete(String uri, String user, String pass, String mediaType) {
-		Client client = Client.create();
-		
-		if (user != null) {
-			client.addFilter(new HTTPBasicAuthFilter(user, pass));
-		}
-		
-		WebResource service = client.resource(uri);
-		
-		String response;
-		try {
-			response = service.type(mediaType).accept(mediaType).delete(String.class);
-		} catch(UniformInterfaceException e) {
-			response = "RESTUtils.delete() Exception: UniformInterfaceException Exception [" + e.getMessage() + "]";
-			log.error(response);
-		} catch(ClientHandlerException e) {
-			response = "RESTUtils.delete() Exception: ClientHandlerException Exception [" + e.getMessage() + "]";
-			log.error(response);
-		} finally {
-			client.destroy();
-		}
-		
-		return response;
-	}
+//	public static String delete(String uri, String user, String pass, String mediaType) {
+//		Client client = Client.create();
+//		
+//		if (user != null) {
+//			client.addFilter(new HTTPBasicAuthFilter(user, pass));
+//		}
+//		
+//		WebResource service = client.resource(uri);
+//		
+//		String response;
+//		try {
+//			response = service.type(mediaType).accept(mediaType).delete(String.class);
+//		} catch(UniformInterfaceException e) {
+//			response = "RESTUtils.delete() Exception: UniformInterfaceException Exception [" + e.getMessage() + "]";
+//			log.error(response);
+//		} catch(ClientHandlerException e) {
+//			response = "RESTUtils.delete() Exception: ClientHandlerException Exception [" + e.getMessage() + "]";
+//			log.error(response);
+//		} finally {
+//			client.destroy();
+//		}
+//		
+//		return response;
+//	}
 }

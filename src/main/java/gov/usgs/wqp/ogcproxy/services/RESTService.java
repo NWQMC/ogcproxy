@@ -1,23 +1,19 @@
 package gov.usgs.wqp.ogcproxy.services;
 
-import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
-import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
-import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
-
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.ModelAndView;
 
+import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
+import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
+import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
+
 @Service
 public class RESTService {
 	private static Logger log = SystemUtils.getLogger(RESTService.class);
-	
-	@Autowired
-	private Environment environment;
 	
 	@Autowired
 	private WQPLayerBuildingService wqpLayerBuildingService;

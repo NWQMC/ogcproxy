@@ -149,7 +149,7 @@ public class SimplePointFeature implements FeatureDAO {
 	public void setLocationName(String locationName) {
 		this.locationName = locationName;
 		baseAttribs.put(BaseAttributeType.LocationName, locationName);
-		featureAttribs.put(FeatureAttributeType.locationName, name);
+		featureAttribs.put(FeatureAttributeType.locName, name);
 		this.featureIsDirty = true;
 	}
 
@@ -304,12 +304,12 @@ public class SimplePointFeature implements FeatureDAO {
 
 			        // add attributes in order
 			        builder.add("the_geom", Point.class);
-			        builder.length(32).add("orgId", String.class);
-			        builder.length(128).add("orgName", String.class);
-			        builder.length(32).add("name", String.class);
-			        builder.length(256).add("locName", String.class);
-			        builder.length(32).add("type", String.class);
-			        builder.length(32).add("provider", String.class);
+			        builder.length(32).add(FeatureAttributeType.orgId.toString(), String.class);
+			        builder.length(128).add(FeatureAttributeType.orgName.toString(), String.class);
+			        builder.length(32).add(FeatureAttributeType.name.toString(), String.class);
+			        builder.length(256).add(FeatureAttributeType.locName.toString(), String.class);
+			        builder.length(32).add(FeatureAttributeType.type.toString(), String.class);
+			        builder.length(32).add(FeatureAttributeType.provider.toString(), String.class);
 			        
 			        // build the type
 			        SimplePointFeature.FEATURETYPE = builder.buildFeatureType();
