@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -47,7 +48,6 @@ import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
@@ -64,7 +64,6 @@ import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
 
 
-@Service
 public class ProxyService {
 	/*========================================================================
 	 * Wired Spring Beans ===========================================================
@@ -87,10 +86,10 @@ public class ProxyService {
 	private static long threadTimeout = 604800000; // 1000 * 60 * 60 * 24 * 7 (1 week)
 	private static long threadSleep   = 500;
 	
-	private static String geoserverProtocol  = "http://";
+	private static String geoserverProtocol  = "http";
 	private static String geoserverHost      = "localhost";
-	private static String geoserverPort      = "8081";
-	private static String forwardUrl         = "http://localhost:8081";
+	private static String geoserverPort      = "8080";
+	private static String forwardUrl         = "http://localhost:8080";
 	private static String geoserverContext   = "/geoserver";
 	private static String geoserverWorkspace = "qw_portal_map";
 
@@ -132,6 +131,7 @@ public class ProxyService {
 	 * the constructor. We'll just use a locked initialized variable to
 	 * check initialization after instantiation and set the env properties here.
 	 */
+	@PostConstruct
 	public void initialize() {
 		if ( initialized ) {
 			return;
@@ -351,7 +351,6 @@ public class ProxyService {
 	public DeferredResult<String> performRequest(HttpServletRequest request, HttpServletResponse response, 
 			Map<String, String> requestParams, OGCServices ogcService, String primaryLayerParam, String secondaryLayerParam) {
 		
-		initialize();
 		DeferredResult<String> deferredResult    = new DeferredResult<String>();
 
 		ProxyDataSourceParameter dataSource	     = ProxyDataSourceParameter.UNKNOWN;

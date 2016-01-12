@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.http.client.config.RequestConfig;
@@ -109,18 +110,19 @@ public class WQPLayerBuildingService {
 			"</ows:AllowedValues>" +
 			"</ows:Parameter>";
 	
-	private static Environment environment;
+	@Autowired
+	private Environment environment;
 	private static boolean initialized;
 	
-	private static String geoserverProtocol  = "http://";
+	private static String geoserverProtocol  = "http";
 	private static String geoserverHost      = "localhost";
-	private static String geoserverPort      = "8081";
+	private static String geoserverPort      = "8080";
 	private static String geoserverContext   = "/geoserver";
 	private static String geoserverWorkspace = "qw_portal_map";
 	private static String geoserverUser      = "";
 	private static String geoserverPass      = "";
 	private static String geoserverDatastore = "site_map";
-	private static String geoserverRestPutShapefileURI = "http://localhost:8081/geoserver/rest/workspaces/qw_portal_map/datastores";
+	private static String geoserverRestPutShapefileURI = "http://localhost:8080/geoserver/rest/workspaces/qw_portal_map/datastores";
 	
 	private static String simpleStationProtocol = "http";
 	private static String simpleStationHost     = "cida-eros-wqpdev.er.usgs.gov";
@@ -166,17 +168,7 @@ public class WQPLayerBuildingService {
 		return INSTANCE;
 	}
 	
-	/**
-	 * Since this service is being used by a service (and not a Spring managed
-	 * bean) we must inject the environment.
-	 * @param env
-	 */
-	public void setEnvironment(Environment env) {
-		initialized = false;
-		environment = env;
-		initialize();
-	}
-	
+	@PostConstruct
 	public void initialize() {
 		log.info("WQPLayerBuildingService.initialize() called");
 		
@@ -422,16 +414,10 @@ public class WQPLayerBuildingService {
 		}
 	}
 	
-	public void reinitialize(Environment env) {
-		setEnvironment(env);
-	}
-	
 	public ProxyServiceResult getDynamicLayer(Map<String,String> ogcParams, SearchParameters<String,
 			List<String>> searchParams, Collection<String> layerParams, OGCServices originatingService,
 			ProxyDataSourceParameter dataSource) {
 
-		initialize();
-		
 		/*
 		 * Next we need to see if this layer has already been requested
 		 * and is available.
@@ -748,7 +734,7 @@ public class WQPLayerBuildingService {
 		String layerZipFile = shapefileDirectory + File.separator + layerName + ".zip";
 		String restPut = geoServerURI + "/" + layerName + "/file.shp";
 		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Uploading Shapefile (" + layerZipFile + ") to GeoServer");
-		String response = RESTUtils.putDataFile(restPut, geoServerUser, geoServerPass, ShapeFileUtils.MEDIATYPE_APPLICATION_ZIP, layerZipFile);
+		String response = RESTUtils.putDataFile(geoserverHost, geoserverPort, restPut, geoServerUser, geoServerPass, ShapeFileUtils.MEDIATYPE_APPLICATION_ZIP, layerZipFile);
 		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: \nGeoServer response for request [" + restPut + "] is: \n[" + response + "]");
 		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Uploading Shapefile Complete");
 		

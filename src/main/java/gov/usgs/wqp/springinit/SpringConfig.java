@@ -6,23 +6,22 @@
 
 package gov.usgs.wqp.springinit;
 
-import gov.usgs.wqp.ogcproxy.services.ProxyService;
-import gov.usgs.wqp.ogcproxy.services.RESTService;
-import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
-import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.core.env.Environment;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
+
+import gov.usgs.wqp.ogcproxy.services.ProxyService;
+import gov.usgs.wqp.ogcproxy.services.RESTService;
+import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
+import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
 
 /**
  * This class takes the place of the old Spring servlet.xml configuration that
@@ -32,10 +31,9 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 @Configuration
 @ComponentScan(basePackages= {"gov.usgs.wqp"})
 @EnableWebMvc
+@EnableAsync
 @PropertySource(value = {"file:${catalina.base}/conf/ogcproxy.properties"})		// Unfortunately this is Tomcat specific.  For us its ok
 public class SpringConfig extends WebMvcConfigurerAdapter {
-	@Autowired
-	private Environment environment;
 	
 	/**
 	 * Expose the resources (properties defined above) as an Environment to all
@@ -82,38 +80,22 @@ public class SpringConfig extends WebMvcConfigurerAdapter {
 	
 	@Bean
 	public WQPDynamicLayerCachingService layerCachingService() {
-		/**
-		 * This is an unmanaged bean and must have the environment passed to it
-		 * when it is referenced as a bean.
-		 */
-		WQPDynamicLayerCachingService layerCachingService = WQPDynamicLayerCachingService.getInstance();
-		layerCachingService.setEnvironment(environment);
-		
-		return layerCachingService;
+		return WQPDynamicLayerCachingService.getInstance();
 	}
 	
 	@Bean
 	public WQPLayerBuildingService wqpLayerBuildingService() {
-		/**
-		 * This is an unmanaged bean and must have the environment passed to it
-		 * when it is referenced as a bean.
-		 */
-		WQPLayerBuildingService wqpLayerBuildingService = WQPLayerBuildingService.getInstance();
-		wqpLayerBuildingService.setEnvironment(environment);
-		
-		return wqpLayerBuildingService;
+		return WQPLayerBuildingService.getInstance();
 	}
 	
 	@Bean
 	public ProxyService proxyService() {
-		ProxyService proxyService = ProxyService.getInstance();
-		proxyService.initialize();
-		
-		return proxyService;
+		return ProxyService.getInstance();
 	}
 	
 	@Bean
 	public RESTService restService() {
 		return RESTService.getInstance();
 	}
+
 }
