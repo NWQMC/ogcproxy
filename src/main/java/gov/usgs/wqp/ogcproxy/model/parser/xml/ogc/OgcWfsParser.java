@@ -1,8 +1,6 @@
 package gov.usgs.wqp.ogcproxy.model.parser.xml.ogc;
 
 
-import gov.usgs.wqp.ogcproxy.utils.XmlUtils;
-
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStreamReader;
@@ -22,6 +20,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.sun.jndi.toolkit.url.UrlUtil;
+
+import gov.usgs.wqp.ogcproxy.utils.XmlUtils;
 
 
 public class OgcWfsParser {

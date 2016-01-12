@@ -1,6 +1,39 @@
 package gov.usgs.wqp.ogcproxy.services.wqp;
 
-import static org.springframework.util.StringUtils.*;
+import static org.springframework.util.StringUtils.isEmpty;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.log4j.Logger;
+import org.geotools.data.shapefile.ShapefileDataStore;
+import org.geotools.data.shapefile.ShapefileDataStoreFactory;
+import org.geotools.feature.SchemaException;
+import org.geotools.feature.simple.SimpleFeatureBuilder;
+import org.opengis.feature.simple.SimpleFeature;
+import org.opengis.feature.simple.SimpleFeatureType;
+import org.opengis.referencing.FactoryException;
+import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.web.servlet.ModelAndView;
+import org.xml.sax.SAXException;
+
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
@@ -18,40 +51,6 @@ import gov.usgs.wqp.ogcproxy.utils.ShapeFileUtils;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
 import gov.usgs.wqp.ogcproxy.utils.TimeProfiler;
 import gov.usgs.wqp.ogcproxy.utils.WQPUtils;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.SchemeRegistryFactory;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
-import org.apache.log4j.Logger;
-import org.geotools.data.shapefile.ShapefileDataStore;
-import org.geotools.data.shapefile.ShapefileDataStoreFactory;
-import org.geotools.feature.SchemaException;
-import org.geotools.feature.simple.SimpleFeatureBuilder;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
-import org.springframework.web.servlet.ModelAndView;
-import org.xml.sax.SAXException;
 
 public class WQPLayerBuildingService {
 	private static Logger log = SystemUtils.getLogger(WQPLayerBuildingService.class);
@@ -111,18 +110,19 @@ public class WQPLayerBuildingService {
 			"</ows:AllowedValues>" +
 			"</ows:Parameter>";
 	
-	private static Environment environment;
+	@Autowired
+	private Environment environment;
 	private static boolean initialized;
 	
-	private static String geoserverProtocol  = "http://";
+	private static String geoserverProtocol  = "http";
 	private static String geoserverHost      = "localhost";
-	private static String geoserverPort      = "8081";
+	private static String geoserverPort      = "8080";
 	private static String geoserverContext   = "/geoserver";
 	private static String geoserverWorkspace = "qw_portal_map";
 	private static String geoserverUser      = "";
 	private static String geoserverPass      = "";
 	private static String geoserverDatastore = "site_map";
-	private static String geoserverRestPutShapefileURI = "http://localhost:8081/geoserver/rest/workspaces/qw_portal_map/datastores";
+	private static String geoserverRestPutShapefileURI = "http://localhost:8080/geoserver/rest/workspaces/qw_portal_map/datastores";
 	
 	private static String simpleStationProtocol = "http";
 	private static String simpleStationHost     = "cida-eros-wqpdev.er.usgs.gov";
@@ -145,8 +145,8 @@ public class WQPLayerBuildingService {
 				// the layer and datasource for that shapefile are available.  This is a wait time before
 				// we mark the layer AVAILABLE
 	
-	protected ThreadSafeClientConnManager clientConnectionManager;
-	protected HttpClient httpClient;
+	protected PoolingHttpClientConnectionManager clientConnectionManager;
+	protected CloseableHttpClient httpClient;
 	
 	
 	
@@ -168,17 +168,7 @@ public class WQPLayerBuildingService {
 		return INSTANCE;
 	}
 	
-	/**
-	 * Since this service is being used by a service (and not a Spring managed
-	 * bean) we must inject the environment.
-	 * @param env
-	 */
-	public void setEnvironment(Environment env) {
-		initialized = false;
-		environment = env;
-		initialize();
-	}
-	
+	@PostConstruct
 	public void initialize() {
 		log.info("WQPLayerBuildingService.initialize() called");
 		
@@ -411,28 +401,23 @@ public class WQPLayerBuildingService {
 			 */
 			// Initialize connection manager, this is thread-safe.  if we use this
 			// with any HttpClient instance it becomes thread-safe.
-			clientConnectionManager = new ThreadSafeClientConnManager(SchemeRegistryFactory.createDefault(), connection_ttl, TimeUnit.MILLISECONDS);
+			clientConnectionManager = new PoolingHttpClientConnectionManager(
+					connection_ttl, TimeUnit.MILLISECONDS);
 			clientConnectionManager.setMaxTotal(connections_max_total);
 			clientConnectionManager.setDefaultMaxPerRoute(connections_max_route);
-			
-			HttpParams httpParams = new BasicHttpParams();
-			HttpConnectionParams.setSoTimeout(httpParams, client_socket_timeout);
-			HttpConnectionParams.setConnectionTimeout(httpParams, client_connection_timeout);
-			
-			httpClient = new DefaultHttpClient(clientConnectionManager, httpParams);
+
+			RequestConfig config = RequestConfig.custom().setConnectTimeout(client_connection_timeout)
+					.setSocketTimeout(client_socket_timeout).build();
+
+			httpClient = HttpClients.custom().setConnectionManager(clientConnectionManager)
+					.setDefaultRequestConfig(config).build();
 		}
-	}
-	
-	public void reinitialize(Environment env) {
-		setEnvironment(env);
 	}
 	
 	public ProxyServiceResult getDynamicLayer(Map<String,String> ogcParams, SearchParameters<String,
 			List<String>> searchParams, Collection<String> layerParams, OGCServices originatingService,
 			ProxyDataSourceParameter dataSource) {
 
-		initialize();
-		
 		/*
 		 * Next we need to see if this layer has already been requested
 		 * and is available.
@@ -749,7 +734,7 @@ public class WQPLayerBuildingService {
 		String layerZipFile = shapefileDirectory + File.separator + layerName + ".zip";
 		String restPut = geoServerURI + "/" + layerName + "/file.shp";
 		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Uploading Shapefile (" + layerZipFile + ") to GeoServer");
-		String response = RESTUtils.putDataFile(restPut, geoServerUser, geoServerPass, ShapeFileUtils.MEDIATYPE_APPLICATION_ZIP, layerZipFile);
+		String response = RESTUtils.putDataFile(geoserverHost, geoserverPort, restPut, geoServerUser, geoServerPass, ShapeFileUtils.MEDIATYPE_APPLICATION_ZIP, layerZipFile);
 		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: \nGeoServer response for request [" + restPut + "] is: \n[" + response + "]");
 		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Uploading Shapefile Complete");
 		

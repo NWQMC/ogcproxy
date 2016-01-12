@@ -885,12 +885,12 @@ public class SimplePointFeatureTest {
 		assertEquals("Location", featureType.getName().getLocalPart());
 		assertEquals(7, featureType.getAttributeCount());
 		assertEquals("the_geom", featureType.getAttributeDescriptors().get(0).getName().getLocalPart());
-		assertEquals("orgId", featureType.getAttributeDescriptors().get(1).getName().getLocalPart());
-		assertEquals("orgName", featureType.getAttributeDescriptors().get(2).getName().getLocalPart());
-		assertEquals("name", featureType.getAttributeDescriptors().get(3).getName().getLocalPart());
-		assertEquals("locName", featureType.getAttributeDescriptors().get(4).getName().getLocalPart());
-		assertEquals("type", featureType.getAttributeDescriptors().get(5).getName().getLocalPart());
-		assertEquals("provider", featureType.getAttributeDescriptors().get(6).getName().getLocalPart());
+		assertEquals(FeatureAttributeType.orgId.toString(), featureType.getAttributeDescriptors().get(1).getName().getLocalPart());
+		assertEquals(FeatureAttributeType.orgName.toString(), featureType.getAttributeDescriptors().get(2).getName().getLocalPart());
+		assertEquals(FeatureAttributeType.name.toString(), featureType.getAttributeDescriptors().get(3).getName().getLocalPart());
+		assertEquals(FeatureAttributeType.locName.toString(), featureType.getAttributeDescriptors().get(4).getName().getLocalPart());
+		assertEquals(FeatureAttributeType.type.toString(), featureType.getAttributeDescriptors().get(5).getName().getLocalPart());
+		assertEquals(FeatureAttributeType.provider.toString(), featureType.getAttributeDescriptors().get(6).getName().getLocalPart());
 	
 		SimplePointFeature currentPointFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.UNKNOWN);
 		currentPointFeature.setLatitude(43.3836014);
@@ -903,12 +903,12 @@ public class SimplePointFeatureTest {
 
 		SimpleFeature generatedFeature = currentPointFeature.getSimpleFeature();
 		assertEquals(geometryFactory.createPoint(new Coordinate(-88.9773314, 43.3836014)), generatedFeature.getAttribute("the_geom"));
-		assertEquals("BBGGR", generatedFeature.getAttribute("orgId"));
-		assertEquals("Berry Berry Good Garden Rentals", generatedFeature.getAttribute("orgName"));
-		assertEquals("BBGGR-00000123", generatedFeature.getAttribute("name"));
-		assertEquals("DS1 Well", generatedFeature.getAttribute("locName"));
-		assertEquals("Well", generatedFeature.getAttribute("type"));
-		assertEquals(SourceProvider.UNKNOWN.toString(), generatedFeature.getAttribute("provider"));
+		assertEquals("BBGGR", generatedFeature.getAttribute(FeatureAttributeType.orgId.toString()));
+		assertEquals("Berry Berry Good Garden Rentals", generatedFeature.getAttribute(FeatureAttributeType.orgName.toString()));
+		assertEquals("BBGGR-00000123", generatedFeature.getAttribute(FeatureAttributeType.name.toString()));
+		assertEquals("DS1 Well", generatedFeature.getAttribute(FeatureAttributeType.locName.toString()));
+		assertEquals("Well", generatedFeature.getAttribute(FeatureAttributeType.type.toString()));
+		assertEquals(SourceProvider.UNKNOWN.toString(), generatedFeature.getAttribute(FeatureAttributeType.provider.toString()));
 	}
 
 }

@@ -1,18 +1,6 @@
 package gov.usgs.wqp.ogcproxy.services;
 
-import static org.springframework.util.StringUtils.*;
-import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
-import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
-import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WFSParameters;
-import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters;
-import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
-import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
-import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
-import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.RequestWrapper;
-import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
-import gov.usgs.wqp.ogcproxy.utils.ProxyServiceResult;
-import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
-import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
+import static org.springframework.util.StringUtils.isEmpty;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,6 +18,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -39,7 +28,7 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -50,23 +39,31 @@ import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.impl.conn.SchemeRegistryFactory;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
+import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
+import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WFSParameters;
+import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters;
+import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
+import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
+import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
+import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.RequestWrapper;
+import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
+import gov.usgs.wqp.ogcproxy.utils.ProxyServiceResult;
+import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
+import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
 
-@Service
+
 public class ProxyService {
 	/*========================================================================
 	 * Wired Spring Beans ===========================================================
@@ -89,10 +86,10 @@ public class ProxyService {
 	private static long threadTimeout = 604800000; // 1000 * 60 * 60 * 24 * 7 (1 week)
 	private static long threadSleep   = 500;
 	
-	private static String geoserverProtocol  = "http://";
+	private static String geoserverProtocol  = "http";
 	private static String geoserverHost      = "localhost";
-	private static String geoserverPort      = "8081";
-	private static String forwardUrl         = "http://localhost:8081";
+	private static String geoserverPort      = "8080";
+	private static String forwardUrl         = "http://localhost:8080";
 	private static String geoserverContext   = "/geoserver";
 	private static String geoserverWorkspace = "qw_portal_map";
 
@@ -110,8 +107,8 @@ public class ProxyService {
 	/* ========================================================================
 	 * Local ===========================================================
 	 */
-	protected ThreadSafeClientConnManager clientConnectionManager;
-	protected HttpClient serverClient;
+	protected PoolingHttpClientConnectionManager clientConnectionManager;
+	protected CloseableHttpClient serverClient;
 
 	
 
@@ -134,6 +131,7 @@ public class ProxyService {
 	 * the constructor. We'll just use a locked initialized variable to
 	 * check initialization after instantiation and set the env properties here.
 	 */
+	@PostConstruct
 	public void initialize() {
 		if ( initialized ) {
 			return;
@@ -244,17 +242,16 @@ public class ProxyService {
 			// Initialize connection manager, this is thread-safe. if we
 			// use this
 			// with any HttpClient instance it becomes thread-safe.
-			clientConnectionManager = new ThreadSafeClientConnManager(
-					SchemeRegistryFactory.createDefault(),
+			clientConnectionManager = new PoolingHttpClientConnectionManager(
 					connection_ttl, TimeUnit.MILLISECONDS);
 			clientConnectionManager.setMaxTotal(connections_max_total);
 			clientConnectionManager.setDefaultMaxPerRoute(connections_max_route);
 
-			HttpParams httpParams = new BasicHttpParams();
-			HttpConnectionParams.setSoTimeout(httpParams, client_socket_timeout);
-			HttpConnectionParams.setConnectionTimeout(httpParams, client_connection_timeout);
+			RequestConfig config = RequestConfig.custom().setConnectTimeout(client_connection_timeout)
+					.setSocketTimeout(client_socket_timeout).build();
 
-			serverClient = new DefaultHttpClient(clientConnectionManager, httpParams);
+			serverClient = HttpClients.custom().setConnectionManager(clientConnectionManager)
+					.setDefaultRequestConfig(config).build();
 
 			// Ignored headers relating to proxing requests
 			// don't parameterize, need to swtich host from proxy to server
@@ -354,7 +351,6 @@ public class ProxyService {
 	public DeferredResult<String> performRequest(HttpServletRequest request, HttpServletResponse response, 
 			Map<String, String> requestParams, OGCServices ogcService, String primaryLayerParam, String secondaryLayerParam) {
 		
-		initialize();
 		DeferredResult<String> deferredResult    = new DeferredResult<String>();
 
 		ProxyDataSourceParameter dataSource	     = ProxyDataSourceParameter.UNKNOWN;

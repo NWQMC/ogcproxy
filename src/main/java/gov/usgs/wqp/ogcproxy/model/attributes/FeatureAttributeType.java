@@ -8,9 +8,11 @@ import gov.usgs.wqp.ogcproxy.utils.StringUtils;
  *<br /><br />
  *	This enumeration explicitly defines all known Geo-Feature Attributes possible
  *	in a dataset used for creating a shapefile.
+ *
+ *	Note that the names are limited to 10 characters!!!
  */
 public enum FeatureAttributeType {
-	provider, orgName, orgId, locationName, name, type, point, UNKNOWN;
+	provider, orgName, orgId, locName, name, type, point, UNKNOWN;
 
 	public static FeatureAttributeType getTypeFromString(String string) {
 		return StringUtils.getTypeFromString(string, UNKNOWN);

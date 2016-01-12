@@ -1,5 +1,16 @@
 package gov.usgs.wqp.ogcproxy.services.wqp;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Vector;
+import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.PostConstruct;
+
+import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
@@ -7,14 +18,6 @@ import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Vector;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.apache.log4j.Logger;
-import org.springframework.core.env.Environment;
 
 public class WQPDynamicLayerCachingService {
 	private static Logger log = SystemUtils.getLogger(WQPDynamicLayerCachingService.class);
@@ -24,7 +27,8 @@ public class WQPDynamicLayerCachingService {
 	 * ========================================================================
 	 */
 	/* ====================================================================== */
-	private static Environment environment;
+	@Autowired
+	private Environment environment;
 	private static boolean initialized;
 	
 	private static Map<String, DynamicLayerCache> requestToLayerCache;	// Map<LayerHash, LayerCache>
@@ -58,17 +62,7 @@ public class WQPDynamicLayerCachingService {
 		return INSTANCE;
 	}
 	
-	/**
-	 * Since this service is being used by a service (and not a Spring managed
-	 * bean) we must inject the environment.
-	 * @param env
-	 */
-	public void setEnvironment(Environment env) {
-		initialized = false;
-		environment = env;
-		initialize();
-	}
-	
+	@PostConstruct
 	public void initialize() {
 		log.info("WQPDynamicLayerCachingService.initialize() called");
 		
@@ -104,10 +98,6 @@ public class WQPDynamicLayerCachingService {
 		}
 	}
 	
-	public void reinitialize(Environment env) {
-		setEnvironment(env);
-	}
-	
 	/**
 	 * getLayerCache()
 	 * @param key
@@ -129,8 +119,6 @@ public class WQPDynamicLayerCachingService {
 	 * @throws OGCProxyException
 	 */
 	public DynamicLayerCache getLayerCache(SearchParameters<String, List<String>> searchParams, OGCServices originatingService) throws OGCProxyException {
-		initialize();
-		
 		String key = searchParams.unsignedHashCode() + "";
 		DynamicLayerCache currentCache = WQPDynamicLayerCachingService.requestToLayerCache.get(key);
 		
