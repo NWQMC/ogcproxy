@@ -11,7 +11,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -31,7 +30,6 @@ import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
 @Configuration
 @ComponentScan(basePackages= {"gov.usgs.wqp"})
 @EnableWebMvc
-@EnableAsync
 @PropertySource(value = {"file:${catalina.base}/conf/ogcproxy.properties"})		// Unfortunately this is Tomcat specific.  For us its ok
 public class SpringConfig extends WebMvcConfigurerAdapter {
 	
