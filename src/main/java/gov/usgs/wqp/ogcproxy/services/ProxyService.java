@@ -250,8 +250,10 @@ public class ProxyService {
 			RequestConfig config = RequestConfig.custom().setConnectTimeout(client_connection_timeout)
 					.setSocketTimeout(client_socket_timeout).build();
 
+			//.disableContentCompression() keeps the response from geoserver in it's native form so the existing 
+			//logic still works - otherwise it tries to decompress it causing issues in the scrubbing process.
 			serverClient = HttpClients.custom().setConnectionManager(clientConnectionManager)
-					.setDefaultRequestConfig(config).build();
+					.disableContentCompression().setDefaultRequestConfig(config).build();
 
 			// Ignored headers relating to proxing requests
 			// don't parameterize, need to swtich host from proxy to server
