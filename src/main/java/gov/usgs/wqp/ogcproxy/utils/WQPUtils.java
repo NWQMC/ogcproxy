@@ -185,7 +185,7 @@ public class WQPUtils {
 	public static String retrieveSearchParamData(HttpClient httpClient, SearchParameters<String, List<String>> searchParams, String simpleStationURL, String workingDirectory, String layerName) throws OGCProxyException {
 		List<String> multiparams = new ArrayList<String>();
 		multiparams.add("providers");
-		HttpUriRequest serverRequest = WQPUtils.generateSimpleStationRequest(searchParams, simpleStationURL,multiparams);
+		HttpUriRequest serverRequest = WQPUtils.generateSimpleStationRequest(searchParams, simpleStationURL, multiparams);
 		
 		HttpResponse methodResponse;
 		
