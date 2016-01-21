@@ -1,16 +1,10 @@
 package gov.usgs.wqp.ogcproxy.model.features;
 
-import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
-import gov.usgs.wqp.ogcproxy.model.attributes.BaseAttributeType;
-import gov.usgs.wqp.ogcproxy.model.attributes.FeatureAttributeType;
-import gov.usgs.wqp.ogcproxy.model.providers.SourceProvider;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
@@ -23,6 +17,11 @@ import org.opengis.referencing.NoSuchAuthorityCodeException;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
+
+import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
+import gov.usgs.wqp.ogcproxy.model.attributes.BaseAttributeType;
+import gov.usgs.wqp.ogcproxy.model.attributes.FeatureAttributeType;
+import gov.usgs.wqp.ogcproxy.model.providers.SourceProvider;
 
 /**
  * SimplePointFeature
@@ -294,7 +293,7 @@ public class SimplePointFeature implements FeatureDAO {
 		return sb.toString();
 	}
 	
-	public static SimpleFeatureType getFeatureType() throws SchemaException, NoSuchAuthorityCodeException, FactoryException {
+	public static SimpleFeatureType getFeatureType() throws NoSuchAuthorityCodeException, FactoryException {
 		if (SimplePointFeature.FEATURETYPE == null) {
 			synchronized(SimplePointFeature.class) {
 				if (SimplePointFeature.FEATURETYPE == null) {

@@ -103,5 +103,8 @@ public class OGCProxyExceptionID {
         			, 0x06001);
     public static final OGCProxyExceptionID GEOTOOLS_FEATUREBUILDER_ERROR =
         	new OGCProxyExceptionID("WMSProxyException LayerBuilder Exception: Unable to create GeoTools SimpleFeatureBuilder."
-        			, 0x06001);
+        			, 0x06002);
+    public static final OGCProxyExceptionID SIMPLESTATION_FILE_ERROR =
+        	new OGCProxyExceptionID("WMSProxyException LayerBuilder Exception: Did not get SimpleStation XML file."
+        			, 0x06003);
 }
