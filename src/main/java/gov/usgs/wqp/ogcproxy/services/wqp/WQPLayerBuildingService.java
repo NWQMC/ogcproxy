@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -23,16 +22,12 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.log4j.Logger;
 import org.geotools.data.shapefile.ShapefileDataStore;
 import org.geotools.data.shapefile.ShapefileDataStoreFactory;
-import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.NoSuchAuthorityCodeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.servlet.ModelAndView;
-import org.xml.sax.SAXException;
 
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
@@ -43,7 +38,6 @@ import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.SimplePointParser;
-import gov.usgs.wqp.ogcproxy.model.sources.DataInputType;
 import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
 import gov.usgs.wqp.ogcproxy.utils.ProxyServiceResult;
 import gov.usgs.wqp.ogcproxy.utils.RESTUtils;
@@ -655,6 +649,55 @@ public class WQPLayerBuildingService {
 	
 	private String buildDynamicLayer(SearchParameters<String, List<String>> searchParams, String geoServerURI, String geoServerUser, String geoServerPass) throws OGCProxyException {
 		String layerName = DYNAMIC_LAYER_PREFIX + searchParams.unsignedHashCode();
+		SimpleFeatureType featureType;
+		
+		try {
+			featureType = SimplePointFeature.getFeatureType();
+		} catch (Exception e) {
+			String msg = "WQPLayerBuildingService.buildDynamicLayer() EXCEPTION : Unable to create SimpleFeatureBuilder.  Throwing Exception...";
+			log.error(msg);
+			OGCProxyExceptionID id = OGCProxyExceptionID.GEOTOOLS_FEATUREBUILDER_ERROR;
+			throw new OGCProxyException(id, "WQPLayerBuildingService", "buildDynamicLayer()", msg);
+		}
+
+		File dataFile = getSimpleStationData(searchParams, layerName);
+		TimeProfiler.startTimer("WQPLayerBuildingService.buildDynamicLayer() INFO: ShapeFileConverter Overall Time");
+
+		List<FeatureDAO> featureList;
+		try {
+			/*
+			 * Parse the input
+			 */
+			log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Parsing input (" + dataFile.getAbsolutePath() + ")");
+			featureList = parseInput(dataFile.getAbsolutePath(), featureType);
+			log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Parsing Complete");
+		} finally {
+			dataFile.delete();
+		}
+		
+		/*
+		 * Create the shapefile
+		 */
+		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Creating Shapefile (" + layerName + ")");
+		if ( ! createShapeFile(shapefileDirectory, layerName, true, featureList, featureType) ) {		// we force zip file as GeoServer requires it
+			String msg2 = "WQPLayerBuildingService.buildDynamicLayer() EXCEPTION : Creating the shapefile failed.  Throwing Exception...";
+			log.error(msg2);
+			OGCProxyExceptionID id2 = OGCProxyExceptionID.SHAPEFILE_CREATION_ERROR;
+			throw new OGCProxyException(id2, "WQPLayerBuildingService", "buildDynamicLayer()", msg2);
+		}
+		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Creating Shapefile Complete");
+
+		/* 
+		 * Upload the shapefile to geoserver
+		 */
+		uploadShapefile(layerName, geoServerURI, geoServerUser, geoServerPass);
+		
+		TimeProfiler.endTimer("WQPLayerBuildingService.buildDynamicLayer() INFO: ShapeFileConverter Overall Time", log);
+		
+		return layerName;
+	}
+	
+	private File getSimpleStationData(SearchParameters<String, List<String>> searchParams, String layerName) throws OGCProxyException {
 		
 		String dataFilename = WQPUtils.retrieveSearchParamData(httpClient, searchParams, simpleStationRequest, workingDirectory, layerName);
 		
@@ -662,148 +705,31 @@ public class WQPLayerBuildingService {
 			/*
 			 * Did not receive any data from the server for this request.  Cannot create layer.
 			 */
-			log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: SimpleStation search for search key [" + searchParams.unsignedHashCode() + "] returned no results.");
-			return "";
+			String msg = "WQPLayerBuildingService.buildDynamicLayer() INFO: SimpleStation search for search key [" + searchParams.unsignedHashCode() + "] returned no results.";
+            log.info(msg);
+    		
+            OGCProxyExceptionID id = OGCProxyExceptionID.SIMPLESTATION_FILE_ERROR;
+            throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
 		}
-		
-		File dataFile = new File(dataFilename);
-		if ((dataFile == null) || (dataFile.length() <= 0)) {
-			/*
-			 * Data file is null or 0 bytes.  Cannot create layer.
-			 */
-			log.warn("WQPLayerBuildingService.buildDynamicLayer() WARNING: WQPUtils.retrieveSearchParamData() return filename [" + dataFilename +
-					 "for search key [" + searchParams.unsignedHashCode() + "] but its datafile was null or has a 0 byte " +
-					 "length.  Returning no results.");
-			return "";
-		}
-		
-		/*
-		 * We now need to take the data in the dataFile and turn it into a shapefile
-		 */
+
+		return new File(dataFilename);
+	}
+	
+	private List<FeatureDAO> parseInput(String filename, SimpleFeatureType featureType) throws OGCProxyException {
 		List<FeatureDAO> featureList = new ArrayList<FeatureDAO>();
-		SimpleFeatureBuilder featureBuilder;
-		SimpleFeatureType featureType;
-		
 		try {
-			featureType = SimplePointFeature.getFeatureType();
-			featureBuilder = new SimpleFeatureBuilder(featureType);
+			TimeProfiler.startTimer("WQX_OB_XML Parse Execution Time");
+			SimplePointParser spp = new SimplePointParser(filename, new SimpleFeatureBuilder(featureType));
+			featureList.addAll(spp.parseSimplePointSource());
+			TimeProfiler.endTimer("WQX_OB_XML Parse Execution Time", log);
 		} catch (Exception e) {
-			String msg = "WQPLayerBuildingService.buildDynamicLayer() EXCEPTION : Unable to create SimpleFeatureBuilder.  Throwing Exception...";
-			log.error(msg);
-			OGCProxyExceptionID id = OGCProxyExceptionID.GEOTOOLS_FEATUREBUILDER_ERROR;
-			throw new OGCProxyException(id, "WQPLayerBuildingService", "buildDynamicLayer()", msg);
-		}
-		
-		// Perform the Shapefile Conversion
-		TimeProfiler.startTimer("WQPLayerBuildingService.buildDynamicLayer() INFO: ShapeFileConverter Overall Time");
-		/*
-		 * Parse the input
-		 */
-		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Parsing input (" + dataFile.getAbsolutePath() + ")");
-		if ( ! parseInput(dataFile.getAbsolutePath(), DataInputType.WQX_OB_XML, featureList, featureBuilder, featureType) ) {
+			log.error("WQPLayerBuildingService.parseInput() Exception: " + e.getMessage());
 			String msg = "WQPLayerBuildingService.buildDynamicLayer() EXCEPTION : Parsing the input failed.  Throwing Exception...";
 			log.error(msg);
 			OGCProxyExceptionID id = OGCProxyExceptionID.DATAFILE_PARSING_ERROR;
 			throw new OGCProxyException(id, "WQPLayerBuildingService", "buildDynamicLayer()", msg);
 		}
-		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Parsing Complete");
-		
-		/*
-		 * Create the shapefile
-		 */
-		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Creating Shapefile (" + layerName + ")");
-		if ( ! createShapeFile(shapefileDirectory, layerName, true, featureList, featureType) ) {		// we force zip file as GeoServer requires it
-			String msg = "WQPLayerBuildingService.buildDynamicLayer() EXCEPTION : Creating the shapefile failed.  Throwing Exception...";
-			log.error(msg);
-			OGCProxyExceptionID id = OGCProxyExceptionID.SHAPEFILE_CREATION_ERROR;
-			throw new OGCProxyException(id, "WQPLayerBuildingService", "buildDynamicLayer()", msg);
-		}
-		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Creating Shapefile Complete");
-		
-		/*
-		 * Upload the zipped shapefile
-		 *
-		 * Build the REST URI for uploading shapefiles.  Looks like:
-		 * 		http://HOST:PORT/CONTEXT/rest/workspaces/WORKSPACE_NAME/datastores/LAYER_NAME/file.shp
-		 *
-		 * Where the "file.shp" is a GeoServer syntax that is required but does not change per request.
-		 * We also duplicate the LAYER_NAME in the datastore path so we can let GeoServer separate the
-		 * shapefiles easily between directories (it has an issue w/ tons of shapefiles in a single directory
-		 * like what we did w/ the site_map datastore).
-		 */
-		String layerZipFile = shapefileDirectory + File.separator + layerName + ".zip";
-		String restPut = geoServerURI + "/" + layerName + "/file.shp";
-		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Uploading Shapefile (" + layerZipFile + ") to GeoServer");
-		String response = RESTUtils.putDataFile(geoserverHost, geoserverPort, restPut, geoServerUser, geoServerPass, ShapeFileUtils.MEDIATYPE_APPLICATION_ZIP, layerZipFile);
-		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: \nGeoServer response for request [" + restPut + "] is: \n[" + response + "]");
-		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Uploading Shapefile Complete");
-		
-		/*
-		 * Let GeoServer catch up with its dataset ingestion.
-		 * 		GeoServer has a race condition from when
-		 * 		it finished uploading a shapefile to when
-		 * 		the layer and datasource for that shapefile
-		 * 		are available.  This is a wait time before
-		 * 		we mark the layer AVAILABLE.
-		 */
-		try {
-			Thread.sleep(geoserverCatchupTime);
-		} catch (InterruptedException e) {
-			log.warn("WQPLayerBuildingService.buildDynamicLayer() caught InterruptedException when running the GeoServer Catchup Time sleep.  Continuing...");
-		}
-		
-		/*
-		 * TODO:
-		 *
-		 * The final step is to force GeoServer to "enable" the layer.  Sometimes
-		 * we have seen GeoServer correctly upload and accept a ShapeFile along
-		 * with building the datastore and layer but forget to "Enable" the layer
-		 * in its memory.
-		 */
-		
-		TimeProfiler.endTimer("WQPLayerBuildingService.buildDynamicLayer() INFO: ShapeFileConverter Overall Time", log);
-		
-		return layerName;
-	}
-	
-	private boolean parseInput(String filename, DataInputType type, List<FeatureDAO> featureList,
-							  SimpleFeatureBuilder featureBuilder, SimpleFeatureType featureType) {
-		boolean result = false;
-		
-		if (featureList.size() > 0) {
-			featureList.clear();
-		}
-		
-		switch (type) {
-			case WQX_OB_XML: {
-				try {
-					TimeProfiler.startTimer("WQX_OB_XML Parse Execution Time");
-					SimplePointParser spp = new SimplePointParser(filename, featureBuilder);
-					featureList.addAll(spp.parseSimplePointSource());
-					TimeProfiler.endTimer("WQX_OB_XML Parse Execution Time", log);
-					
-					result = true;
-				} catch (ParserConfigurationException e) {
-					log.error("WQPLayerBuildingService.parseInput() Exception: " + e.getMessage());
-				} catch (SAXException e) {
-					log.error("WQPLayerBuildingService.parseInput() Exception: " + e.getMessage());
-				} catch (IOException e) {
-					log.error("WQPLayerBuildingService.parseInput() Exception: " + e.getMessage());
-				} catch (NoSuchAuthorityCodeException e) {
-					log.error("WQPLayerBuildingService.parseInput() Exception: " + e.getMessage());
-				} catch (SchemaException e) {
-					log.error("WQPLayerBuildingService.parseInput() Exception: " + e.getMessage());
-				} catch (FactoryException e) {
-					log.error("WQPLayerBuildingService.parseInput() Exception: " + e.getMessage());
-				}
-				break;
-			}
-			default: {
-				break;
-			}
-		}
-		
-		return result;
+		return featureList;
 	}
 	
 	private boolean createShapeFile(String path, String filename, boolean createIndex, List<FeatureDAO> featureList, SimpleFeatureType featureType) {
@@ -865,4 +791,50 @@ public class WQPLayerBuildingService {
 		
 		return true;
 	}
+	
+	private void uploadShapefile(String layerName, String geoServerURI, String geoServerUser, String geoServerPass) {
+		/*
+		 * Upload the zipped shapefile
+		 *
+		 * Build the REST URI for uploading shapefiles.  Looks like:
+		 * 		http://HOST:PORT/CONTEXT/rest/workspaces/WORKSPACE_NAME/datastores/LAYER_NAME/file.shp
+		 *
+		 * Where the "file.shp" is a GeoServer syntax that is required but does not change per request.
+		 * We also duplicate the LAYER_NAME in the datastore path so we can let GeoServer separate the
+		 * shapefiles easily between directories (it has an issue w/ tons of shapefiles in a single directory
+		 * like what we did w/ the site_map datastore).
+		 */
+		String layerZipFile = shapefileDirectory + File.separator + layerName + ".zip";
+		String restPut = geoServerURI + "/" + layerName + "/file.shp";
+		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Uploading Shapefile (" + layerZipFile + ") to GeoServer");
+		String response = RESTUtils.putDataFile(geoserverHost, geoserverPort, restPut, geoServerUser, geoServerPass, ShapeFileUtils.MEDIATYPE_APPLICATION_ZIP, layerZipFile);
+		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: \nGeoServer response for request [" + restPut + "] is: \n[" + response + "]");
+		log.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Uploading Shapefile Complete");
+		
+		/*
+		 * Let GeoServer catch up with its dataset ingestion.
+		 * 		GeoServer has a race condition from when
+		 * 		it finished uploading a shapefile to when
+		 * 		the layer and datasource for that shapefile
+		 * 		are available.  This is a wait time before
+		 * 		we mark the layer AVAILABLE.
+		 */
+		try {
+			Thread.sleep(geoserverCatchupTime);
+		} catch (InterruptedException e) {
+			log.warn("WQPLayerBuildingService.buildDynamicLayer() caught InterruptedException when running the GeoServer Catchup Time sleep.  Continuing...");
+		}
+		
+		/*
+		 * TODO:
+		 *
+		 * The final step is to force GeoServer to "enable" the layer.  Sometimes
+		 * we have seen GeoServer correctly upload and accept a ShapeFile along
+		 * with building the datastore and layer but forget to "Enable" the layer
+		 * in its memory.
+		 */
+		
+		new File(layerZipFile).delete();
+	}
+
 }
