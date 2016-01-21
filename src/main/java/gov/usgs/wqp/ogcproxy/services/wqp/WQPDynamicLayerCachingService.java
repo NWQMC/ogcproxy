@@ -1,5 +1,8 @@
 package gov.usgs.wqp.ogcproxy.services.wqp;
 
+import static org.springframework.util.StringUtils.isEmpty;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -7,16 +10,29 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpResponseException;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
+import gov.usgs.wqp.ogcproxy.geo.LayerResponse;
+import gov.usgs.wqp.ogcproxy.geo.LayerResponseHandler;
 import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
+import gov.usgs.wqp.ogcproxy.utils.RESTUtils;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
 
 public class WQPDynamicLayerCachingService {
@@ -35,6 +51,14 @@ public class WQPDynamicLayerCachingService {
 	
 	private static long cacheTimeout = 604800000;			// 1000 * 60 * 60 * 24 * 7 (1 week)
 	private static long threadSleep  = 500;
+	private static String geoserverProtocol  = "http";
+	private static String geoserverHost      = "localhost";
+	private static String geoserverPort      = "8080";
+	private static String geoserverContext   = "/geoserver";
+	private static String geoserverRestLayersSuffix = "/rest/layers.json";
+	private static String geoserverRestLayers = "http://localhost:8080/geoserver/rest/layers.json";
+	private static String geoserverUser      = "";
+	private static String geoserverPass      = "";
 	/* ====================================================================== */
 		
 	/*
@@ -95,6 +119,33 @@ public class WQPDynamicLayerCachingService {
 						  "- Keeping thread sleep default to [" + threadSleep + "].\n" + e.getMessage() + "\n");
 			}
 			
+			String tmp = environment.getProperty("wqp.geoserver.proto");
+			if (!isEmpty(tmp)) {
+				geoserverProtocol = tmp;
+			}
+			tmp = environment.getProperty("wqp.geoserver.host");
+			if (!isEmpty(tmp)) {
+				geoserverHost = tmp;
+			}
+			tmp = environment.getProperty("wqp.geoserver.port");
+			if (!isEmpty(tmp)) {
+				geoserverPort= tmp;
+			}
+			tmp = environment.getProperty("wqp.geoserver.context");
+			if (!isEmpty(tmp)) {
+				geoserverContext = tmp;
+			}
+			tmp = environment.getProperty("wqp.geoserver.user");
+			if (!isEmpty(tmp)) {
+				geoserverUser = tmp;
+			}
+			tmp = environment.getProperty("wqp.geoserver.pass");
+			if (!isEmpty(tmp)) {
+				geoserverPass = tmp;
+			}
+			geoserverRestLayers = geoserverProtocol + "://" + geoserverHost + ":" + geoserverPort + geoserverContext + geoserverRestLayersSuffix;
+
+			populateCache();
 		}
 	}
 	
@@ -118,8 +169,8 @@ public class WQPDynamicLayerCachingService {
 	 * <br /><br />
 	 * @throws OGCProxyException
 	 */
-	public DynamicLayerCache getLayerCache(SearchParameters<String, List<String>> searchParams, OGCServices originatingService) throws OGCProxyException {
-		String key = searchParams.unsignedHashCode() + "";
+	public DynamicLayerCache getLayerCache(SearchParameters<String, List<String>> searchParams, OGCServices originatingService,
+			String key, DynamicLayerStatus initialStatus) throws OGCProxyException {
 		DynamicLayerCache currentCache = WQPDynamicLayerCachingService.requestToLayerCache.get(key);
 		
 		if (currentCache == null) {
@@ -250,14 +301,14 @@ public class WQPDynamicLayerCachingService {
 				 * is a layer currently being built we will wait until it is
 				 * finished before removing it.
 				 */
-				threadSafeCache = getLayerCache(cache.getSearchParameters(), OGCServices.UNKNOWN);
+				threadSafeCache = getLayerCache(cache.getSearchParameters(), OGCServices.UNKNOWN, cacheKey, DynamicLayerStatus.ERROR);
 			} catch (OGCProxyException e) {
 				log.error(e.traceBack());
 			}
 			
 			if (threadSafeCache != null) {
 				threadSafeCache.setCurrentStatus(DynamicLayerStatus.ERROR);
-				removeLayerCache(threadSafeCache.getSearchParameters().unsignedHashCode() + "");
+				removeLayerCache(threadSafeCache.getSearchParameters().unsignedHashCode());
 			} else {
 				uncleared.add(cacheKey);
 			}
@@ -277,4 +328,8 @@ public class WQPDynamicLayerCachingService {
 		return clearedCount;
 	}
 	
+	private void populateCache() {
+		LayerResponse x = RESTUtils.getObject(geoserverHost, geoserverPort, geoserverRestLayers, geoserverUser, geoserverPass, new LayerResponseHandler());
+
+	}
 }

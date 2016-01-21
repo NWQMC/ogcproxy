@@ -8,6 +8,8 @@ import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.ResponseHandler;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.FileEntity;
@@ -64,4 +66,25 @@ public class RESTUtils {
 	    return response;
 	}
 
+	public static <H> H getObject(String host, String port, String uri, String user, String pass, ResponseHandler<H> responseHandler) {
+		H rtn = null;
+    	CredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials(
+                new AuthScope(host, Integer.parseInt(port)),
+                new UsernamePasswordCredentials(user, pass));
+ 
+        HttpGet httpGet = new HttpGet(uri);
+        try (CloseableHttpClient httpClient = HttpClients.custom()
+                .setDefaultCredentialsProvider(credsProvider)
+                .build();) {
+
+        	rtn = httpClient.execute(httpGet, responseHandler);
+        	log.info("hiDave!!");
+		} catch (Exception e) {
+//			response = "RESTUtils.putDataFile() Exception: " + e.getLocalizedMessage();
+			log.error(e.getStackTrace());
+		}
+		return rtn;
+	}
+	
 }

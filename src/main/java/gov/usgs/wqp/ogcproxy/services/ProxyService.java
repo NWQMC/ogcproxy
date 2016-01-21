@@ -297,7 +297,7 @@ public class ProxyService {
 		String primaryLayerParam    = WMSParameters.layers.toString();
 		String secondaryLayerParam  = WMSParameters.query_layers.toString();
 		
-		// get value ignoring case -- TOD not DRY
+		// get value ignoring case -- TODO not DRY
 		String primaryLayerActual    = ProxyUtil.getCaseSensitiveParameter(primaryLayerParam, requestParams);
 		String secondaryLayerActual  = ProxyUtil.getCaseSensitiveParameter(secondaryLayerParam, requestParams);
 		

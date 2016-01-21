@@ -55,9 +55,6 @@ import gov.usgs.wqp.ogcproxy.utils.WQPUtils;
 public class WQPLayerBuildingService {
 	private static Logger log = SystemUtils.getLogger(WQPLayerBuildingService.class);
 	
-	public static final String DYNAMIC_LAYER_PREFIX = "dynamicSites_";
-	
-	
 	/*
 	 * Beans		===========================================================
 	 * ========================================================================
@@ -446,7 +443,7 @@ public class WQPLayerBuildingService {
 		DynamicLayerCache layerCache = null;
 		
 		try {
-			layerCache = layerCachingService.getLayerCache(searchParams, originatingService);
+			layerCache = layerCachingService.getLayerCache(searchParams, originatingService, searchParams.unsignedHashCode(), DynamicLayerStatus.INITIATED);
 			
 			/*
 			 * We should be blocked above with the getLayerCache() call and should only
@@ -654,7 +651,7 @@ public class WQPLayerBuildingService {
 	
 	
 	private String buildDynamicLayer(SearchParameters<String, List<String>> searchParams, String geoServerURI, String geoServerUser, String geoServerPass) throws OGCProxyException {
-		String layerName = DYNAMIC_LAYER_PREFIX + searchParams.unsignedHashCode();
+		String layerName = DynamicLayerCache.DYNAMIC_LAYER_PREFIX + searchParams.unsignedHashCode();
 		
 		String dataFilename = WQPUtils.retrieveSearchParamData(httpClient, searchParams, simpleStationRequest, workingDirectory, layerName);
 		

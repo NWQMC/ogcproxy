@@ -3,6 +3,7 @@ package gov.usgs.wqp.ogcproxy.model.cache;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
+import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
 
 import java.util.Date;
 import java.util.List;
@@ -19,15 +20,30 @@ import java.util.List;
  *	representations of known search parameter sets.
  */
 public class DynamicLayerCache {
+	public static final String DYNAMIC_LAYER_PREFIX = "dynamicSites_";
+
 	private String layerName;
 	private DynamicLayerStatus currentStatus;
 	private SearchParameters<String, List<String>> searchParameters;
 	private Date dateCreated;
 	private OGCServices originatingService;
-	
-	
+
+	/** 
+	 * Constructor for Layers found in Geoserver.
+	 * @param layerName - layer name as retrieved from Geoserver.
+	 */
+	public DynamicLayerCache(final String layerName) {
+		this.layerName = layerName;
+		this.currentStatus = DynamicLayerStatus.AVAILABLE;
+	}
+
+	/** 
+	 * Constructor for Layer requests from WQP.
+	 * @param searchParams - parsed WQP search parms.
+	 * @param originatingService - .
+	 */
 	public DynamicLayerCache(final SearchParameters<String, List<String>> searchParams, OGCServices originatingService) {
-		this.layerName = searchParams.unsignedHashCode() + "";
+		this.layerName = DYNAMIC_LAYER_PREFIX + searchParams.unsignedHashCode();
 		this.searchParameters = searchParams;
 		this.currentStatus = DynamicLayerStatus.INITIATED;
 		this.dateCreated = new Date();
@@ -58,12 +74,6 @@ public class DynamicLayerCache {
 		return this.searchParameters;
 	}
 
-	public void updateSearchParameters(
-			SearchParameters<String, List<String>> searchParams) {
-		this.layerName = searchParams.unsignedHashCode() + "";
-		this.searchParameters = searchParams;
-	}
-
 	public Date getDateCreated() {
 		return dateCreated;
 	}
@@ -74,5 +84,8 @@ public class DynamicLayerCache {
 
 	public void setOriginatingService(OGCServices originatingService) {
 		this.originatingService = originatingService;
+	}
+	public String getKey() {
+		return layerName.replace(DYNAMIC_LAYER_PREFIX, "");
 	}
 }
