@@ -4,9 +4,6 @@ import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.SimplePointParser;
-import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.handler.SimplePointProviderHandler;
 
 import java.util.List;
 
@@ -15,13 +12,20 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.SimplePointParser;
+import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.handler.SimplePointProviderHandler;
 
 public class SimplePointParserTest {
+	
+	@Mock
 	private SimpleFeatureBuilder featureBuilder;
 	
 	@Before
 	public void init() throws Exception {
-		featureBuilder = mock(SimpleFeatureBuilder.class);
+		MockitoAnnotations.initMocks(this);
 	}
 	
 	@After

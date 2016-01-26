@@ -1,6 +1,7 @@
 package gov.usgs.wqp.ogcproxy.services;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -8,10 +9,9 @@ import org.springframework.web.servlet.ModelAndView;
 
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
-import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
 
 public class RESTService {
-	private static Logger log = SystemUtils.getLogger(RESTService.class);
+	private static final Logger LOG = LoggerFactory.getLogger(RESTService.class);
 	
 	@Autowired
 	private WQPLayerBuildingService wqpLayerBuildingService;
@@ -42,7 +42,7 @@ public class RESTService {
 		 * the siteValue we will call the correct service.
 		 */
 		if (siteValue == ProxyDataSourceParameter.WQP_SITES) {
-			log.info("RESTService.checkCacheStatus() Info: Checking cache status for site [" + siteValue + "]");
+			LOG.info("RESTService.checkCacheStatus() Info: Checking cache status for site [" + siteValue + "]");
 			finalResult.setResult(wqpLayerBuildingService.getCacheStatus());
 		}
 		
@@ -77,7 +77,7 @@ public class RESTService {
 		 * the siteValue we will call the correct service.
 		 */
 		if (siteValue == ProxyDataSourceParameter.WQP_SITES) {
-			log.info("RESTService.clearCacheBySite() Info: Clearing cache for site [" + siteValue + "]");
+			LOG.info("RESTService.clearCacheBySite() Info: Clearing cache for site [" + siteValue + "]");
 			finalResult.setResult(wqpLayerBuildingService.clearCache());
 			return;
 		}

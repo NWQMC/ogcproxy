@@ -1,8 +1,5 @@
 package gov.usgs.wqp.ogcproxy.utils;
 
-import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
-import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
-
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -13,14 +10,16 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
+import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 
 /**
  * SystemUtils
@@ -32,7 +31,7 @@ import org.apache.log4j.PropertyConfigurator;
  *	resides in.
  */
 public class SystemUtils {
-private static Logger log = SystemUtils.getLogger(SystemUtils.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SystemUtils.class);
 	
 	public static final char[] ILLEGAL_CHARACTERS = { '/', '\n', '\r', '\t', '\0', '\f', '`', '?', '*', '\\', '<', '>', '|', '\"', ':' };
 	
@@ -42,24 +41,6 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 	
 	static {
 		
-	}
-	
-	public static Logger getLogger(Class<?> T) {
-		URL logFile = T.getResource("/log4j.properties");
-		if (logFile == null) {
-			logFile = T.getResource("./log4j.properties");
-		}
-		if (logFile == null) {
-			logFile = T.getResource("conf/log4j.properties");
-		}
-
-		Logger log = Logger.getLogger(T.getName());
-		
-		if (logFile != null) {
-			PropertyConfigurator.configure(logFile);
-		}
-
-		return log;
 	}
 	
 	public static boolean filenameIsValid(String name) {
@@ -79,14 +60,14 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 		
 		if (!directory.exists()) {
 			String msg = "SystemUtils.createZipFromFilematch() Error: Directory " + path + " does not exist";
-			log.error(msg);
+			LOG.error(msg);
 			return false;
 		}
 		
 		File existingFile = new File(zipFileName);
 		if (existingFile.exists()) {
 			String msg = "SystemUtils.createZipFromFilematch() Warning: Zip file " + zipFileName + " exists.  Deleting prior to new shapefile creation.";
-			log.info(msg);
+			LOG.info(msg);
 			existingFile.delete();
 		}
 		
@@ -129,7 +110,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 			}
 			out.close();
 		} catch (IOException e) {
-			log.error(e.getMessage());
+			LOG.error(e.getMessage());
 			return false;
 		}
 		
@@ -144,7 +125,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 		} catch (IOException e) {
 			String msg = "SystemUtils.uncompressGzipAsString() Exception : Error creating GZIPInputStream from content [" +
         			 e.getMessage() + "]";
-	   			log.error(msg);
+	   			LOG.error(msg);
 	   			
 	   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_ERROR;
 	   			throw new OGCProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
@@ -159,7 +140,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 			} catch (IOException e) {
 				String msg = "SystemUtils.uncompressGzipAsString() Exception : Error reading gzip content [" +
             			 e.getMessage() + "]";
-		   			log.error(msg);
+		   			LOG.error(msg);
 		   			
 		   			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_ERROR;
 		   			throw new OGCProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
@@ -175,7 +156,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 		} catch (UnsupportedEncodingException e) {
 			String msg = "SystemUtils.uncompressGzipAsString() Exception : Error reading gzip content [" +
         			 e.getMessage() + "]";
-   			log.error(msg);
+   			LOG.error(msg);
    			
    			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_NOT_UTF8;
    			throw new OGCProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
@@ -196,7 +177,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 		} catch (IOException e) {
 			String msg = "SystemUtils.uncompressGzipAsString() Exception : Error creating GZIPOutputStream [" +
        			 e.getMessage() + "]";
-  			log.error(msg);
+  			LOG.error(msg);
   			
   			OGCProxyExceptionID id = OGCProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;
   			throw new OGCProxyException(id, "ProxyUtil", "compressStringToGzip()", msg);
@@ -206,7 +187,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 		} catch (IOException e) {
 			String msg = "SystemUtils.uncompressGzipAsString() Exception : Error writing content to GZIPOutputStream [" +
 	       			 e.getMessage() + "]";
-	  			log.error(msg);
+	  			LOG.error(msg);
 	  			
 	  			OGCProxyExceptionID id = OGCProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;
 	  			throw new OGCProxyException(id, "SystemUtils", "compressStringToGzip()", msg);
@@ -216,7 +197,7 @@ private static Logger log = SystemUtils.getLogger(SystemUtils.class);
 		} catch (IOException e) {
 			String msg = "SystemUtils.uncompressGzipAsString() Warning : Error closing GZIPOutputStream [" +
 	       			 e.getMessage() + "]";
-  			log.error(msg);
+  			LOG.error(msg);
 		}
         
         return out.toByteArray();

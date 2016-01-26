@@ -1,23 +1,23 @@
 package gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.handler;
 
-import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
-import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeature;
-import gov.usgs.wqp.ogcproxy.model.providers.SourceProvider;
-import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
-
 import java.io.CharArrayWriter;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.xerces.parsers.SAXParser;
 import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+
+import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
+import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeature;
+import gov.usgs.wqp.ogcproxy.model.providers.SourceProvider;
 
 
 /**
@@ -80,7 +80,7 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 
 public class SimplePointLocationHandler extends DefaultHandler {
-	static Logger log = SystemUtils.getLogger(SimplePointLocationHandler.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SimplePointLocationHandler.class);
 	private List<FeatureDAO> simplePointFeatures;
 	private List<SimplePointFeature> currentFeatures;
 	private SourceProvider currentSourceProvider;
@@ -167,7 +167,7 @@ public class SimplePointLocationHandler extends DefaultHandler {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
 						  localName + "] found but no SimplePointFeature object created!";
 				//System.out.println(error);
-				log.debug(error);
+				LOG.debug(error);
 			}
 		}
 		
@@ -182,7 +182,7 @@ public class SimplePointLocationHandler extends DefaultHandler {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
 						  localName + "] found but no SimplePointFeature object created!";
 				//System.out.println(error);
-				log.debug(error);
+				LOG.debug(error);
 			}
 		}
 		
@@ -196,7 +196,7 @@ public class SimplePointLocationHandler extends DefaultHandler {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
 						  localName + "] found but no SimplePointFeature object created!";
 				//System.out.println(error);
-				log.debug(error);
+				LOG.debug(error);
 			}
 		}
 		
@@ -213,12 +213,12 @@ public class SimplePointLocationHandler extends DefaultHandler {
 					String error = "SimplePointLocationHandler.endElement() ERROR: Latitude value [" + stringValue +
 							  "] could not be parsed as a double value.  Setting latitude to 0.0";
 					//System.out.println(error);
-					log.debug(error);
+					LOG.debug(error);
 				} catch (NullPointerException e) {
 					String error = "SimplePointLocationHandler.endElement() ERROR: Latitude value is null and " +
 							  "could not be parsed as a double value.  Setting latitude to 0.0";
 					//System.out.println(error);
-					log.debug(error);
+					LOG.debug(error);
 				}
 				
 				this.currentPointFeature.setLatitude(value);
@@ -226,7 +226,7 @@ public class SimplePointLocationHandler extends DefaultHandler {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
 						  localName + "] found but no SimplePointFeature object created!";
 				//System.out.println(error);
-				log.debug(error);
+				LOG.debug(error);
 			}
 		}
 		
@@ -243,12 +243,12 @@ public class SimplePointLocationHandler extends DefaultHandler {
 					String error = "SimplePointLocationHandler.endElement() ERROR: Longitude value [" + stringValue +
 							  "] could not be parsed as a double value.  Setting longitude to 0.0";
 					//System.out.println(error);
-					log.debug(error);
+					LOG.debug(error);
 				} catch (NullPointerException e) {
 					String error = "SimplePointLocationHandler.endElement() ERROR: Longitude value is null and " +
 							  "could not be parsed as a double value.  Setting longitude to 0.0";
 					//System.out.println(error);
-					log.debug(error);
+					LOG.debug(error);
 				}
 				
 				this.currentPointFeature.setLongitude(value);
@@ -256,7 +256,7 @@ public class SimplePointLocationHandler extends DefaultHandler {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
 						  localName + "] found but no SimplePointFeature object created!";
 				//System.out.println(error);
-				log.debug(error);
+				LOG.debug(error);
 			}
 		}
 		

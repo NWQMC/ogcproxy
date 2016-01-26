@@ -3,7 +3,6 @@ package gov.usgs.wqp.ogcproxy.utils;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.Transaction;
 import org.geotools.data.collection.ListFeatureCollection;
@@ -13,6 +12,8 @@ import org.geotools.data.simple.SimpleFeatureSource;
 import org.geotools.data.simple.SimpleFeatureStore;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ShapeFileUtils
@@ -23,7 +24,7 @@ import org.opengis.feature.simple.SimpleFeatureType;
  *	exposed and utilized outside of the package this utility resides in.
  */
 public class ShapeFileUtils {
-	private static Logger log = SystemUtils.getLogger(ShapeFileUtils.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ShapeFileUtils.class);
 	
 	public static final String MEDIATYPE_APPLICATION_ZIP = "application/zip";
 	
@@ -40,7 +41,7 @@ public class ShapeFileUtils {
 			TimeProfiler.startTimer("GeoTools - Create Transaction time");
         Transaction transaction = new DefaultTransaction("create");
         if (profile)
-        	TimeProfiler.endTimer("GeoTools - Create Transaction time", log);
+        	TimeProfiler.endTimer("GeoTools - Create Transaction time", LOG);
 		// ==============
         
         String typeName;
@@ -48,7 +49,7 @@ public class ShapeFileUtils {
 			typeName = newDataStore.getTypeNames()[0];
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
-			log.error(e.getMessage());
+			LOG.error(e.getMessage());
 			return false;
 		}
 		
@@ -60,11 +61,11 @@ public class ShapeFileUtils {
 			featureSource = newDataStore.getFeatureSource(typeName);
 		} catch (IOException e) {
 			System.out.println(e.getMessage());
-			log.error(e.getMessage());
+			LOG.error(e.getMessage());
 			return false;
 		}
 		if (profile)
-			TimeProfiler.endTimer("GeoTools - Create SimpleFeatureSource time", log);
+			TimeProfiler.endTimer("GeoTools - Create SimpleFeatureSource time", LOG);
 		// ==============
 		
         if (featureSource instanceof SimpleFeatureStore) {
@@ -79,7 +80,7 @@ public class ShapeFileUtils {
     			TimeProfiler.startTimer("GeoTools - SimpleFeatureCollection Creation time");
             SimpleFeatureCollection collection = new ListFeatureCollection(featureType, features);
             if (profile)
-    			TimeProfiler.endTimer("GeoTools - SimpleFeatureCollection Creation time", log);
+    			TimeProfiler.endTimer("GeoTools - SimpleFeatureCollection Creation time", LOG);
     		// ==============
     		
             featureStore.setTransaction(transaction);
@@ -89,7 +90,7 @@ public class ShapeFileUtils {
         			TimeProfiler.startTimer("GeoTools - SimpleFeatureCollection Population time");
                 featureStore.addFeatures(collection);
                 if (profile)
-        			TimeProfiler.endTimer("GeoTools - SimpleFeatureCollection Population time", log);
+        			TimeProfiler.endTimer("GeoTools - SimpleFeatureCollection Population time", LOG);
         		// ==============
         		
         		// ==============
@@ -97,29 +98,29 @@ public class ShapeFileUtils {
         			TimeProfiler.startTimer("GeoTools - Transaction Commit time");
                 transaction.commit();
                 if (profile)
-        			TimeProfiler.endTimer("GeoTools - Transaction Commit time", log);
+        			TimeProfiler.endTimer("GeoTools - Transaction Commit time", LOG);
         		// ==============
             } catch (Exception e) {
             	System.out.println(e.getMessage());
-    			log.error(e.getMessage());
+    			LOG.error(e.getMessage());
                 try {
 					transaction.rollback();
 				} catch (IOException e1) {
 					System.out.println(e1.getMessage());
-					log.error(e1.getMessage());
+					LOG.error(e1.getMessage());
 				}
             } finally {
                 try {
 					transaction.close();
 				} catch (IOException e) {
 					System.out.println(e.getMessage());
-					log.error(e.getMessage());
+					LOG.error(e.getMessage());
 				}
             }
         } else {
             String msg = typeName + " does not support read/write access";
             System.out.println(msg);
-			log.error(msg);
+			LOG.error(msg);
 			return false;
         }
         
@@ -129,7 +130,7 @@ public class ShapeFileUtils {
         // ==============
     	TimeProfiler.startTimer("ZIP Archive - Overall Archive time");
     	SystemUtils.createZipFromFilematch(path, filename);
-    	TimeProfiler.endTimer("ZIP Archive - Overall Archive time", log);
+    	TimeProfiler.endTimer("ZIP Archive - Overall Archive time", LOG);
 		// ==============
 		
 		return true;

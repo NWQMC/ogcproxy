@@ -38,7 +38,7 @@ public class OGCProxyException extends Exception {
 		this.delimeter = sep;
 		int level = 0;
 		OGCProxyException e = this;
-		final StringBuffer text = new StringBuffer(line("WMSProxyException Trace: Calling sequence (top to bottom)"));
+		final StringBuffer text = new StringBuffer(line("OGCProxyException Trace: Calling sequence (top to bottom)"));
 		while (e != null) {
 			level++;
 			text.append(this.delimeter);

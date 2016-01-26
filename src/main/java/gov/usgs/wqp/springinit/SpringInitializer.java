@@ -15,9 +15,9 @@ import org.springframework.web.context.support.AnnotationConfigWebApplicationCon
 import org.springframework.web.servlet.DispatcherServlet;
 
 public class SpringInitializer implements WebApplicationInitializer {
+
 	// gets invoked automatically when application starts up
-	public void onStartup(ServletContext servletContext)
-			throws ServletException {
+	public void onStartup(ServletContext servletContext) throws ServletException {
 		// Create ApplicationContext. I'm using the
 		// AnnotationConfigWebApplicationContext to avoid using beans xml files.
 		AnnotationConfigWebApplicationContext ctx = new AnnotationConfigWebApplicationContext();
@@ -37,4 +37,5 @@ public class SpringInitializer implements WebApplicationInitializer {
 		servlet.setAsyncSupported(true);
 		servlet.setLoadOnStartup(1);
 	}
+
 }

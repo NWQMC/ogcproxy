@@ -53,17 +53,17 @@ public class SearchParameters<T, K> extends ConcurrentHashMap<String, List<Strin
 		return this.currentHash;
 	}
 	
-	public long unsignedHashCode() {
+	public String unsignedHashCode() {
 		/**
 		 * Since we want to use the hash as a descriptor for a layer, we want
-		 * to use unsigned values for the hash.
+		 * to use unsigned values for the hash. We also only use it as a string.
 		 */
 		if (this.currentHash > 0) {
-			return (long)this.currentHash;
+			return (long)this.currentHash + "";
 		}
 		
 		long unsignedHash = this.currentHash & (-1L >>> 32);
 		
-		return unsignedHash;
+		return unsignedHash + "";
 	}
 }
