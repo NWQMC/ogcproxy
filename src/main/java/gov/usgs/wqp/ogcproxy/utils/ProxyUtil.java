@@ -19,7 +19,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * ProxyUtil
@@ -31,7 +32,7 @@ import org.apache.log4j.Logger;
  *	utility resides in.
  */
 public class ProxyUtil {
-	private static Logger log = SystemUtils.getLogger(ProxyUtil.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ProxyUtil.class);
 	
 	public static final String OGC_GET_CAPABILITIES  = "GetCapabilities";
 	
@@ -67,7 +68,7 @@ public class ProxyUtil {
 			searchParams = new SearchParameters<String,List<String>>();
 		}
 		
-		log.debug("ProxyUtil.separateParameters() REQUEST PARAMS:\n" + requestParams);
+		LOG.debug("ProxyUtil.separateParameters() REQUEST PARAMS:\n" + requestParams);
 		
 		/*
 		 * We need to capture the pure servlet parameter key for our searchParams parameter.
@@ -103,7 +104,7 @@ public class ProxyUtil {
 	        
 	        ogcParams.put(key, pairs.getValue());
 	    }
-	    log.debug("ProxyUtil.separateParameters() OGC PARAMETER MAP:\n[" + ogcParams + "]");
+	    LOG.debug("ProxyUtil.separateParameters() OGC PARAMETER MAP:\n[" + ogcParams + "]");
 		
 		String searchParamString = requestParams.get(servletSearchParamName);
 		if (searchParamString != null) {
@@ -113,7 +114,7 @@ public class ProxyUtil {
 			 */
 			WQPUtils.parseSearchParams(searchParamString, searchParams);
 			
-			log.debug("ProxyUtil.separateParameters() SEARCH PARAMETER MAP:\n[" + searchParams + "]");
+			LOG.debug("ProxyUtil.separateParameters() SEARCH PARAMETER MAP:\n[" + searchParams + "]");
 		}
 		
 		return true;
@@ -152,7 +153,7 @@ public class ProxyUtil {
 			try {
 				encodedValue = URLEncoder.encode(value, "UTF-8");
 			} catch (UnsupportedEncodingException e) {
-				log.error("ProxyUtil.getServerRequestURIAsString() Encoding parameter value exception:\n[" + e.getMessage() + "].  Using un-encoded value instead [" + value + "]");
+				LOG.error("ProxyUtil.getServerRequestURIAsString() Encoding parameter value exception:\n[" + e.getMessage() + "].  Using un-encoded value instead [" + value + "]");
 				encodedValue = value;
 			}
             requestBuffer.append(encodedValue);
@@ -179,10 +180,10 @@ public class ProxyUtil {
                 
                 String logMsg = " client request header \"" +requestHeaderName + ": " + requestHeaderValue + "\"";
                 if ( ignoredClientRequestHeaderSet.contains(requestHeaderName) ) {
-                    log.debug("Ignored" +logMsg);
+                    LOG.debug("Ignored" +logMsg);
                 } else {
                     serverRequest.addHeader(requestHeaderName, requestHeaderValue);
-                    log.debug("Mapped" +logMsg);
+                    LOG.debug("Mapped" +logMsg);
                 }
             }
 
@@ -195,7 +196,7 @@ public class ProxyUtil {
         }
         String requestHost = serverHostBuilder.toString();
         serverRequest.addHeader("Host", serverHostBuilder.toString());
-        log.debug("Added server request header \"Host: " + requestHost + "\"");
+        LOG.debug("Added server request header \"Host: " + requestHost + "\"");
     }
     
     public static void generateClientResponseHeaders(HttpServletResponse clientResponse, HttpResponse serverResponse, Set<String> ignoredServerResponseHeaderSet) {
@@ -206,10 +207,10 @@ public class ProxyUtil {
             
             String logMsg = " server response header \"" + name + ": " + value + "\"";
             if ( ignoredServerResponseHeaderSet.contains(name) ) {
-                log.debug("Ignored" +logMsg);
+                LOG.debug("Ignored" +logMsg);
             } else {
                 clientResponse.addHeader(name, value);
-                log.debug("Mapped" +logMsg );
+                LOG.debug("Mapped" +logMsg );
             }
         }
     }

@@ -5,7 +5,9 @@ import java.text.NumberFormat;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 /**
  * TimeProfiler
@@ -14,14 +16,13 @@ import org.apache.log4j.Logger;
  *	This class is designed to help with profiling.
  */
 public class TimeProfiler {
-	private static Logger log;
+	private static final Logger LOG = LoggerFactory.getLogger(TimeProfiler.class);
 	private static NumberFormat FORMATTER;
 	private static Map<String, Long> timers;
 	private static long averageInsertTime = 0;
 	private static long averageRemoveTime = 0;
 	
 	static {
-		log = SystemUtils.getLogger(TimeProfiler.class);
 		TimeProfiler.FORMATTER = new DecimalFormat("#0.000000000");
 		TimeProfiler.timers = new HashMap<String, Long>();
 		
@@ -52,8 +53,7 @@ public class TimeProfiler {
 		TimeProfiler.averageRemoveTime = removeTime/count;
 		
 		String msg = "TimeProfiler: Initializing with avgInsertTime [" + TimeProfiler.averageInsertTime + "ns] and avgRemoveTime [" + TimeProfiler.averageRemoveTime + "ns]";
-		System.out.println(msg);
-		log.info(msg);
+		LOG.info(msg);
 	}
 	
 	public static void startTimer(String name) {
@@ -89,7 +89,6 @@ public class TimeProfiler {
 		}
 		
 		String msg = "\n" + name + " [" + TimeProfiler.FORMATTER.format((result) / 1000000000d) + "] seconds";
-		System.out.println(msg);
 		log.info(msg);
 		
 		return result;

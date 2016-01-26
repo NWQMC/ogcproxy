@@ -1,21 +1,21 @@
 package gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.handler;
 
-import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
-import gov.usgs.wqp.ogcproxy.model.providers.SourceProvider;
-import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
-
 import java.io.CharArrayWriter;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.apache.xerces.parsers.SAXParser;
 import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
+
+import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
+import gov.usgs.wqp.ogcproxy.model.providers.SourceProvider;
 
 /**
  * SimplePointProviderHandler parses the WQX_Outbound XML format for <Provider> elements.
@@ -104,7 +104,7 @@ import org.xml.sax.helpers.DefaultHandler;
  */
 
 public class SimplePointProviderHandler extends DefaultHandler {
-	static Logger log = SystemUtils.getLogger(SimplePointProviderHandler.class);
+	private static final Logger LOG = LoggerFactory.getLogger(SimplePointProviderHandler.class);
 	private List<FeatureDAO> simplePointFeatures;
 	
 	public static final String SUBHANDLER_ELEMENT = "Organization";
@@ -147,19 +147,19 @@ public class SimplePointProviderHandler extends DefaultHandler {
 				xmlReader.setContentHandler(new SimplePointLocationHandler(this, this.xmlReader, this.simplePointFeatures, this.currentProvider, this.featureBuilder));
 			} catch (SchemaException e) {
 				String error = "SimplePointProviderHandler.startElement() Exception: " + e.getMessage();
-				log.error(error);
+				LOG.error(error);
 				//System.out.println(error);
 				
 				throw new SAXException(error);
 			} catch (NoSuchAuthorityCodeException e) {
 				String error = "SimplePointProviderHandler.startElement() Exception: " + e.getMessage();
-				log.error(error);
+				LOG.error(error);
 				//System.out.println(error);
 				
 				throw new SAXException(error);
 			} catch (FactoryException e) {
 				String error = "SimplePointProviderHandler.startElement() Exception: " + e.getMessage();
-				log.error(error);
+				LOG.error(error);
 				//System.out.println(error);
 				
 				throw new SAXException(error);

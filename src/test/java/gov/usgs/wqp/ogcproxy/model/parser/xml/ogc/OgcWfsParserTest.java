@@ -1,8 +1,8 @@
 package gov.usgs.wqp.ogcproxy.model.parser.xml.ogc;
 
-import static org.junit.Assert.*;
-import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
-import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +12,9 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 import com.sun.jndi.toolkit.url.UrlUtil;
+
+import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
+import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
 
 public class OgcWfsParserTest {
 

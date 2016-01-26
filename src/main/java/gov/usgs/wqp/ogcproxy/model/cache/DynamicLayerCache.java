@@ -1,12 +1,11 @@
 package gov.usgs.wqp.ogcproxy.model.cache;
 
+import java.util.Date;
+import java.util.List;
+
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
-import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
-
-import java.util.Date;
-import java.util.List;
 
 /**
  * DynamicLayerCache

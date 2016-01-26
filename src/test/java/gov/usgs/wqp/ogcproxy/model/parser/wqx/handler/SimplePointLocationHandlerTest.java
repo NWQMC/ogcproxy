@@ -6,14 +6,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.mock;
-import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
-import gov.usgs.wqp.ogcproxy.model.attributes.BaseAttributeType;
-import gov.usgs.wqp.ogcproxy.model.attributes.FeatureAttributeType;
-import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeature;
-import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.handler.SimplePointLocationHandler;
-import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.handler.SimplePointProviderHandler;
-import gov.usgs.wqp.ogcproxy.model.providers.SourceProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,21 +15,32 @@ import org.geotools.feature.simple.SimpleFeatureBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import com.vividsolutions.jts.geom.Point;
 
+import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
+import gov.usgs.wqp.ogcproxy.model.attributes.BaseAttributeType;
+import gov.usgs.wqp.ogcproxy.model.attributes.FeatureAttributeType;
+import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeature;
+import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.handler.SimplePointLocationHandler;
+import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.handler.SimplePointProviderHandler;
+import gov.usgs.wqp.ogcproxy.model.providers.SourceProvider;
+
 public class SimplePointLocationHandlerTest {
+	@Mock
 	private SAXParser xmlReader;
-	SimpleFeatureBuilder featureBuilder;
-	SimplePointProviderHandler parentHandler;
-	SourceProvider provider;
+	@Mock
+	private SimpleFeatureBuilder featureBuilder;
+	@Mock
+	private SimplePointProviderHandler parentHandler;
+	private SourceProvider provider;
 	private List<FeatureDAO> featureList;
 	
 	@Before
 	public void init() throws Exception {
-		xmlReader = mock(SAXParser.class);
-		featureBuilder = mock(SimpleFeatureBuilder.class);
-		parentHandler = mock(SimplePointProviderHandler.class);
+		MockitoAnnotations.initMocks(this);
 		provider = SourceProvider.NWIS;
 		featureList = new ArrayList<FeatureDAO>();
 	}

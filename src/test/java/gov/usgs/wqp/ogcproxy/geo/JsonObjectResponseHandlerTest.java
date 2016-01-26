@@ -2,7 +2,6 @@ package gov.usgs.wqp.ogcproxy.geo;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
@@ -15,13 +14,16 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
 import org.apache.http.client.HttpResponseException;
+import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import gov.usgs.wqp.ogcproxy.geo.LayerResponse.Layers.Layer;
+import com.google.gson.JsonObject;
+
 import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
 
-public class LayerResponseHandlerTest {
+public class JsonObjectResponseHandlerTest {
 
 	public final static String ONE_KEY = "2943210710";
 	public final static String ONE_NAME = DynamicLayerCache.DYNAMIC_LAYER_PREFIX + ONE_KEY;
@@ -37,36 +39,51 @@ public class LayerResponseHandlerTest {
 			+ ONE_NAME + "\",\"href\": \"" + ONE_HREF + "\"}, {\"name\": \""
 			+ TWO_NAME + "\",\"href\": \"" + TWO_HREF + "\"}, {\"name\": \""
 			+ THREE_NAME + "\",\"href\": \"" + THREE_HREF + "\"}]}}";
-	
+
+//	public final static String xxx = "{\"namespaces\":{\"namespace\":[{\"name\":\"test\",\"href\":\"http://localhost:8081/geoserver/rest/namespaces/test.json\"}]}}";
+//	{"workspaces":{"workspace":[{"name":"test","href":"http:\/\/localhost:8081\/geoserver\/rest\/workspaces\/test.json"}]}}
+//	JsonObject result = 
+//	result.getAsJsonObject("namespaces").getAsJsonArray("namespace").get(0).getAsJsonObject().get("name");
+//	result.getAsJsonObject("layers").getAsJsonArray("layer").get(0).getAsJsonObject().get("name");
+
+	@Mock
+	private HttpResponse response;
+	@Mock
+	private StatusLine statusLine;
+	@Mock
+	private HttpEntity httpEntity;
+
+	@Before
+	public void setup() {
+		MockitoAnnotations.initMocks(this);
+	}
+
 	@Test
 	public void handleResponseHappyTest() throws UnsupportedOperationException, IOException {
-		HttpResponse response = Mockito.mock(HttpResponse.class);
-		StatusLine statusLine = Mockito.mock(StatusLine.class);
-		HttpEntity httpEntity = Mockito.mock(HttpEntity.class);
-		LayerResponseHandler lrh = new LayerResponseHandler();
+		JsonObjectResponseHandler responseHandler = new JsonObjectResponseHandler();
 		when(response.getStatusLine()).thenReturn(statusLine);
 		when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_OK);
 		when(response.getEntity()).thenReturn(httpEntity);
 		when(httpEntity.getContent()).thenReturn(new ByteArrayInputStream(TEST_LAYER_RESPONSE.getBytes()));
 		
 		try {
-			LayerResponse lr = lrh.handleResponse(response);
+			JsonObject jsonObject = responseHandler.handleResponse(response);
 		
-			assertNotNull(lr);
-			assertNotNull(lr.getLayers());
-			assertEquals(3, lr.getLayers().getLayer().size());
+			assertNotNull(jsonObject);
+			assertNotNull(jsonObject.getAsJsonObject("layers"));
+			assertEquals(3, jsonObject.getAsJsonObject("layers").getAsJsonArray("layer").size());
 			
-			Layer one = lr.getLayers().getLayer().get(0);
-			assertEquals(ONE_NAME, one.getName());
-			assertEquals(ONE_HREF, one.getHref());
+			JsonObject one = jsonObject.getAsJsonObject("layers").getAsJsonArray("layer").get(0).getAsJsonObject();
+			assertEquals(ONE_NAME, one.get("name").getAsString());
+			assertEquals(ONE_HREF, one.get("href").getAsString());
 			
-			Layer two = lr.getLayers().getLayer().get(1);
-			assertEquals(TWO_NAME, two.getName());
-			assertEquals(TWO_HREF, two.getHref());
+			JsonObject two = jsonObject.getAsJsonObject("layers").getAsJsonArray("layer").get(1).getAsJsonObject();
+			assertEquals(TWO_NAME, two.get("name").getAsString());
+			assertEquals(TWO_HREF, two.get("href").getAsString());
 			
-			Layer three = lr.getLayers().getLayer().get(2);
-			assertEquals(THREE_NAME, three.getName());
-			assertEquals(THREE_HREF, three.getHref());
+			JsonObject three = jsonObject.getAsJsonObject("layers").getAsJsonArray("layer").get(2).getAsJsonObject();
+			assertEquals(THREE_NAME, three.get("name").getAsString());
+			assertEquals(THREE_HREF, three.get("href").getAsString());
 		} catch (Exception e) {
 			fail(e.getLocalizedMessage());
 		}
@@ -75,25 +92,23 @@ public class LayerResponseHandlerTest {
 
 	@Test
 	public void handleResponseSadTest() throws UnsupportedOperationException, IOException {
-		HttpResponse response = Mockito.mock(HttpResponse.class);
-		StatusLine statusLine = Mockito.mock(StatusLine.class);
-		LayerResponseHandler lrh = new LayerResponseHandler();
+		JsonObjectResponseHandler responseHandler = new JsonObjectResponseHandler();
 		when(response.getStatusLine()).thenReturn(statusLine);
 		when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_BAD_REQUEST, HttpStatus.SC_OK);
 		when(response.getEntity()).thenReturn(null);
 		
 		try {
 			//Bad HttpStatus from "Geoserver"
-			lrh.handleResponse(response);
+			responseHandler.handleResponse(response);
 		} catch (Exception e) {
 			assertTrue(e instanceof HttpResponseException);
 		}
 		
 		try {
 			//Empty response from "Geoserver"
-			assertNull(lrh.handleResponse(response));
+			responseHandler.handleResponse(response);
 		} catch (Exception e) {
-			fail(e.getLocalizedMessage());
+			assertTrue(e instanceof HttpResponseException);
 		}
 		
 	}
