@@ -899,8 +899,8 @@ public class WQPLayerBuildingService {
 		 */
 		String uri = geoserverURIPrefix + geoserverRestNamespacesURI;
 		String mediaType = "text/xml";
-		String object = "<namespace><prefix>" + geoserverWorkspace + "</prefix><uri>" 
-				+ geoserverURIPrefix + geoserverWorkspace + "</uri></namespace>";
+		String object = "<namespace><prefix>" + geoserverWorkspace
+				+ "</prefix><uri>http://www.waterqualitydata.us/ogcservices</uri></namespace>";
 		int statusCode = -1;
 		try {
 			HttpPost httpPost = new HttpPost(uri);
