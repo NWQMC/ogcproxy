@@ -1,5 +1,5 @@
 <html>
-  <head><title>WMS PROXY</title></head>
+  <head><title>OGC PROXY</title></head>
   <body>
     <h1>${site} does not exist</h1>
   </body>

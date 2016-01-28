@@ -66,4 +66,13 @@ public class SearchParameters<T, K> extends ConcurrentHashMap<String, List<Strin
 		
 		return unsignedHash + "";
 	}
+
+	@Override
+	public boolean equals(Object o) {
+		/** 
+		 * The super.equals(Object) is ok in our case - adding this to show that we investigated the SonarQube issue report.
+		 */
+		return super.equals(o);
+	}
+
 }
