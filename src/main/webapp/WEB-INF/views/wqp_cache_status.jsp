@@ -1,9 +1,8 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
-<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <html>
-  <head><title>WMS PROXY - ${site} Cache Status</title></head>
+  <head><title>OGCPROXY - ${site} Cache Status</title></head>
   <body>
     <h1>${site} - Cache Status</h1>
     <h3>Total Layers Cached: ${cache.size()}</h3>

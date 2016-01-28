@@ -1,8 +1,8 @@
 
 <html>
-  <head><title>WMS PROXY v${version}</title></head>
+  <head><title>OGC PROXY v${version}</title></head>
   <body>
     <h1>Please access this server via REST or WMS calls</h1>
-    <p>WMS Proxy v${version}</p>
+    <p>OGC Proxy v${version}</p>
   </body>
 </html>

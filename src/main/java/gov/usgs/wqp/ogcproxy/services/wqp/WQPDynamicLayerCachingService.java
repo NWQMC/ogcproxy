@@ -363,6 +363,7 @@ public class WQPDynamicLayerCachingService {
 		 */
 		LOG.info("WQPDynamicLayerCachingService.populateCache() START");
 		try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(getCredentialsProvider()).build()) {
+			//TODO switch to datastores!!! http://cida-eros-wqpgsqa.er.usgs.gov:8080/geoserver/rest/workspaces/qw_portal_map/datastores.json
 			JsonObject jsonObject = httpClient.execute(new HttpGet(geoserverRestLayers), new JsonObjectResponseHandler());
 			Iterator<JsonElement> i = getResponseIterator(jsonObject);
 			while (i.hasNext()) {
@@ -385,6 +386,7 @@ public class WQPDynamicLayerCachingService {
 	protected Iterator<JsonElement> getResponseIterator(JsonObject jsonObject) {
 		Iterator<JsonElement> rtn = new JsonArray().iterator();
 
+		//TODO switch to datastores/datastore!!!
 		if (null != jsonObject && jsonObject.get("layers").isJsonObject()
 				&& jsonObject.getAsJsonObject("layers").get("layer").isJsonArray()) {
 			rtn = jsonObject.getAsJsonObject("layers").getAsJsonArray("layer").iterator();

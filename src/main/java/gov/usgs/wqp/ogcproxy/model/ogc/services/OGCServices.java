@@ -7,7 +7,7 @@ import gov.usgs.wqp.ogcproxy.utils.StringUtils;
  * @author prusso
  *<br /><br />
  *	This enumeration explicitly defines all known OGC Services currently
- *	provided by the WMSProxy
+ *	provided by the OGCProxy
  */
 public enum OGCServices {
 	WMS, WFS, UNKNOWN;
