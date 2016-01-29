@@ -53,8 +53,6 @@ public class OGCProxyController {
 		ModelAndView mv = new ModelAndView("index.jsp");
 		mv.addObject("version", ApplicationVersion.getVersion());
 
-		DeferredResult<ModelAndView> finalResult = new DeferredResult<ModelAndView>();
-		finalResult.setResult(mv);
 		return mv;
     }
 	
