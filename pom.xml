@@ -102,8 +102,11 @@
                 <configuration>
 					<failOnMissingWebXml>false</failOnMissingWebXml>
                     <archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
                         <manifestEntries>
-                            <Implementation-Build>${build.scm.version}</Implementation-Build>
+                            <Implementation-Build>${buildNumber}</Implementation-Build>
  							<!-- The following are non-standard manifest entries. Tag names have 
                                  been styled according to Manifest conventions -->
                             <BuildTime>${maven.build.timestamp}</BuildTime>
@@ -137,10 +140,10 @@
 
 	<scm>
 		<connection>git:http://cida-eros-stash.er.usgs.gov:7999/wqp/ogcproxy.git</connection>
-        	<developerConnection>scm:git:ssh://git@cida-eros-stash.er.usgs.gov:7999/wqp/ogcproxy.git</developerConnection>
-        	<url>http://internal.cida.usgs.gov/stash/projects/WQP/repos/ogcproxy/browse</url>
-  	  <tag>HEAD</tag>
-  </scm>
+		<developerConnection>scm:git:ssh://git@cida-eros-stash.er.usgs.gov:7999/wqp/ogcproxy.git</developerConnection>
+		<url>http://internal.cida.usgs.gov/stash/projects/WQP/repos/ogcproxy/browse</url>
+		<tag>HEAD</tag>
+	</scm>
 
 
 	<distributionManagement>

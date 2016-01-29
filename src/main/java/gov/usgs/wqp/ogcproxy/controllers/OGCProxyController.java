@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -24,6 +23,7 @@ import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.OgcWfsParser;
 import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.RequestWrapper;
 import gov.usgs.wqp.ogcproxy.services.ProxyService;
 import gov.usgs.wqp.ogcproxy.services.RESTService;
+import gov.usgs.wqp.ogcproxy.utils.ApplicationVersion;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
 
 @Controller
@@ -40,8 +40,6 @@ public class OGCProxyController {
 	@Autowired
 	private RESTService restService;
 
-	@Autowired
-	private Environment environment;
 	/* ====================================================================== */
 
 	/*
@@ -49,29 +47,26 @@ public class OGCProxyController {
 	 * ========================================================================
 	 */
 	@RequestMapping(value="/", method=RequestMethod.GET)
-    public DeferredResult<ModelAndView> entry() {
-		String msg = "OGCProxyController.entry() called";
-		LOG.info(msg);
+    public ModelAndView entry() {
+		LOG.debug("OGCProxyController.entry() called");
 		
 		ModelAndView mv = new ModelAndView("index.jsp");
-		mv.addObject("version", environment.getProperty("app.version"));
+		mv.addObject("version", ApplicationVersion.getVersion());
 
-		DeferredResult<ModelAndView> finalResult = new DeferredResult<ModelAndView>();
-		finalResult.setResult(mv);
-		return finalResult;
+		return mv;
     }
 	
 	//http://www.waterqualitydata.us/qw_portal_map/ows?service=WPS&version=1.0.0&request=Execute&identifier=gs:SingleWpsStatus
 	
 	@RequestMapping(value="**/wms", method={RequestMethod.GET})
     public DeferredResult<String>  wmsProxy(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
-		LOG.info("OGCProxyController.wmsProxy() INFO - Performing request.");
+		LOG.debug("OGCProxyController.wmsProxy() INFO - Performing request.");
 		return handleActualServiceCallGet(request, response, requestParams, OGCServices.WMS);
 	}
 	
 	@RequestMapping(value="**/wfs", method=RequestMethod.GET)
     public DeferredResult<String> wfsProxyGet(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
-		LOG.info("OGCProxyController.wfsProxy() INFO - Performing request.");
+		LOG.debug("OGCProxyController.wfsProxy() INFO - Performing request.");
 		return handleActualServiceCallGet(request, response, requestParams, OGCServices.WFS);
 	}
 
@@ -84,10 +79,10 @@ public class OGCProxyController {
 		ogcService = ProxyUtil.getRequestedService(ogcService, requestParams);
 		
 		if (ogcService == OGCServices.WMS) {
-			LOG.info("OGCProxyController.handleActualServiceCallGet() INFO - Performing WMS request.");
+			LOG.debug("OGCProxyController.handleActualServiceCallGet() INFO - Performing WMS request.");
 			return proxyService.performGetRequestWms(request, response, requestParams);
 		} else {
-			LOG.info("OGCProxyController.handleActualServiceCallGet() INFO - Performing WFS request.");
+			LOG.debug("OGCProxyController.handleActualServiceCallGet() INFO - Performing WFS request.");
 			return proxyService.performGetRequestWfs(request, response, requestParams);
 		}
 	}
@@ -117,7 +112,7 @@ public class OGCProxyController {
 	@Async
 	@RequestMapping(value="**/wms", method=RequestMethod.POST)
     public void wmsProxyPost(HttpServletRequest request, HttpServletResponse response) {
-		LOG.info("OGCProxyController.wmsProxyPost() INFO - Performing request.");
+		LOG.debug("OGCProxyController.wmsProxyPost() INFO - Performing request.");
 		handleActualServiceCallPost(request, response, OGCServices.WMS);
 	}
 	// NEW POST OGC XML WMS/WFS - it will check the payload for the actual service
@@ -125,7 +120,7 @@ public class OGCProxyController {
 	@Async
 	@RequestMapping(value="**/wfs", method=RequestMethod.POST)
     public void wfsProxyPost(HttpServletRequest request, HttpServletResponse response) {
-		LOG.info("OGCProxyController.wfsProxyPost() INFO - Performing request.");
+		LOG.debug("OGCProxyController.wfsProxyPost() INFO - Performing request.");
 		handleActualServiceCallPost(request, response, OGCServices.WFS);
 	}
 	
@@ -147,4 +142,5 @@ public class OGCProxyController {
 		
 		return finalResult;
 	}
+
 }
