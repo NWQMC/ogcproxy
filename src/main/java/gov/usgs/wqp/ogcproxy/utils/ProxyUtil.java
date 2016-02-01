@@ -38,10 +38,9 @@ public class ProxyUtil {
 	
 	public static final String OGC_SERVICE_PARAMETER = "service";
 	
-	public static final String searchParamKey        = WQPParameters.getStringFromType(WQPParameters.searchParams);
-	public static final String testParamKey          = "test-wms";
+	public static final String searchParamKey        = WQPParameters.searchParams.toString();
 	
-	public static final String PROXY_LAYER_ERROR     = "wms_no_layer_error.xml";
+	public static final String PROXY_LAYER_ERROR     = "no_layer_error.xml";
 	
 	
 	/**
@@ -98,10 +97,6 @@ public class ProxyUtil {
 	        	continue;
 	        }
 	        
-	        if ( ProxyUtil.testParamKey.equals(key) ) {
-	        	continue;
-	        }
-	        
 	        ogcParams.put(key, pairs.getValue());
 	    }
 	    LOG.debug("ProxyUtil.separateParameters() OGC PARAMETER MAP:\n[" + ogcParams + "]");
@@ -124,12 +119,12 @@ public class ProxyUtil {
 	/**
 	 * Builds query string
 	 * @param clientrequest
-	 * @param wmsParams
+	 * @param ogcParams
 	 * @param forwardURL
 	 * @param context
 	 * @return
 	 */
-	public static String getServerRequestURIAsString(HttpServletRequest clientrequest, Map<String,String> wmsParams, String forwardURL, String context) {
+	public static String getServerRequestURIAsString(HttpServletRequest clientrequest, Map<String,String> ogcParams, String forwardURL, String context) {
         String proxyPath = clientrequest.getContextPath() + clientrequest.getServletPath();
         
         /*
@@ -142,7 +137,7 @@ public class ProxyUtil {
         StringBuilder requestBuffer = new StringBuilder(forwardURL + proxyPath + "?");
         
         String sep = "";
-        for (Map.Entry<String,String> paramEntry : wmsParams.entrySet()) {
+        for (Map.Entry<String,String> paramEntry : ogcParams.entrySet()) {
             String param = paramEntry.getKey();
             String value = paramEntry.getValue();
             
@@ -237,20 +232,12 @@ public class ProxyUtil {
      * @return
      */
     public static OGCServices getRequestedService(OGCServices calledService, Map<String, String> ogcParams) {
-    	OGCServices requestedService = OGCServices.UNKNOWN;
-    	
 		try {
-	    	String serviceValue = ogcParams.get(OGC_SERVICE_PARAMETER);
-	    	requestedService = OGCServices.getTypeFromString(serviceValue);
+	    	String serviceValue = ogcParams.get(OGC_SERVICE_PARAMETER).toUpperCase();
+	    	return OGCServices.valueOf(serviceValue);
 		} catch (Exception e) {
-	    	requestedService = OGCServices.UNKNOWN;
+			return calledService;
 		}
-    	
-    	if (requestedService == OGCServices.UNKNOWN) {
-    		return calledService;
-    	}
-    	
-    	return requestedService;
     }
     
     /**

@@ -1,7 +1,5 @@
 package gov.usgs.wqp.ogcproxy.model.ogc.services;
 
-import gov.usgs.wqp.ogcproxy.utils.StringUtils;
-
 /**
  * OGCServices
  * @author prusso
@@ -10,9 +8,6 @@ import gov.usgs.wqp.ogcproxy.utils.StringUtils;
  *	provided by the OGCProxy
  */
 public enum OGCServices {
-	WMS, WFS, UNKNOWN;
+	WMS, WFS;
 
-	public static OGCServices getTypeFromString(String string) {
-		return StringUtils.getTypeFromString(string, UNKNOWN);
-	}
 }

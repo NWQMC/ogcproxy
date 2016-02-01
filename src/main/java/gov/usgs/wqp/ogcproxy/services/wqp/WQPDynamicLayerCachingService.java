@@ -45,9 +45,8 @@ public class WQPDynamicLayerCachingService {
 	private Environment environment;
 	private static boolean initialized;
 	
-	private static Map<String, DynamicLayerCache> requestToLayerCache;	// Map<LayerHash, LayerCache>
+	private static Map<String, DynamicLayerCache> requestToLayerCache;
 	
-	private static long cacheTimeout = 604800000;			// 1000 * 60 * 60 * 24 * 7 (1 week)
 	private static long threadSleep  = 500;
 	private static String geoserverProtocol  = "http";
 	private static String geoserverHost      = "localhost";
@@ -81,7 +80,7 @@ public class WQPDynamicLayerCachingService {
 	/**
 	 * Singleton accessor
 	 *
-	 * @return WMSService instance
+	 * @return WQPDynamicLayerCachingService instance
 	 */
 	public static WQPDynamicLayerCachingService getInstance() {
 		return INSTANCE;
@@ -89,7 +88,7 @@ public class WQPDynamicLayerCachingService {
 	
 	@PostConstruct
 	public void initialize() {
-		LOG.info("WQPDynamicLayerCachingService.initialize() called");
+		LOG.debug("WQPDynamicLayerCachingService.initialize() called");
 		
 		/*
 		 * Since we are using Spring DI we cannot access the environment bean
@@ -107,16 +106,9 @@ public class WQPDynamicLayerCachingService {
 			initialized = true;
 			
 			try {
-				cacheTimeout = Long.parseLong(environment.getProperty("wmscache.layercache.period"));
+				threadSleep = Long.parseLong(environment.getProperty("proxy.thread.sleep"));
 			} catch (Exception e) {
-				LOG.error("WQPDynamicLayerCachingService() Constructor Exception: Failed to parse property [wmscache.layercache.period] " +
-						  "- Keeping cache timeout period default to [" + cacheTimeout + "].\n" + e.getMessage() + "\n");
-			}
-			
-			try {
-				threadSleep = Long.parseLong(environment.getProperty("wmscache.layercache.sleep"));
-			} catch (Exception e) {
-				LOG.error("WQPDynamicLayerCachingService() Constructor Exception: Failed to parse property [wmscache.layercache.sleep] " +
+				LOG.error("WQPDynamicLayerCachingService() Constructor Exception: Failed to parse property [proxy.thread.sleep] " +
 						  "- Keeping thread sleep default to [" + threadSleep + "].\n" + e.getMessage() + "\n");
 			}
 			
@@ -192,8 +184,8 @@ public class WQPDynamicLayerCachingService {
 					
 					String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : DynamicLayerCache object does not " +
 							  "exist for key " + key +  ". Creating new Cache Object and setting status to [" +
-							  DynamicLayerStatus.getStringFromType(currentCache.getCurrentStatus()) + "]";
-					LOG.info(msg);
+							  currentCache.getCurrentStatus().toString() + "]";
+					LOG.debug(msg);
 					
 					return currentCache;
 				}
@@ -207,11 +199,11 @@ public class WQPDynamicLayerCachingService {
 		if (currentCache.getCurrentStatus() == DynamicLayerStatus.ERROR) {
 			String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : Caught Interrupted Exception waiting for " +
 					  "Cache object [" + key + "] status to change.  Its current status is [" +
-					  DynamicLayerStatus.getStringFromType(currentCache.getCurrentStatus()) +
+					  currentCache.getCurrentStatus().toString() +
 					  "].  Throwing Exception...";
 			LOG.error(msg);
 			
-			OGCProxyExceptionID id = OGCProxyExceptionID.WMS_LAYER_CREATION_FAILED;
+			OGCProxyExceptionID id = OGCProxyExceptionID.LAYER_CREATION_FAILED;
 			throw new OGCProxyException(id, "WQPDynamicLayerCachingService", "getLayerCache()", msg);
 		}
 		
@@ -234,20 +226,20 @@ public class WQPDynamicLayerCachingService {
 			try {
 				String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : DynamicLayerCache object exists for key [" +
 							 key + "] but its status is [" +
-							 DynamicLayerStatus.getStringFromType(currentCache.getCurrentStatus()) +
+							 currentCache.getCurrentStatus().toString() +
 							 "].  Waiting " + WQPDynamicLayerCachingService.threadSleep + "ms";
-				LOG.info(msg);
+				LOG.debug(msg);
 				
 				Thread.sleep(WQPDynamicLayerCachingService.threadSleep);
 			} catch (InterruptedException e) {
 				if ((currentCache.getCurrentStatus() != DynamicLayerStatus.AVAILABLE) && (currentCache.getCurrentStatus() != DynamicLayerStatus.EMPTY)) {
 					String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : Caught Interrupted Exception waiting for " +
 							  "Cache object [" + key + "] status to change.  Its current status is [" +
-							  DynamicLayerStatus.getStringFromType(currentCache.getCurrentStatus()) +
+							  currentCache.getCurrentStatus().toString() +
 							  "].  Throwing Exception...";
 					LOG.error(msg);
 					
-					OGCProxyExceptionID id = OGCProxyExceptionID.WMS_LAYER_CREATION_FAILED;
+					OGCProxyExceptionID id = OGCProxyExceptionID.LAYER_CREATION_FAILED;
 					throw new OGCProxyException(id, "WQPDynamicLayerCachingService", "getLayerCache()", msg);
 				}
 			}
@@ -255,8 +247,8 @@ public class WQPDynamicLayerCachingService {
 		
 		String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : DynamicLayerCache object " +
 				  "exists for key " + key +  ". Returning object with status [" +
-				  DynamicLayerStatus.getStringFromType(currentCache.getCurrentStatus()) + "]";
-		LOG.info(msg);
+				  currentCache.getCurrentStatus().toString() + "]";
+		LOG.debug(msg);
 		
 		return currentCache;
 	}
@@ -273,7 +265,7 @@ public class WQPDynamicLayerCachingService {
 				String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : Removed Layer Cache for layer name [" +
 							 currentCache.getLayerName() + "] for key [" + searchParamKey + "].  Invalidating " +
 							 "cache for any current threads.";
-				LOG.info(msg);
+				LOG.debug(msg);
 				currentCache.setCurrentStatus(DynamicLayerStatus.ERROR);
 			}
 		}
@@ -302,8 +294,7 @@ public class WQPDynamicLayerCachingService {
 			httpClient.execute(httpDelete);
 		} catch (Exception e) {
 			//TODO - OK to just eat?
-			LOG.error("Problems resetting workspace in geoserver: " + e.getLocalizedMessage());
-			e.printStackTrace();
+			LOG.error("Problems resetting workspace in geoserver: " + e.getLocalizedMessage(), e);
 		}
 	}
 	
@@ -330,7 +321,7 @@ public class WQPDynamicLayerCachingService {
 				 */
 				threadSafeCache = getLayerCache(cache);
 			} catch (OGCProxyException e) {
-				LOG.error(e.traceBack());
+				LOG.error("Issue getting cache key: " + cacheKey, e);
 			}
 			
 			if (threadSafeCache != null) {
@@ -343,13 +334,13 @@ public class WQPDynamicLayerCachingService {
 		
 		int clearedCount = originalCount - uncleared.size();
 		
-		if (uncleared.size() != 0) {
+		if (!uncleared.isEmpty()) {
 			LOG.error("WQPDynamicLayerCachingService.clearCache() ERROR: Removed cache count [" + clearedCount +
 					  "] does not equal total cache count [" + originalCount + "].  Potentially introducing " +
 					  "stale layers {" + uncleared + "}");
 		}
 		
-		LOG.info("WQPDynamicLayerCachingService.clearCache() INFO: Removed cache count [" + clearedCount +
+		LOG.debug("WQPDynamicLayerCachingService.clearCache() INFO: Removed cache count [" + clearedCount +
 				  "] from cache.");
 		
 		return clearedCount;
@@ -361,26 +352,25 @@ public class WQPDynamicLayerCachingService {
 		 * We should be finished before this service responds to any requests, but we will use the thread safe getLayerCache()
 		 * just in case...
 		 */
-		LOG.info("WQPDynamicLayerCachingService.populateCache() START");
+		LOG.debug("WQPDynamicLayerCachingService.populateCache() START");
 		try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(getCredentialsProvider()).build()) {
 			//TODO switch to datastores!!! http://cida-eros-wqpgsqa.er.usgs.gov:8080/geoserver/rest/workspaces/qw_portal_map/datastores.json
 			JsonObject jsonObject = httpClient.execute(new HttpGet(geoserverRestLayers), new JsonObjectResponseHandler());
 			Iterator<JsonElement> i = getResponseIterator(jsonObject);
 			while (i.hasNext()) {
 				JsonObject layer = i.next().getAsJsonObject();
-				LOG.info("WQPDynamicLayerCachingService.populateCache() with [" + layer.get("name").getAsString() + "]");
+				LOG.debug("WQPDynamicLayerCachingService.populateCache() with [" + layer.get("name").getAsString() + "]");
 				DynamicLayerCache cacheIt = new DynamicLayerCache(layer.get("name").getAsString());
 				try {
 					getLayerCache(cacheIt);
 				} catch (OGCProxyException e) {
-					LOG.error(e.traceBack());
+					LOG.error("Problems populating cache", e);
 				}
 			}
 		} catch (Exception e) {
-			LOG.error("Problems loading cache from geoserver: " + e.getLocalizedMessage());
-			e.printStackTrace();
+			LOG.error("Problems loading cache from geoserver: " + e.getLocalizedMessage(), e);
 		}
-		LOG.info("WQPDynamicLayerCachingService.populateCache() FINISH");
+		LOG.debug("WQPDynamicLayerCachingService.populateCache() FINISH");
 	}
 	
 	protected Iterator<JsonElement> getResponseIterator(JsonObject jsonObject) {

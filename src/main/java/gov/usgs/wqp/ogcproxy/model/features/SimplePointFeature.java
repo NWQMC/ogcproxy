@@ -71,7 +71,7 @@ public class SimplePointFeature implements FeatureDAO {
 		this.point = this.geometryFactory.createPoint(new Coordinate(this.longitude, this.latitude));
 		
 		this.baseAttribs = new HashMap<BaseAttributeType, String>() {{
-			put(BaseAttributeType.Provider, SourceProvider.getStringFromType(provider));
+			put(BaseAttributeType.Provider, provider.toString());
 			put(BaseAttributeType.LocationIdentifier, type);
 			put(BaseAttributeType.LocationType, type);
 			put(BaseAttributeType.Longitude, "" + longitude);
@@ -79,7 +79,7 @@ public class SimplePointFeature implements FeatureDAO {
 		}};
 		
 		this.featureAttribs = new HashMap<FeatureAttributeType, Object>() {{
-			put(FeatureAttributeType.provider, SourceProvider.getStringFromType(provider));
+			put(FeatureAttributeType.provider, provider.toString());
 			put(FeatureAttributeType.name, name);
 			put(FeatureAttributeType.type, type);
 			put(FeatureAttributeType.point, point);
@@ -102,7 +102,7 @@ public class SimplePointFeature implements FeatureDAO {
 		this.point = this.geometryFactory.createPoint(new Coordinate(this.longitude, this.latitude));
 		
 		baseAttribs = new HashMap<BaseAttributeType, String>() {{
-			put(BaseAttributeType.Provider, SourceProvider.getStringFromType(provider));
+			put(BaseAttributeType.Provider, provider.toString());
 			put(BaseAttributeType.LocationIdentifier, name);
 			put(BaseAttributeType.LocationType, type);
 			put(BaseAttributeType.Longitude, "" + longitude);
@@ -110,7 +110,7 @@ public class SimplePointFeature implements FeatureDAO {
 		}};
 		
 		featureAttribs = new HashMap<FeatureAttributeType, Object>() {{
-			put(FeatureAttributeType.provider, SourceProvider.getStringFromType(provider));
+			put(FeatureAttributeType.provider, provider.toString());
 			put(FeatureAttributeType.name, name);
 			put(FeatureAttributeType.type, type);
 			put(FeatureAttributeType.point, point);
@@ -125,8 +125,8 @@ public class SimplePointFeature implements FeatureDAO {
 
 	public void setProvider(SourceProvider provider) {
 		this.provider = provider;
-		baseAttribs.put(BaseAttributeType.Provider, SourceProvider.getStringFromType(provider));
-		featureAttribs.put(FeatureAttributeType.provider, SourceProvider.getStringFromType(provider));
+		baseAttribs.put(BaseAttributeType.Provider, provider.toString());
+		featureAttribs.put(FeatureAttributeType.provider, provider.toString());
 		this.featureIsDirty = true;
 	}
 
@@ -262,7 +262,7 @@ public class SimplePointFeature implements FeatureDAO {
 			this.featureBuilder.add(this.name);
 			this.featureBuilder.add(this.locationName);
 			this.featureBuilder.add(this.type);
-			this.featureBuilder.add(SourceProvider.getStringFromType(this.provider));
+			this.featureBuilder.add(provider.toString());
 			this.simpleFeature = featureBuilder.buildFeature(null);
 			
 			this.featureIsDirty = false;
@@ -280,7 +280,7 @@ public class SimplePointFeature implements FeatureDAO {
 		StringBuffer sb = new StringBuffer();
 		
 		sb.append("SimplePointFeature Instance:");
-		sb.append("\tProvider:\t" + SourceProvider.getStringFromType(this.provider) + "\n");
+		sb.append("\tProvider:\t" + provider.toString() + "\n");
 		sb.append("\tName:\t\t" + this.name + "\n");
 		sb.append("\tLocation Name:\t" + this.locationName + "\n");
 		sb.append("\tType:\t\t" + this.type + "\n");

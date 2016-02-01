@@ -124,22 +124,8 @@ public class SimplePointProviderHandler extends DefaultHandler {
 		this.currentProvider = SourceProvider.UNKNOWN;
 	}
 	
-	public void startDocument() throws SAXException {
-		//String msg = "========== SimplePointProviderHandler.startDocument() ==========";
-		//System.out.println(msg);
-		//log.debug(msg);
-	}
-	
-	public void endDocument() throws SAXException {
-		//String msg = "========== SimplePointProviderHandler.endDocument() ==========";
-		//System.out.println(msg);
-		//log.debug(msg);
-	}
-	
+	@Override
 	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-		//String msg = "========== SimplePointProviderHandler.startElement() [" + qName + "] ==========";
-		//System.out.println(msg);
-		//log.debug(msg);
 		contents.reset();
 		
 		if (SimplePointProviderHandler.SUBHANDLER_ELEMENT.equals(qName)) {
@@ -148,35 +134,31 @@ public class SimplePointProviderHandler extends DefaultHandler {
 			} catch (SchemaException e) {
 				String error = "SimplePointProviderHandler.startElement() Exception: " + e.getMessage();
 				LOG.error(error);
-				//System.out.println(error);
-				
 				throw new SAXException(error);
 			} catch (NoSuchAuthorityCodeException e) {
 				String error = "SimplePointProviderHandler.startElement() Exception: " + e.getMessage();
 				LOG.error(error);
-				//System.out.println(error);
-				
 				throw new SAXException(error);
 			} catch (FactoryException e) {
 				String error = "SimplePointProviderHandler.startElement() Exception: " + e.getMessage();
 				LOG.error(error);
-				//System.out.println(error);
-				
 				throw new SAXException(error);
 			}
 		}
 	}
 	
+	@Override
 	public void endElement(String uri, String localName, String qName) throws SAXException {
-		//String msg = "========== SimplePointProviderHandler.startElement() [" + qName + "] ==========";
-		//System.out.println(msg);
-		//log.debug(msg);
-		
 		if (SimplePointProviderHandler.PROVIDER_NAME_ELEMENT.equals(qName)) {
-			this.currentProvider = SourceProvider.getTypeFromString(contents.toString());
+			try {
+				this.currentProvider = SourceProvider.valueOf(contents.toString().toUpperCase());
+			} catch (IllegalArgumentException e) {
+				this.currentProvider = SourceProvider.UNKNOWN;
+			}
 		}
 	}
 	
+	@Override
 	public void characters(char[] ch, int start, int length) throws SAXException {
 		contents.write(ch, start, length);
 	}
@@ -184,4 +166,5 @@ public class SimplePointProviderHandler extends DefaultHandler {
 	public SourceProvider getCurrentProvider() {
 		return currentProvider;
 	}
+
 }

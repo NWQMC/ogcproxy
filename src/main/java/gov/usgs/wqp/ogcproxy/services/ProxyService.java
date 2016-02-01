@@ -84,21 +84,20 @@ public class ProxyService {
 	private static boolean initialized;
 	private static boolean layerPassthrough;
 	
-	private static long threadTimeout = 604800000; // 1000 * 60 * 60 * 24 * 7 (1 week)
-	private static long threadSleep   = 500;
-	
 	private static String geoserverProtocol  = "http";
 	private static String geoserverHost      = "localhost";
 	private static String geoserverPort      = "8080";
 	private static String forwardUrl         = "http://localhost:8080";
 	private static String geoserverContext   = "/geoserver";
-	private static String geoserverWorkspace = "qw_portal_map";
 
-	private static int connection_ttl            = 15 * 60 * 1000; // 15 minutes, default is infinite
+	// 15 minutes, default is infinite
+	private static int connection_ttl            = 15 * 60 * 1000;
 	private static int connections_max_total     = 256;
 	private static int connections_max_route     = 32;
-	private static int client_socket_timeout     = 5 * 60 * 1000; // 5 minutes, default is infinite
-	private static int client_connection_timeout = 15 * 1000; // 15 seconds, default is infinte
+	// 5 minutes, default is infinite
+	private static int client_socket_timeout     = 5 * 60 * 1000;
+	// 15 seconds, default is infinite
+	private static int client_connection_timeout = 15 * 1000;
 
 	private static Set<String> ignoredClientRequestHeaderSet  = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 	private static Set<String> ignoredServerResponseHeaderSet = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
@@ -108,15 +107,13 @@ public class ProxyService {
 	/* ========================================================================
 	 * Local ===========================================================
 	 */
-	protected PoolingHttpClientConnectionManager clientConnectionManager;
-	protected CloseableHttpClient serverClient;
-
-	
+	private CloseableHttpClient serverClient;
 
 	/**
 	 * Private Constructor for Singleton Pattern
 	 */
-	private ProxyService() {}
+	private ProxyService() {
+	}
 
 	/**
 	 * Singleton accessor
@@ -143,107 +140,36 @@ public class ProxyService {
 			}
 			initialized = true;
 			
-			try {
-				threadTimeout = Long.parseLong(environment.getProperty("proxy.thread.timeout"));
-			} catch (Exception e) {
-				LOG.error("ProxyService() Constructor Exception: Failed to parse property [proxy.thread.timeout] "
-						+ "- Keeping cache timeout period default to ["+ threadTimeout+ "].\n"
-						+ e.getMessage()+ "\n");
+			String tmp = environment.getProperty("wqp.geoserver.proto");
+			if (!isEmpty(tmp)) {
+				geoserverProtocol = tmp;
+			}
+			tmp = environment.getProperty("wqp.geoserver.host");
+			if (!isEmpty(tmp)) {
+				geoserverHost = tmp;
+			}
+			tmp = environment.getProperty("wqp.geoserver.port");
+			if (!isEmpty(tmp)) {
+				geoserverPort= tmp;
 			}
 
-			try {
-				threadSleep = Long.parseLong(environment.getProperty("proxy.thread.sleep"));
-			} catch (Exception e) {
-				LOG.error("ProxyService() Constructor Exception: Failed to parse property [proxy.thread.sleep] "
-						+ "- Keeping thread sleep default to ["+ threadSleep + "].\n" + e.getMessage() + "\n");
-			}
+			forwardUrl = geoserverProtocol + "://" + geoserverHost + ":" + geoserverPort;
 
-			try {
-				String defaultProto = geoserverProtocol;
-				geoserverProtocol = environment.getProperty("wqp.geoserver.proto");
-				if (isEmpty(geoserverProtocol)) {
-					LOG.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.proto] "
-							+ "- Setting geoserver protocol default to ["+ defaultProto + "].\n");
-					geoserverProtocol = defaultProto;
-				}
-			} catch (Exception e) {
-				LOG.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.proto] "
-						+ "- Setting geoserver protocol default to ["+ geoserverProtocol + "].\n");
-			}
-
-			try {
-				String defaultHost = geoserverHost;
-				geoserverHost = environment.getProperty("wqp.geoserver.host");
-				if (isEmpty(geoserverHost)) {
-					LOG.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.host] "
-							+ "- Setting geoserver host default to ["+ defaultHost + "].\n");
-					geoserverHost = defaultHost;
-				}
-			} catch (Exception e) {
-				LOG.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.host] "
-						+ "- Setting geoserver host default to ["+ geoserverHost + "].\n");
-			}
-
-			try {
-				String defaultPort = geoserverPort;
-				geoserverPort = environment.getProperty("wqp.geoserver.port");
-				if (isEmpty(geoserverPort)) {
-					LOG.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.port] "
-							+ "- Setting geoserver port default to ["+ defaultPort + "].\n");
-					geoserverPort = defaultPort;
-				}
-			} catch (Exception e) {
-				LOG.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.port] "
-						+ "- Setting geoserver port default to ["+ geoserverPort + "].\n");
-			}
-
-			forwardUrl = geoserverProtocol + "://" + geoserverHost+ ":" + geoserverPort;
-			LOG.info("ProxyService() Constructor Info: Setting GeoServer forwarding URL to ["+ forwardUrl + "]");
-
-			try {
-				String defaultContext = geoserverContext;
-				geoserverContext = environment
-						.getProperty("wqp.geoserver.context");
-				if (isEmpty(geoserverContext)) {
-					LOG.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.context] "
-							+ "- Setting geoserver context default to ["+ defaultContext + "].\n");
-					geoserverContext = defaultContext;
-				}
-			} catch (Exception e) {
-				LOG.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.context] "
-						+ "- Setting geoserver context default to ["+ geoserverContext + "].\n");
-			}
-
-			try {
-				String defaultWorkspace = geoserverWorkspace;
-				geoserverWorkspace = environment
-						.getProperty("wqp.geoserver.workspace");
-				if (isEmpty(geoserverWorkspace)) {
-					LOG.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.workspace] "
-							+ "- Setting geoserver workspace default to ["+ defaultWorkspace + "].\n");
-					geoserverWorkspace = defaultWorkspace;
-				}
-			} catch (Exception e) {
-				LOG.error("ProxyService() Constructor Exception: Failed to parse property [wqp.geoserver.workspace] "
-						+ "- Setting geoserver workspace default to ["+ geoserverWorkspace + "].\n");
+			tmp = environment.getProperty("wqp.geoserver.context");
+			if (!isEmpty(tmp)) {
+				geoserverContext = tmp;
 			}
 
 			// Set the pass-through behavior. If a searchParam request
 			// comes through and the layer parameter is NOT set to a
 			// "known" value, we can either pass it through and work as
 			// expected or return an error
-			try {
-				layerPassthrough = Boolean.parseBoolean(environment.getProperty("proxy.layerparam.passthrough"));
-			} catch (Exception e) {
-				LOG.error("ProxyService() Constructor Exception: Failed to parse property [proxy.layerparam.passthrough] "
-						+ "- Proxy Layer Passthrough setting default to ["+ layerPassthrough+ "].\n"
-						+ e.getMessage()+ "\n");
-			}
+			layerPassthrough = Boolean.parseBoolean(environment.getProperty("proxy.layerparam.passthrough"));
 
 			// Initialize connection manager, this is thread-safe. if we
 			// use this
 			// with any HttpClient instance it becomes thread-safe.
-			clientConnectionManager = new PoolingHttpClientConnectionManager(
+			PoolingHttpClientConnectionManager clientConnectionManager = new PoolingHttpClientConnectionManager(
 					connection_ttl, TimeUnit.MILLISECONDS);
 			clientConnectionManager.setMaxTotal(connections_max_total);
 			clientConnectionManager.setDefaultMaxPerRoute(connections_max_route);
@@ -257,7 +183,7 @@ public class ProxyService {
 					.disableContentCompression().setDefaultRequestConfig(config).build();
 
 			// Ignored headers relating to proxing requests
-			// don't parameterize, need to swtich host from proxy to server
+			// don't parameterize, need to switch host from proxy to server
 			ignoredClientRequestHeaderSet.add("host");
 			// don't parameterize, let proxy to server call do it's own handling
 			ignoredClientRequestHeaderSet.add("connection");
@@ -268,7 +194,7 @@ public class ProxyService {
 			// ignore header in request, this is set in client call.
 			ignoredClientRequestHeaderSet.add("content-length");
 
-			// Ignored headers relating to proxing reponses.
+			// Ignored headers relating to proxing responses.
 			// don't parameterize
 			ignoredServerResponseHeaderSet.add("transfer-encoding");
 			// don't parameterize
@@ -391,14 +317,14 @@ public class ProxyService {
 		if (searchParams.size() > 0) {
 			// Did we find a legitimate layer value or do we need to return an
 			// error (we must have a layer value to do a dynamic search)?
-			if ((layerParams.size() == 0) && ! layerPassthrough ) {
+			if ((layerParams.isEmpty()) && ! layerPassthrough ) {
 				deferredResult.setResult(ProxyUtil.PROXY_LAYER_ERROR);
 				return deferredResult;
 			}
 
 			// We can now proceed with the request. Depending on the value of
 			// the layer parameter we will call the correct layer building service.
-			LOG.info("ProxyService.performRequest() Info: Kicking off search parameter logic for data source ["
+			LOG.debug("ProxyService.performRequest() Info: Kicking off search parameter logic for data source ["
 					+ dataSource + "]");
 			if (dataSource == ProxyDataSourceParameter.WQP_SITES) {
 				// TODO asdf this must handle the POST
@@ -421,7 +347,7 @@ public class ProxyService {
 		boolean proxySuccess = proxyRequest(request, response, ogcParams, ogcRequestType, ogcService, dataSource);
 		
 		if (proxySuccess) {
-			LOG.info("ProxyService.performRequest() INFO: Proxy request is completed successfully.");
+			LOG.debug("ProxyService.performRequest() INFO: Proxy request is completed successfully.");
 			deferredResult.setResult(ProxyServiceResult.SUCCESS.toString());
 		} else {
 			LOG.error("ProxyService.performRequest() Error:  Unable to proxy client request.");
@@ -450,7 +376,7 @@ public class ProxyService {
 			HttpUriRequest serverRequest = generateServerRequest(clientRequest, requestParams);
 			handleServerRequest(clientRequest, clientResponse, serverRequest, requestParams, ogcRequestType, serviceType, dataSource);
 		} catch (OGCProxyException e) {
-			LOG.error("ProxyService.proxyRequest() Error: proxying client request: " + e.getMessage());
+			LOG.error("ProxyService.proxyRequest() Error: proxying client request: " + e.getMessage(), e);
 			return false;
 		}
 
@@ -467,33 +393,38 @@ public class ProxyService {
 			String serverRequestURIAsString = ProxyUtil.getServerRequestURIAsString(clientRequest, ogcParams,
 							ProxyService.forwardUrl, ProxyService.geoserverContext);
 
-			LOG.info("ProxyService.generateServerRequest(): request to GeoServer is: [\n" + serverRequestURIAsString + "]");
+			LOG.debug("ProxyService.generateServerRequest(): request to GeoServer is: [\n" + serverRequestURIAsString + "]");
 
 			// instantiating to URL then calling toURI gives us some error
 			// checking as URI(String) appears too forgiving.
 			URI serverRequestURI = new URL(serverRequestURIAsString).toURI();
 
 			// 2 ) Create request base on client request method
-			String clientRequestMethod = clientRequest.getMethod();
-			
-			if ("HEAD".equals(clientRequestMethod)) {
+			switch (clientRequest.getMethod().toUpperCase()) {
+            case "HEAD":
 				serverRequest = new HttpHead(serverRequestURI);
-			} else if ("GET".equals(clientRequestMethod)) {
+                break;
+            case "GET":
 				serverRequest = new HttpGet(serverRequestURI);
-			} else if ("POST".equals(clientRequestMethod)) {
+                break;
+            case "POST":
 				serverRequest = new HttpPost(serverRequestURI);
-			} else if ("PUT".equals(clientRequestMethod)) {
+                break;
+            case "PUT":
 				serverRequest = new HttpPut(serverRequestURI);
-			} else if ("DELETE".equals(clientRequestMethod)) {
+                break;
+            case "DELETE":
 				serverRequest = new HttpDelete(serverRequestURI);
-			} else if ("TRACE".equals(clientRequestMethod)) {
+                break;
+            case "TRACE":
 				serverRequest = new HttpTrace(serverRequestURI);
-			} else if ("OPTIONS".equals(clientRequestMethod)) {
+                break;
+            case "OPTIONS":
 				serverRequest = new HttpOptions(serverRequestURI);
-			} else {
+                break;
+			default:
 				String msg = "ProxyService.generateServerRequest() Exception : Unsupported request method [" + serverRequest + "].";
 				LOG.error(msg);
-
 				OGCProxyExceptionID id = OGCProxyExceptionID.UNSUPPORTED_REQUEST_METHOD;
 				throw new OGCProxyException(id, "ProxyService", "generateServerRequest()", msg);
 			}
@@ -530,7 +461,7 @@ public class ProxyService {
 				 
 					} catch (IOException e) {
 						String msg = "ProxyService.generateServerRequest() Exception : Error reading client request body [" + e.getMessage() + "].";
-						LOG.error(msg);
+						LOG.error(msg, e);
 
 						OGCProxyExceptionID id = OGCProxyExceptionID.ERROR_READING_CLIENT_REQUEST_BODY;
 						throw new OGCProxyException(id, "ProxyService", "generateServerRequest()", msg);
@@ -547,7 +478,7 @@ public class ProxyService {
 		} catch (MalformedURLException e) {
 			String msg = "ProxyService.generateServerRequest() Exception : Syntax error parsing server URL ["
 					+ e.getMessage() + "].";
-			LOG.error(msg);
+			LOG.error(msg, e);
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;
 			throw new OGCProxyException(id, "ProxyService",
@@ -555,7 +486,7 @@ public class ProxyService {
 		} catch (URISyntaxException e) {
 			String msg = "ProxyService.generateServerRequest() Exception : Syntax error parsing server URL ["
 					+ e.getMessage() + "].";
-			LOG.error(msg);
+			LOG.error(msg, e);
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;
 			throw new OGCProxyException(id, "ProxyService",
@@ -578,7 +509,7 @@ public class ProxyService {
 		} catch (ClientProtocolException e) {
 			String msg = "ProxyService.handleServerRequest() Exception : Client protocol error ["
 					+ e.getMessage() + "]";
-			LOG.error(msg);
+			LOG.error(msg, e);
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.CLIENT_PROTOCOL_ERROR;
 			throw new OGCProxyException(id, "ProxyService",
@@ -586,7 +517,7 @@ public class ProxyService {
 		} catch (IOException e) {
 			String msg = "ProxyService.handleServerRequest() Exception : I/O error on server request ["
 					+ e.getMessage() + "]";
-			LOG.error(msg);
+			LOG.error(msg, e);
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_REQUEST_IO_ERROR;
 			throw new OGCProxyException(id, "ProxyService",
@@ -644,7 +575,7 @@ public class ProxyService {
 				} catch (IOException e) {
 					String msg = "ProxyService.handleServerResponse() Exception : Error obtaining input stream for server response ["
 							+ e.getMessage() + "]";
-					LOG.error(msg);
+					LOG.error(msg, e);
 
 					OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_RESPONSE_INPUT_STREAM_ERROR;
 					throw new OGCProxyException(id, "ProxyService",
@@ -656,7 +587,7 @@ public class ProxyService {
 				} catch (IOException e) {
 					String msg = "ProxyService.handleServerResponse() Exception : Error obtaining output stream for client response ["
 							+ e.getMessage() + "]";
-					LOG.error(msg);
+					LOG.error(msg, e);
 
 					OGCProxyExceptionID id = OGCProxyExceptionID.CLIENT_RESPONSE_OUTPUT_STREAM_ERROR;
 					throw new OGCProxyException(id, "ProxyService",
@@ -669,7 +600,7 @@ public class ProxyService {
 				} catch (IOException e) {
 					String msg = "ProxyService.handleServerResponse() Exception : Error copying server response to byteArray ["
 							+ e.getMessage() + "]";
-					LOG.error(msg);
+					LOG.error(msg, e);
 
 					OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_TO_CLIENT_RESPONSE_ERROR;
 					throw new OGCProxyException(id, "ProxyService",
@@ -702,7 +633,7 @@ public class ProxyService {
 				} catch (IOException e) {
 					String msg = "ProxyService.handleServerResponse() Exception : Error copying server response to client ["
 							+ e.getMessage() + "]";
-					LOG.error(msg);
+					LOG.error(msg, e);
 
 					OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_TO_CLIENT_RESPONSE_ERROR;
 					throw new OGCProxyException(id, "ProxyService",
@@ -724,7 +655,7 @@ public class ProxyService {
 					LOG.error("ProxyService.handleServerResponse() Error: consuming remaining bytes in server response entity for proxy reponse from "
 							+ clientRequestURLAsString
 							+ " to "
-							+ serverRequestURLAsString);
+							+ serverRequestURLAsString, e);
 				}
 				IOUtils.closeQuietly(is);
 				IOUtils.closeQuietly(os);
@@ -748,25 +679,23 @@ public class ProxyService {
 		// We now need to do some inspection on the data.  If the original OGC
 		// request is a GetCapabilities, we need to insert the service's specific
 		// information into the response.
-		if (ProxyUtil.OGC_GET_CAPABILITIES.toLowerCase().equals(ogcRequestType.toLowerCase())) {
+		if (ProxyUtil.OGC_GET_CAPABILITIES.equalsIgnoreCase(ogcRequestType)) {
 			// This is a GetCapabilities call.  We need to include the service
 			// specific GetCapabilities information in the result so we conform
 			// to the OGC spec
 			switch (dataSource) {
-				case WQP_SITES: {
+				case WQP_SITES: 
 					stringContent = wqpLayerBuildingService.addGetCapabilitiesInfo(serviceType, stringContent);
 					break;
-				}
-				default: {
+				default:
 					break;
-				}
 			}
 		}
 		
 		// We also need to scrub the response for any mention of the actual
 		// GeoServer's location and replace it with this proxy's location.
 		if (stringContent.contains(geoserverHost)) {
-			LOG.info("ProxyService.inspectServerContent() INFO : Server response contains references to its hostname.  Redirecting entries to the proxy...");
+			LOG.debug("ProxyService.inspectServerContent() INFO : Server response contains references to its hostname.  Redirecting entries to the proxy...");
 
 			String proxyServerName = clientRequest.getServerName();
 			String proxyContextPath = clientRequest

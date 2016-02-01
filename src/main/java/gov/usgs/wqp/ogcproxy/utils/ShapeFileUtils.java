@@ -29,110 +29,50 @@ public class ShapeFileUtils {
 	public static final String MEDIATYPE_APPLICATION_ZIP = "application/zip";
 	
 	public static boolean writeToShapeFile(ShapefileDataStore newDataStore, SimpleFeatureType featureType, List<SimpleFeature> features, String path, String filename) {
-		return ShapeFileUtils.writeToShapeFile(newDataStore, featureType, features, path, filename, false);
-	}
-	
-	public static boolean writeToShapeFile(ShapefileDataStore newDataStore, SimpleFeatureType featureType, List<SimpleFeature> features, String path, String filename, boolean profile) {
 		/*
          * Write the features to the shapefile
          */
-		// ==============
-		if (profile)
-			TimeProfiler.startTimer("GeoTools - Create Transaction time");
-        Transaction transaction = new DefaultTransaction("create");
-        if (profile)
-        	TimeProfiler.endTimer("GeoTools - Create Transaction time", LOG);
-		// ==============
+        try (Transaction transaction = new DefaultTransaction("create")) {
         
-        String typeName;
-		try {
-			typeName = newDataStore.getTypeNames()[0];
-		} catch (IOException e) {
-			System.out.println(e.getMessage());
-			LOG.error(e.getMessage());
-			return false;
-		}
+        	String typeName = newDataStore.getTypeNames()[0];
+        	SimpleFeatureSource featureSource = newDataStore.getFeatureSource(typeName);
 		
-		// ==============
-		if (profile)
-			TimeProfiler.startTimer("GeoTools - Create SimpleFeatureSource time");
-        SimpleFeatureSource featureSource;
-		try {
-			featureSource = newDataStore.getFeatureSource(typeName);
-		} catch (IOException e) {
-			System.out.println(e.getMessage());
-			LOG.error(e.getMessage());
-			return false;
-		}
-		if (profile)
-			TimeProfiler.endTimer("GeoTools - Create SimpleFeatureSource time", LOG);
-		// ==============
-		
-        if (featureSource instanceof SimpleFeatureStore) {
-            SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
-            /*
-             * SimpleFeatureStore has a method to add features from a
-             * SimpleFeatureCollection object, so we use the ListFeatureCollection
-             * class to wrap our list of features.
-             */
-            // ==============
-            if (profile)
-    			TimeProfiler.startTimer("GeoTools - SimpleFeatureCollection Creation time");
-            SimpleFeatureCollection collection = new ListFeatureCollection(featureType, features);
-            if (profile)
-    			TimeProfiler.endTimer("GeoTools - SimpleFeatureCollection Creation time", LOG);
-    		// ==============
-    		
-            featureStore.setTransaction(transaction);
-            try {
-            	// ==============
-            	if (profile)
-        			TimeProfiler.startTimer("GeoTools - SimpleFeatureCollection Population time");
-                featureStore.addFeatures(collection);
-                if (profile)
-        			TimeProfiler.endTimer("GeoTools - SimpleFeatureCollection Population time", LOG);
-        		// ==============
-        		
-        		// ==============
-                if (profile)
-        			TimeProfiler.startTimer("GeoTools - Transaction Commit time");
+	        if (featureSource instanceof SimpleFeatureStore) {
+	            SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
+	            /*
+	             * SimpleFeatureStore has a method to add features from a
+	             * SimpleFeatureCollection object, so we use the ListFeatureCollection
+	             * class to wrap our list of features.
+	             */
+	            SimpleFeatureCollection collection = new ListFeatureCollection(featureType, features);
+	    		
+	            featureStore.setTransaction(transaction);
+	            try {
+	            	featureStore.addFeatures(collection);
+	            } catch (IOException e) {
+	            	transaction.rollback();
+	            	throw e;
+	            }
                 transaction.commit();
-                if (profile)
-        			TimeProfiler.endTimer("GeoTools - Transaction Commit time", LOG);
-        		// ==============
-            } catch (Exception e) {
-            	System.out.println(e.getMessage());
-    			LOG.error(e.getMessage());
-                try {
-					transaction.rollback();
-				} catch (IOException e1) {
-					System.out.println(e1.getMessage());
-					LOG.error(e1.getMessage());
-				}
-            } finally {
-                try {
-					transaction.close();
-				} catch (IOException e) {
-					System.out.println(e.getMessage());
-					LOG.error(e.getMessage());
-				}
-            }
-        } else {
-            String msg = typeName + " does not support read/write access";
-            System.out.println(msg);
-			LOG.error(msg);
-			return false;
+
+                /*
+                 * Lets zip up all files created that make up "the shape file"
+                 */
+            	SystemUtils.createZipFromFilematch(path, filename);
+	        } else {
+	            String msg = typeName + " does not support read/write access";
+	            System.out.println(msg);
+				LOG.error(msg);
+				return false;
+	        }
+
+        } catch (IOException e) {
+        	System.out.println(e.getMessage());
+        	LOG.error(e.getMessage());
+        	return false;
         }
         
-        /*
-         * Lets zip up all files created that make up "the shape file"
-         */
-        // ==============
-    	TimeProfiler.startTimer("ZIP Archive - Overall Archive time");
-    	SystemUtils.createZipFromFilematch(path, filename);
-    	TimeProfiler.endTimer("ZIP Archive - Overall Archive time", LOG);
-		// ==============
-		
 		return true;
 	}
+
 }

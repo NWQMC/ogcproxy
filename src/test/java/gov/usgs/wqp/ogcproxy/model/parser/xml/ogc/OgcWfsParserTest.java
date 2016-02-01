@@ -10,8 +10,7 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
-
-import com.sun.jndi.toolkit.url.UrlUtil;
+import org.springframework.web.util.UriUtils;
 
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
@@ -384,7 +383,7 @@ public class OgcWfsParserTest {
 		String encoded   = "countrycode:US;statecode:US%3A55%7CUS%3A28%7CUS%3A32;characteristicName:Atrazine";
 		String expected  = "countrycode:US;statecode:US:55|US:28|US:32;characteristicName:Atrazine";
 		
-		String actual    = UrlUtil.decode(encoded);
+		String actual    = UriUtils.decode(encoded, "UTF-8");
 		
 		assertEquals(expected, actual);
 	}

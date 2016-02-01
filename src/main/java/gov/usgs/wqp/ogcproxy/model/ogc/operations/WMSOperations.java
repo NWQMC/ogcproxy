@@ -25,8 +25,7 @@ public enum WMSOperations {
 	GetMap,
 	GetFeatureInfo,
 	DescribeLayer,
-	GetLegendGraphic,
-	UNKNOWN;
+	GetLegendGraphic;
 	
 	public static List<WMSParameters> getParameters(WMSOperations type) {
 		

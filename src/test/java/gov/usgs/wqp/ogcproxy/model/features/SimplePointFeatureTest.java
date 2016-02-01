@@ -95,7 +95,7 @@ public class SimplePointFeatureTest {
 		for (BaseAttributeType baseType : this.defaultBaseAttribs) {
 			assertTrue(baseTypes.contains(baseType));
 		}
-		assertEquals(SourceProvider.getStringFromType(SourceProvider.UNKNOWN), currentPointFeature.getBaseAttribute(BaseAttributeType.Provider));
+		assertEquals(SourceProvider.UNKNOWN.toString(), currentPointFeature.getBaseAttribute(BaseAttributeType.Provider));
 		assertEquals("", currentPointFeature.getBaseAttribute(BaseAttributeType.LocationType));
 		assertEquals("", currentPointFeature.getBaseAttribute(BaseAttributeType.LocationIdentifier));
 		assertEquals(Double.toString(0), currentPointFeature.getBaseAttribute(BaseAttributeType.Longitude));
@@ -108,7 +108,7 @@ public class SimplePointFeatureTest {
 		}
 		assertEquals("", currentPointFeature.getFeatureAttribute(FeatureAttributeType.name));
 		assertEquals("", currentPointFeature.getFeatureAttribute(FeatureAttributeType.type));
-		assertEquals(SourceProvider.getStringFromType(SourceProvider.UNKNOWN), currentPointFeature.getFeatureAttribute(FeatureAttributeType.provider));
+		assertEquals(SourceProvider.UNKNOWN.toString(), currentPointFeature.getFeatureAttribute(FeatureAttributeType.provider));
 		assertEquals(defaultPoint, currentPointFeature.getFeatureAttribute(FeatureAttributeType.point));
 		
 		/**
@@ -162,7 +162,7 @@ public class SimplePointFeatureTest {
 		
 		Object theProvider = generatedFeature.getAttribute("provider");
 		assertEquals(theProvider.getClass(), String.class);
-		assertEquals(SourceProvider.getStringFromType(SourceProvider.UNKNOWN), (String)theProvider);
+		assertEquals(SourceProvider.UNKNOWN.toString(), (String)theProvider);
 		
 		Object theType = generatedFeature.getAttribute("type");
 		assertEquals(theType.getClass(), String.class);
@@ -205,7 +205,7 @@ public class SimplePointFeatureTest {
 		for (BaseAttributeType baseType : this.defaultBaseAttribs) {
 			assertTrue(baseTypes.contains(baseType));
 		}
-		assertEquals(SourceProvider.getStringFromType(defaultProvider), currentPointFeature.getBaseAttribute(BaseAttributeType.Provider));
+		assertEquals(defaultProvider.toString(), currentPointFeature.getBaseAttribute(BaseAttributeType.Provider));
 		assertEquals(defaultType, currentPointFeature.getBaseAttribute(BaseAttributeType.LocationType));
 		assertEquals(defaultName, currentPointFeature.getBaseAttribute(BaseAttributeType.LocationIdentifier));
 		assertEquals(Double.toString(defaultLong), currentPointFeature.getBaseAttribute(BaseAttributeType.Longitude));
@@ -218,7 +218,7 @@ public class SimplePointFeatureTest {
 		}
 		assertEquals(defaultName, currentPointFeature.getFeatureAttribute(FeatureAttributeType.name));
 		assertEquals(defaultType, currentPointFeature.getFeatureAttribute(FeatureAttributeType.type));
-		assertEquals(SourceProvider.getStringFromType(defaultProvider), currentPointFeature.getFeatureAttribute(FeatureAttributeType.provider));
+		assertEquals(defaultProvider.toString(), currentPointFeature.getFeatureAttribute(FeatureAttributeType.provider));
 		assertEquals(defaultPoint, currentPointFeature.getFeatureAttribute(FeatureAttributeType.point));
 		
 		/**
@@ -272,7 +272,7 @@ public class SimplePointFeatureTest {
 		
 		Object theProvider = generatedFeature.getAttribute("provider");
 		assertEquals(theProvider.getClass(), String.class);
-		assertEquals(SourceProvider.getStringFromType(defaultProvider), (String)theProvider);
+		assertEquals(defaultProvider.toString(), (String)theProvider);
 		
 		Object theType = generatedFeature.getAttribute("type");
 		assertEquals(theType.getClass(), String.class);
@@ -284,7 +284,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Instantiate used values
 		 */
-		String provider = SourceProvider.getStringFromType(SourceProvider.NWIS);
+		String provider = SourceProvider.NWIS.toString();
 		String testName = "TestName";
 		String testType = "TestType";
 		double testLong = -81;
@@ -376,7 +376,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Instantiate used values
 		 */
-		String provider = SourceProvider.getStringFromType(SourceProvider.NWIS);
+		String provider = SourceProvider.NWIS.toString();
 		String testName = "TestName";
 		String testType = "TestType";
 		double testLong = -81;
@@ -468,7 +468,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Instantiate used values
 		 */
-		String provider = SourceProvider.getStringFromType(SourceProvider.NWIS);
+		String provider = SourceProvider.NWIS.toString();
 		String testName = "TestName";
 		String testType = "TestType";
 		double testLong = -81;
@@ -576,7 +576,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Instantiate used values
 		 */
-		String provider = SourceProvider.getStringFromType(SourceProvider.NWIS);
+		String provider = SourceProvider.NWIS.toString();
 		String testName = "TestName";
 		String testType = "TestType";
 		double testLong = -81;
@@ -679,7 +679,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Instantiate used values
 		 */
-		String provider = SourceProvider.getStringFromType(SourceProvider.NWIS);
+		String provider = SourceProvider.NWIS.toString();
 		String testName = "TestName";
 		String testType = "TestType";
 		double testLong = -81;
@@ -784,7 +784,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Instantiate used values
 		 */
-		String provider = SourceProvider.getStringFromType(SourceProvider.NWIS);
+		String provider = SourceProvider.NWIS.toString();
 		String testName = "TestName";
 		String testType = "TestType";
 		double testLong = -81;
@@ -799,7 +799,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Test our provider
 		 */
-		assertEquals(provider, SourceProvider.getStringFromType(testableFeature.getProvider()));
+		assertEquals(provider, testableFeature.getProvider().toString());
 		assertEquals(provider, testableFeature.getBaseAttribute(BaseAttributeType.Provider));
 		assertEquals(provider, testableFeature.getFeatureAttribute(FeatureAttributeType.provider));
 		
@@ -828,13 +828,13 @@ public class SimplePointFeatureTest {
 		/**
 		 * Change our feature's type
 		 */
-		String newProvider = SourceProvider.getStringFromType(SourceProvider.STEWARDS);
+		String newProvider = SourceProvider.STEWARDS.toString();
 		testableFeature.setProvider(SourceProvider.STEWARDS);
 		
 		/**
 		 * Test we have the new type
 		 */
-		assertEquals(newProvider, SourceProvider.getStringFromType(testableFeature.getProvider()));
+		assertEquals(newProvider, testableFeature.getProvider().toString());
 		assertEquals(newProvider, testableFeature.getBaseAttribute(BaseAttributeType.Provider));
 		assertEquals(newProvider, testableFeature.getFeatureAttribute(FeatureAttributeType.provider));
 		

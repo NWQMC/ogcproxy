@@ -49,8 +49,7 @@ public enum WMSParameters {
 	propertyName,
 	rule,
 	scale,
-	viewparams,
-	UNKNOWN;
+	viewparams;
 
 	
 	public String toString() {

@@ -1,8 +1,5 @@
 package gov.usgs.wqp.ogcproxy.model.attributes;
 
-import gov.usgs.wqp.ogcproxy.utils.StringUtils;
-
-
 /**
  * BaseAttributeType
  * @author prusso
@@ -11,13 +8,6 @@ import gov.usgs.wqp.ogcproxy.utils.StringUtils;
  *	in a dataset used for creating a shapefile.
  */
 public enum BaseAttributeType {
-	Provider, OrganizationName, OrganizationId, LocationName, LocationIdentifier, LocationType, Latitude, Longitude, UNKNOWN;
+	Provider, OrganizationName, OrganizationId, LocationName, LocationIdentifier, LocationType, Latitude, Longitude;
 
-	public static BaseAttributeType getTypeFromString(String string) {
-		return StringUtils.getTypeFromString(string, UNKNOWN);
-	}
-
-	public static String getStringFromType(BaseAttributeType type) {
-		return StringUtils.getStringFromType(type, UNKNOWN);
-	}
 }

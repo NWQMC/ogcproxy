@@ -56,8 +56,6 @@ public class OGCProxyController {
 		return mv;
     }
 	
-	//http://www.waterqualitydata.us/qw_portal_map/ows?service=WPS&version=1.0.0&request=Execute&identifier=gs:SingleWpsStatus
-	
 	@RequestMapping(value="**/wms", method={RequestMethod.GET})
     public DeferredResult<String>  wmsProxy(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
 		LOG.debug("OGCProxyController.wmsProxy() INFO - Performing request.");

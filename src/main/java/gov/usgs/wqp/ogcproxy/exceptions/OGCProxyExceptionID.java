@@ -22,11 +22,11 @@ public class OGCProxyExceptionID {
         			"Initialization of class not performed.", 0x00000);
     
     // CACHE EXCEPTIONS
-    public static final OGCProxyExceptionID WMS_LAYER_CREATION_TIME_EXCEEDED =
+    public static final OGCProxyExceptionID LAYER_CREATION_TIME_EXCEEDED =
     	new OGCProxyExceptionID("OGCProxyException Layer Creation Time Exception: ShapeFile creation " +
     			"time exceeded accepted limits.", 0x01000);
     
-    public static final OGCProxyExceptionID WMS_LAYER_CREATION_FAILED =
+    public static final OGCProxyExceptionID LAYER_CREATION_FAILED =
         	new OGCProxyExceptionID("OGCProxyException Layer Creation Failed Exception: ShapeFile creation " +
         			"was unsuccessful.", 0x01001);
 
