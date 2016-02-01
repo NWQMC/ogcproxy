@@ -119,22 +119,8 @@ public class SimplePointLocationHandler extends DefaultHandler {
 		this.currentFeatures = new LinkedList<SimplePointFeature>();
 	}
 	
-	public void startDocument() throws SAXException {
-		//String msg = "========== SimplePointLocationHandler.startDocument() ==========";
-		//System.out.println(msg);
-		//log.debug(msg);
-	}
-	
-	public void endDocument() throws SAXException {
-		//String msg = "========== SimplePointLocationHandler.endDocument() ==========";
-		//System.out.println(msg);
-		//log.debug(msg);
-	}
-	
+	@Override
 	public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
-		//String msg = "========== SimplePointLocationHandler.startElement() [" + qName + "] ==========";
-		//System.out.println(msg);
-		//log.debug(msg);
 		contents.reset();
 		
 		if (SimplePointLocationHandler.LOCATION_START.equals(qName)) {
@@ -142,11 +128,8 @@ public class SimplePointLocationHandler extends DefaultHandler {
 		}
 	}
 	
+	@Override
 	public void endElement(String uri, String localName, String qName) throws SAXException {
-		//String msg = "========== SimplePointLocationHandler.endElement() [" + qName + "] ==========";
-		//System.out.println(msg);
-		//log.debug(msg);
-		
 		/**
 		 * SimplePointFeature organization ID and Name element values stored for later use;
 		 */
@@ -166,11 +149,9 @@ public class SimplePointLocationHandler extends DefaultHandler {
 			} else {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
 						  localName + "] found but no SimplePointFeature object created!";
-				//System.out.println(error);
 				LOG.debug(error);
 			}
 		}
-		
 		
 		/**
 		 * SimplePointFeature name element
@@ -181,7 +162,6 @@ public class SimplePointLocationHandler extends DefaultHandler {
 			} else {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
 						  localName + "] found but no SimplePointFeature object created!";
-				//System.out.println(error);
 				LOG.debug(error);
 			}
 		}
@@ -195,7 +175,6 @@ public class SimplePointLocationHandler extends DefaultHandler {
 			} else {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
 						  localName + "] found but no SimplePointFeature object created!";
-				//System.out.println(error);
 				LOG.debug(error);
 			}
 		}
@@ -212,12 +191,10 @@ public class SimplePointLocationHandler extends DefaultHandler {
 				} catch (NumberFormatException e) {
 					String error = "SimplePointLocationHandler.endElement() ERROR: Latitude value [" + stringValue +
 							  "] could not be parsed as a double value.  Setting latitude to 0.0";
-					//System.out.println(error);
 					LOG.debug(error);
 				} catch (NullPointerException e) {
 					String error = "SimplePointLocationHandler.endElement() ERROR: Latitude value is null and " +
 							  "could not be parsed as a double value.  Setting latitude to 0.0";
-					//System.out.println(error);
 					LOG.debug(error);
 				}
 				
@@ -225,7 +202,6 @@ public class SimplePointLocationHandler extends DefaultHandler {
 			} else {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
 						  localName + "] found but no SimplePointFeature object created!";
-				//System.out.println(error);
 				LOG.debug(error);
 			}
 		}
@@ -242,12 +218,10 @@ public class SimplePointLocationHandler extends DefaultHandler {
 				} catch (NumberFormatException e) {
 					String error = "SimplePointLocationHandler.endElement() ERROR: Longitude value [" + stringValue +
 							  "] could not be parsed as a double value.  Setting longitude to 0.0";
-					//System.out.println(error);
 					LOG.debug(error);
 				} catch (NullPointerException e) {
 					String error = "SimplePointLocationHandler.endElement() ERROR: Longitude value is null and " +
 							  "could not be parsed as a double value.  Setting longitude to 0.0";
-					//System.out.println(error);
 					LOG.debug(error);
 				}
 				
@@ -255,7 +229,6 @@ public class SimplePointLocationHandler extends DefaultHandler {
 			} else {
 				String error = "SimplePointLocationHandler.endElement() ERROR: Element name [" +
 						  localName + "] found but no SimplePointFeature object created!";
-				//System.out.println(error);
 				LOG.debug(error);
 			}
 		}
@@ -293,7 +266,8 @@ public class SimplePointLocationHandler extends DefaultHandler {
 			return;
 		}
 	}
-	
+
+	@Override
 	public void characters(char[] ch, int start, int length) throws SAXException {
 		contents.write(ch, start, length);
 	}
@@ -301,4 +275,5 @@ public class SimplePointLocationHandler extends DefaultHandler {
 	public SimplePointFeature getCurrentPointFeature() {
 		return currentPointFeature;
 	}
+
 }

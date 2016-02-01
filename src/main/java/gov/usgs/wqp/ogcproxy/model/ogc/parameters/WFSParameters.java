@@ -30,8 +30,7 @@ public enum WFSParameters {
 	bbox,
 	valueReference,		// WFS 2.0.0
 	expiry,				// WFS 2.0.0
-	storedQuery_Id,		// WFS 2.0.0
-	UNKNOWN;
+	storedQuery_Id;		// WFS 2.0.0
 	
 	
 	public static boolean isRequired(WFSParameters type) {

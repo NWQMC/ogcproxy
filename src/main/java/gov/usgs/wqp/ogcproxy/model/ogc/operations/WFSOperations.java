@@ -31,8 +31,7 @@ public enum WFSOperations {
 	CreateStoredQuery,			// This is for v2.0.0 ONLY
 	DropStoredQuery,			// This is for v2.0.0 ONLY
 	ListStoredQueries,			// This is for v2.0.0 ONLY
-	DescribeStoredQueries,		// This is for v2.0.0 ONLY
-	UNKNOWN;
+	DescribeStoredQueries;		// This is for v2.0.0 ONLY
 	
 	
 	public static List<WFSParameters> getParameters(WFSOperations type) {

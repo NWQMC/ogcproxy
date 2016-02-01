@@ -1,7 +1,5 @@
 package gov.usgs.wqp.ogcproxy.model.attributes;
 
-import gov.usgs.wqp.ogcproxy.utils.StringUtils;
-
 /**
  * FeatureAttributeType
  * @author prusso
@@ -12,13 +10,6 @@ import gov.usgs.wqp.ogcproxy.utils.StringUtils;
  *	Note that the names are limited to 10 characters!!!
  */
 public enum FeatureAttributeType {
-	provider, orgName, orgId, locName, name, type, point, UNKNOWN;
+	provider, orgName, orgId, locName, name, type, point;
 
-	public static FeatureAttributeType getTypeFromString(String string) {
-		return StringUtils.getTypeFromString(string, UNKNOWN);
-	}
-
-	public static String getStringFromType(FeatureAttributeType type) {
-		return StringUtils.getSentenceCaseStringFromType(type, UNKNOWN);
-	}
 }

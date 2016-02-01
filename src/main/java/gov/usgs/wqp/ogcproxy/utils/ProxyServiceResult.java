@@ -10,11 +10,4 @@ package gov.usgs.wqp.ogcproxy.utils;
 public enum ProxyServiceResult {
 	SUCCESS, EMPTY, ERROR;
 
-	public static ProxyServiceResult getTypeFromString(String string) {
-		return StringUtils.getTypeFromString(string, ERROR);
-	}
-
-	public static String getStringFromType(ProxyServiceResult type) {
-		return StringUtils.getStringFromType(type, ERROR);
-	}
 }

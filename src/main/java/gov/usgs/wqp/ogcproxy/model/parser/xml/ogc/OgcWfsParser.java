@@ -14,12 +14,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
+import org.springframework.web.util.UriUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import com.sun.jndi.toolkit.url.UrlUtil;
 
 import gov.usgs.wqp.ogcproxy.utils.XmlUtils;
 
@@ -73,7 +72,7 @@ public class OgcWfsParser {
 		bodyMinusSearchParams = XmlUtils.domToString(doc);
 		
 		if (params!=null) {
-			params = UrlUtil.decode(params);
+			params = UriUtils.decode(params, "UTF-8");
 		}
 		return params;
 	}

@@ -22,14 +22,6 @@ public enum ProxyViewResult {
 		this.view = filename;
 	}
 	
-	public static ProxyViewResult getTypeFromString(String string) {
-		return StringUtils.getTypeFromString(string, ERROR_XML);
-	}
-
-	public static String getStringFromType(ProxyViewResult type) {
-		return StringUtils.getStringFromType(type, ERROR_XML);
-	}
-	
 	public static String getErrorViewByFormat(String format) {
 		if (isEmpty(format)) {
 			return ERROR_XML.view;

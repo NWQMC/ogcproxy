@@ -123,7 +123,6 @@ public class WQPLayerBuildingService {
 	private static String geoserverWorkspace = "qw_portal_map";
 	private static String geoserverUser      = "";
 	private static String geoserverPass      = "";
-	private static String geoserverDatastore = "site_map";
 	private static String geoserverURIPrefix = "http://localhost:8080/geoserver";
 	private static String geoserverRestURI = "/rest";
 	private static String geoserverRestWorkspacesURI = geoserverRestURI + "/workspaces";
@@ -140,19 +139,21 @@ public class WQPLayerBuildingService {
 	private static String workingDirectory      = "";
 	private static String shapefileDirectory    = "";
 	
-	private static int connection_ttl            = 15 * 60 * 1000; // 15 minutes, default is infinite
+	// 15 minutes, default is infinite
+	private static int connection_ttl            = 15 * 60 * 1000;
 	private static int connections_max_total     = 256;
 	private static int connections_max_route     = 32;
-	private static int client_socket_timeout     = 5 * 60 * 1000; // 5 minutes, default is infinite
-	private static int client_connection_timeout = 15 * 1000;    // 15 seconds, default is infinite
+	// 5 minutes, default is infinite
+	private static int client_socket_timeout     = 5 * 60 * 1000;
+    // 15 seconds, default is infinite
+	private static int client_connection_timeout = 15 * 1000;
 	
 	private static long geoserverCatchupTime     = 1000;       // 1000ms or 1s
 			  	// GeoServer has a race condition from when it finished uploading a shapefile to when
 				// the layer and datasource for that shapefile are available.  This is a wait time before
 				// we mark the layer AVAILABLE
 	
-	protected PoolingHttpClientConnectionManager clientConnectionManager;
-	protected CloseableHttpClient httpClient;
+	private CloseableHttpClient httpClient;
 	
 	
 	
@@ -163,7 +164,8 @@ public class WQPLayerBuildingService {
 	/**
 	 * Private Constructor for Singleton Pattern
 	 */
-	private WQPLayerBuildingService() {}
+	private WQPLayerBuildingService() {
+	}
 	
 	/**
 	 * Singleton accessor
@@ -176,7 +178,7 @@ public class WQPLayerBuildingService {
 	
 	@PostConstruct
 	public void initialize() {
-		LOG.info("WQPLayerBuildingService.initialize() called");
+		LOG.debug("WQPLayerBuildingService.initialize() called");
 		
 		/*
 		 * Since we are using Spring DI we cannot access the environment bean
@@ -195,97 +197,33 @@ public class WQPLayerBuildingService {
 			/*
 			 * Get the GeoServer properties that we will be hitting
 			 */
-			try {
-				String defaultProto = geoserverProtocol;
-				geoserverProtocol = environment.getProperty("wqp.geoserver.proto");
-				if (isEmpty(geoserverProtocol)) {
-					LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.proto] " +
-							  "- Setting geoserver protocol default to [" + defaultProto + "].\n");
-					geoserverProtocol = defaultProto;
-				}
-			} catch (Exception e) {
-				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.proto] " +
-						  "- Setting geoserver protocol default to [" + geoserverProtocol + "].\n");
+			String tmp = environment.getProperty("wqp.geoserver.proto");
+			if (!isEmpty(tmp)) {
+				geoserverProtocol = tmp;
 			}
-			
-			try {
-				String defaultHost = geoserverHost;
-				geoserverHost = environment.getProperty("wqp.geoserver.host");
-				if (isEmpty(geoserverHost)) {
-					LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.host] " +
-							  "- Setting geoserver host default to [" + defaultHost + "].\n");
-					geoserverHost = defaultHost;
-				}
-			} catch (Exception e) {
-				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.host] " +
-						  "- Setting geoserver host default to [" + geoserverHost + "].\n");
+			tmp = environment.getProperty("wqp.geoserver.host");
+			if (!isEmpty(tmp)) {
+				geoserverHost = tmp;
 			}
-			
-			try {
-				String defaultPort = geoserverPort;
-				geoserverPort = environment.getProperty("wqp.geoserver.port");
-				if (isEmpty(geoserverPort)) {
-					LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.port] " +
-							  "- Setting geoserver port default to [" + defaultPort + "].\n");
-					geoserverPort = defaultPort;
-				}
-			} catch (Exception e) {
-				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.port] " +
-						  "- Setting geoserver port default to [" + geoserverPort + "].\n");
+			tmp = environment.getProperty("wqp.geoserver.port");
+			if (!isEmpty(tmp)) {
+				geoserverPort= tmp;
 			}
-			
-			try {
-				String defaultContext = geoserverContext;
-				geoserverContext = environment.getProperty("wqp.geoserver.context");
-				if (isEmpty(geoserverContext)) {
-					LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.context] " +
-							  "- Setting geoserver context default to [" + defaultContext + "].\n");
-					geoserverContext = defaultContext;
-				}
-			} catch (Exception e) {
-				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.context] " +
-						  "- Setting geoserver context default to [" + geoserverContext + "].\n");
+			tmp = environment.getProperty("wqp.geoserver.context");
+			if (!isEmpty(tmp)) {
+				geoserverContext = tmp;
 			}
-			
-			try {
-				String defaultWorkspace = geoserverWorkspace;
-				geoserverWorkspace = environment.getProperty("wqp.geoserver.workspace");
-				if (isEmpty(geoserverWorkspace)) {
-					LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.workspace] " +
-							  "- Setting geoserver workspace default to [" + defaultWorkspace + "].\n");
-					geoserverWorkspace = defaultWorkspace;
-				}
-			} catch (Exception e) {
-				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.workspace] " +
-						  "- Setting geoserver workspace default to [" + geoserverWorkspace + "].\n");
+			tmp = environment.getProperty("wqp.geoserver.workspace");
+			if (!isEmpty(tmp)) {
+				geoserverWorkspace = tmp;
 			}
-			try {
-				geoserverUser = environment.getProperty("wqp.geoserver.user");
-			} catch (Exception e) {
-				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.user] " +
-						  "- Setting user to empty string.\n" + e.getMessage() + "\n");
-				geoserverUser = "";
+			tmp = environment.getProperty("wqp.geoserver.user");
+			if (!isEmpty(tmp)) {
+				geoserverUser = tmp;
 			}
-			
-			try {
-				geoserverPass = environment.getProperty("wqp.geoserver.pass");
-			} catch (Exception e) {
-				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.pass] " +
-						  "- Setting pass to empty string.\n" + e.getMessage() + "\n");
-				geoserverPass = "";
-			}
-			
-			try {
-				String defaultDatastore = geoserverDatastore;
-				geoserverDatastore = environment.getProperty("wqp.geoserver.datastore");
-				if (isEmpty(geoserverDatastore)) {
-					LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.datastore] " +
-							  "- Setting geoserver datastore default to [" + defaultDatastore + "].\n");
-					geoserverDatastore = defaultDatastore;
-				}
-			} catch (Exception e) {
-				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.datastore] " +
-						  "- Setting geoserver datastore default to [" + geoserverDatastore + "].\n");
+			tmp = environment.getProperty("wqp.geoserver.pass");
+			if (!isEmpty(tmp)) {
+				geoserverPass = tmp;
 			}
 			
 			geoserverURIPrefix = geoserverProtocol + "://" + geoserverHost + ":" + geoserverPort + geoserverContext;
@@ -293,101 +231,44 @@ public class WQPLayerBuildingService {
 			/*
 			 * Get all URL properties for calling WQP for data
 			 */
-			try {
-				String defaultProto = simpleStationProtocol;
-				simpleStationProtocol = environment.getProperty("layerbuilder.simplestation.proto");
-				if (isEmpty(simpleStationProtocol)) {
-					LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.proto] " +
-							  "- Setting simplestation protocol default to [" + defaultProto + "].\n");
-					simpleStationProtocol = defaultProto;
-				}
-			} catch (Exception e) {
-				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.proto] " +
-						  "- Setting simplestation protocol default to [" + simpleStationProtocol + "].\n");
+			tmp = environment.getProperty("layerbuilder.simplestation.proto");
+			if (!isEmpty(tmp)) {
+				simpleStationProtocol = tmp;
 			}
 			simpleStationRequest = simpleStationProtocol;
-			
-			try {
-				String defaultHost = simpleStationHost;
-				simpleStationHost = environment.getProperty("layerbuilder.simplestation.host");
-				if (isEmpty(simpleStationHost)) {
-					LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.host] " +
-							  "- Setting simplestation host default to [" + defaultHost + "].\n");
-					simpleStationHost = defaultHost;
-				}
-			} catch (Exception e) {
-				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.host] " +
-						  "- Setting simplestation host default to [" + simpleStationHost + "].\n");
+			tmp = environment.getProperty("layerbuilder.simplestation.host");
+			if (!isEmpty(tmp)) {
+				simpleStationHost = tmp;
 			}
 			simpleStationRequest += "://" + simpleStationHost;
-			
-			try {
-				String defaultPort = simpleStationPort;
-				simpleStationPort = environment.getProperty("layerbuilder.simplestation.port");
-				if (isEmpty(simpleStationPort)) {
-					LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.port] " +
-							  "- Setting simplestation port default to [" + defaultPort + "].\n");
-					simpleStationPort = defaultPort;
-				}
-			} catch (Exception e) {
-				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.port] " +
-						  "- Setting simplestation port default to [" + simpleStationPort + "].\n");
+			tmp = environment.getProperty("layerbuilder.simplestation.port");
+			if (!isEmpty(tmp)) {
+				simpleStationPort = tmp;
 			}
 			simpleStationRequest +=  ":" + simpleStationPort;
-			
-			try {
-				String defaultContext = simpleStationContext;
-				simpleStationContext = environment.getProperty("layerbuilder.simplestation.context");
-				if (isEmpty(simpleStationContext)) {
-					LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.context] " +
-							  "- Setting simplestation context default to [" + defaultContext + "].\n");
-					simpleStationContext = defaultContext;
-				}
-			} catch (Exception e) {
-				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.context] " +
-						  "- Setting simplestation context default to [" + simpleStationContext + "].\n");
+			tmp = environment.getProperty("layerbuilder.simplestation.context");
+			if (!isEmpty(tmp)) {
+				simpleStationContext = tmp;
 			}
 			simpleStationRequest += simpleStationContext;
-			
-			try {
-				String defaultPath = simpleStationPath;
-				simpleStationPath = environment.getProperty("layerbuilder.simplestation.path");
-				if (isEmpty(simpleStationPath)) {
-					LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.path] " +
-							  "- Setting simplestation path default to [" + defaultPath + "].\n");
-					simpleStationPath = defaultPath;
-				}
-			} catch (Exception e) {
-				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.simplestation.path] " +
-						  "- Setting simplestation path default to [" + simpleStationPath + "].\n");
+			tmp = environment.getProperty("layerbuilder.simplestation.path");
+			if (!isEmpty(tmp)) {
+				simpleStationPath = tmp;
 			}
 			simpleStationRequest += simpleStationPath;
-			
-			LOG.info("WQPLayerBuildingService() Constructor Info: Setting SimpleStation Request to [" + simpleStationRequest + "]");
+			LOG.debug("WQPLayerBuildingService() Constructor Info: Setting SimpleStation Request to [" + simpleStationRequest + "]");
 			
 			/*
 			 * Configure working directories
 			 */
-			try {
-				workingDirectory = environment.getProperty("layerbuilder.dir.working");
-			} catch (Exception e) {
-				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.dir.working] " +
-						  "- Using \"./\" for working directory.\n" + e.getMessage() + "\n");
-				workingDirectory = "./";
+			tmp = environment.getProperty("layerbuilder.dir.working");
+			if (!isEmpty(tmp)) {
+				workingDirectory = tmp;
 			}
-			
-			LOG.info("WQPLayerBuildingService() Constructor Info: Setting Working Directory to [" + workingDirectory + "]");
-			
-			try {
-				shapefileDirectory = environment.getProperty("layerbuilder.dir.shapefiles");
-			} catch (Exception e) {
-				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.dir.shapefiles] " +
-						  "- Using \"./\" for shapefile directory.\n" + e.getMessage() + "\n");
-				shapefileDirectory = "./";
+			tmp = environment.getProperty("layerbuilder.dir.shapefiles");
+			if (!isEmpty(tmp)) {
+				shapefileDirectory = tmp;
 			}
-			
-			LOG.info("WQPLayerBuildingService() Constructor Info: Setting Shapefile Directory to [" + shapefileDirectory + "]");
-			
 			try {
 				geoserverCatchupTime = Long.parseLong(environment.getProperty("layerbuilder.geoserver.catchup.time"));
 			} catch (Exception e) {
@@ -400,7 +281,7 @@ public class WQPLayerBuildingService {
 			 */
 			// Initialize connection manager, this is thread-safe.  if we use this
 			// with any HttpClient instance it becomes thread-safe.
-			clientConnectionManager = new PoolingHttpClientConnectionManager(
+			PoolingHttpClientConnectionManager clientConnectionManager = new PoolingHttpClientConnectionManager(
 					connection_ttl, TimeUnit.MILLISECONDS);
 			clientConnectionManager.setMaxTotal(connections_max_total);
 			clientConnectionManager.setDefaultMaxPerRoute(connections_max_route);
@@ -454,8 +335,8 @@ public class WQPLayerBuildingService {
 			 * valid non-action status's are AVAILABLE (default), INITIAL, EMPTY and ERROR
 			 */
 			switch (layerCache.getCurrentStatus()) {
-				case INITIATED: {
-					LOG.info("WQPLayerBuildingService.getDynamicLayer() Created new DynamicLayerCache for key [" +
+				case INITIATED:
+					LOG.debug("WQPLayerBuildingService.getDynamicLayer() Created new DynamicLayerCache for key [" +
 							searchParams.unsignedHashCode() +"].  Setting status to BUILDING and creating layer...");
 					
 					/*
@@ -480,9 +361,9 @@ public class WQPLayerBuildingService {
 					if (isEmpty(layerName)) {
 						layerCache.setCurrentStatus(DynamicLayerStatus.EMPTY);
 						
-						LOG.info("WQPLayerBuildingService.getDynamicLayer() Unable to create layer [" + layerCache.getLayerName() +
+						LOG.debug("WQPLayerBuildingService.getDynamicLayer() Unable to create layer [" + layerCache.getLayerName() +
 								"] for key ["+ searchParams.unsignedHashCode() +
-								"].  Its status is [" + DynamicLayerStatus.getStringFromType(layerCache.getCurrentStatus()) +
+								"].  Its status is [" + layerCache.getCurrentStatus().toString() +
 								"].  Since it is an empty request this means the search parameters did not " +
 								"result in any matching criteria.");
 						return ProxyServiceResult.EMPTY;
@@ -493,34 +374,30 @@ public class WQPLayerBuildingService {
 					layerCache.setLayerName(layerName);
 					layerCache.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
 					
-					LOG.info("WQPLayerBuildingService.getDynamicLayer() Finished building layer for key ["+
+					LOG.debug("WQPLayerBuildingService.getDynamicLayer() Finished building layer for key ["+
 							searchParams.unsignedHashCode() +
 							"].  Layer name is [" + layerCache.getLayerName() + "].  Setting status to " +
 							"AVAILABLE and continuing on to GeoServer WMS request...");
 					break;
-				}
 				
-				case EMPTY: {
-					LOG.info("WQPLayerBuildingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
+				case EMPTY:
+					LOG.debug("WQPLayerBuildingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
 							"] for key ["+ searchParams.unsignedHashCode() +
-							"] and its status is [" + DynamicLayerStatus.getStringFromType(layerCache.getCurrentStatus()) +
+							"] and its status is [" + layerCache.getCurrentStatus().toString() +
 							"].  Since it is an empty request this means the search parameters did not " +
 							"result in any matching criteria.");
 					return ProxyServiceResult.EMPTY;
-				}
 				
-				case ERROR: {
+				case ERROR:
 					LOG.error("WQPLayerBuildingService.getDynamicLayer() Error: Layer cache is in an ERROR state and cannot continue request.");
 					return ProxyServiceResult.ERROR;
-				}
 				
-				default: {
-					LOG.info("WQPLayerBuildingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
+				default:
+					LOG.debug("WQPLayerBuildingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
 							"] for key ["+ searchParams.unsignedHashCode() +
-							"] and its status is [" + DynamicLayerStatus.getStringFromType(layerCache.getCurrentStatus()) +
+							"] and its status is [" + layerCache.getCurrentStatus().toString() +
 							"].  Continuing on to GeoServer WMS request...");
 					break;
-				}
 			}
 		} catch (OGCProxyException e) {
 			LOG.error(e.traceBack());
@@ -552,6 +429,8 @@ public class WQPLayerBuildingService {
 		return ProxyServiceResult.SUCCESS;
 	}
 	
+	
+	
 	public String addGetCapabilitiesInfo(OGCServices serviceType, String serverContent) {
 		/*
 		 * For now we are assuming all GetCapabilities responses are XML.
@@ -568,7 +447,7 @@ public class WQPLayerBuildingService {
 		StringBuffer newContent = new StringBuffer();
 		
 		switch (serviceType) {
-			case WMS: {
+			case WMS:
 				/*
 				 * For WMS, our XLM blob just needs to live inside the parent
 				 * <Layer> element.  Since it can live ANYWHERE in the parent
@@ -585,9 +464,8 @@ public class WQPLayerBuildingService {
 				newContent.append(WMS_GET_CAPABILITIES_CONTENT);
 				newContent.append(serverContent.substring(closingParentTag, serverContent.length()));
 				break;
-			}
 			
-			case WFS: {
+			case WFS:
 				/*
 				 * WFS GetCapabilities response is different than WMS.  Most of our
 				 * WFS requests will center around GetFeature so we need to add
@@ -625,11 +503,9 @@ public class WQPLayerBuildingService {
 				newContent.append(WFS_GET_CAPABILITIES_CONTENT);
 				newContent.append(serverContent.substring(insertTag, serverContent.length()));
 				break;
-			}
 			
-			default: {
+			default:
 				break;
-			}
 		}
 
 		return newContent.toString();
@@ -663,7 +539,7 @@ public class WQPLayerBuildingService {
 			featureType = SimplePointFeature.getFeatureType();
 		} catch (Exception e) {
 			String msg = "WQPLayerBuildingService.buildDynamicLayer() EXCEPTION : Unable to create SimpleFeatureBuilder.  Throwing Exception...";
-			LOG.error(msg);
+			LOG.error(msg, e);
 			OGCProxyExceptionID id = OGCProxyExceptionID.GEOTOOLS_FEATUREBUILDER_ERROR;
 			throw new OGCProxyException(id, "WQPLayerBuildingService", "buildDynamicLayer()", msg);
 		}
@@ -676,29 +552,32 @@ public class WQPLayerBuildingService {
 			/*
 			 * Parse the input
 			 */
-			LOG.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Parsing input (" + dataFile.getAbsolutePath() + ")");
+			LOG.debug("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Parsing input (" + dataFile.getAbsolutePath() + ")");
 			featureList = parseInput(dataFile.getAbsolutePath(), featureType);
-			LOG.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Parsing Complete");
+			LOG.debug("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Parsing Complete");
 		} finally {
-			dataFile.delete();
+			if (!dataFile.delete()) {
+				LOG.error("unable to delete file:" + dataFile.getAbsolutePath());
+			}
 		}
 		
 		/*
 		 * Create the shapefile
 		 */
-		LOG.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Creating Shapefile (" + layerName + ")");
-		if ( ! createShapeFile(shapefileDirectory, layerName, true, featureList, featureType) ) {		// we force zip file as GeoServer requires it
+		LOG.debug("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Creating Shapefile (" + layerName + ")");
+		if ( ! createShapeFile(shapefileDirectory, layerName, true, featureList, featureType) ) {
+			// we force zip file as GeoServer requires it
 			String msg = "WQPLayerBuildingService.buildDynamicLayer() EXCEPTION : Creating the shapefile failed.  Throwing Exception...";
 			LOG.error(msg);
 			OGCProxyExceptionID id = OGCProxyExceptionID.SHAPEFILE_CREATION_ERROR;
 			throw new OGCProxyException(id, "WQPLayerBuildingService", "buildDynamicLayer()", msg);
 		}
-		LOG.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Creating Shapefile Complete");
+		LOG.debug("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Creating Shapefile Complete");
 
 		/* 
 		 * Upload the shapefile to geoserver
 		 */
-		uploadShapefile(layerName, geoServerURI, geoServerUser, geoServerPass);
+		uploadShapefile(layerName, geoServerURI);
 		
 		TimeProfiler.endTimer("WQPLayerBuildingService.buildDynamicLayer() INFO: ShapeFileConverter Overall Time", LOG);
 		
@@ -714,7 +593,7 @@ public class WQPLayerBuildingService {
 			 * Did not receive any data from the server for this request.  Cannot create layer.
 			 */
 			String msg = "WQPLayerBuildingService.buildDynamicLayer() INFO: SimpleStation search for search key [" + searchParams.unsignedHashCode() + "] returned no results.";
-            LOG.info(msg);
+            LOG.debug(msg);
     		
             OGCProxyExceptionID id = OGCProxyExceptionID.SIMPLESTATION_FILE_ERROR;
             throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
@@ -733,7 +612,7 @@ public class WQPLayerBuildingService {
 		} catch (Exception e) {
 			LOG.error("WQPLayerBuildingService.parseInput() Exception: " + e.getMessage());
 			String msg = "WQPLayerBuildingService.buildDynamicLayer() EXCEPTION : Parsing the input failed.  Throwing Exception...";
-			LOG.error(msg);
+			LOG.error(msg, e);
 			OGCProxyExceptionID id = OGCProxyExceptionID.DATAFILE_PARSING_ERROR;
 			throw new OGCProxyException(id, "WQPLayerBuildingService", "buildDynamicLayer()", msg);
 		}
@@ -761,7 +640,7 @@ public class WQPLayerBuildingService {
 		try {
 			newDataStore = (ShapefileDataStore) dataStoreFactory.createNewDataStore(params);
 		} catch (IOException e) {
-			LOG.error(e.getMessage());
+			LOG.error(e.getMessage(), e);
 			return false;
 		}
 		TimeProfiler.endTimer("WQPLayerBuildingService.createShapeFile() INFO: GeoTools - ShapefileDataStore Creation Time", LOG);
@@ -772,7 +651,7 @@ public class WQPLayerBuildingService {
 		try {
 			newDataStore.createSchema(featureType);
 		} catch (IOException e) {
-			LOG.error(e.getMessage());
+			LOG.error(e.getMessage(), e);
 			return false;
 		}
 		
@@ -800,7 +679,7 @@ public class WQPLayerBuildingService {
 		return true;
 	}
 	
-	private void uploadShapefile(String layerName, String geoServerURI, String geoServerUser, String geoServerPass) throws OGCProxyException {
+	private void uploadShapefile(String layerName, String geoServerURI) throws OGCProxyException {
 		/*
 		 * Upload the zipped shapefile
 		 *
@@ -814,24 +693,26 @@ public class WQPLayerBuildingService {
 		 */
 		String layerZipFile = shapefileDirectory + File.separator + layerName + ".zip";
 		String restPut = geoServerURI + "/" + layerName + "/file.shp";
-		LOG.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Uploading Shapefile (" + layerZipFile + ") to GeoServer");
+		LOG.debug("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Uploading Shapefile (" + layerZipFile + ") to GeoServer");
 		File file = new File(layerZipFile);
 	    if (file.exists()) {
-	    	try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(getCredentialsProvider()).build()) {
-		    	verifyWorkspaceExists(httpClient, geoServerURI);
-		    	putShapefile(httpClient, restPut, ShapeFileUtils.MEDIATYPE_APPLICATION_ZIP, file);
+	    	try (CloseableHttpClient httpClient2 = HttpClients.custom().setDefaultCredentialsProvider(getCredentialsProvider()).build()) {
+		    	verifyWorkspaceExists(httpClient2, geoServerURI);
+		    	putShapefile(httpClient2, restPut, ShapeFileUtils.MEDIATYPE_APPLICATION_ZIP, file);
 	    	} catch (IOException e) {
-				e.printStackTrace();
+	    		LOG.error(e.getLocalizedMessage(), e);
 		    	OGCProxyExceptionID id = OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR;
 		    	throw new OGCProxyException(id, "WQPLayerBuildingService", "uploadShapefile()", "CloseableHttpClient Close Exception: " + e.getLocalizedMessage());
 			} finally {
-				new File(layerZipFile).delete();
+				if (!new File(layerZipFile).delete()) {
+					LOG.debug("troubles deleting " + layerZipFile);
+				}
 			}
 	    } else {
 	    	OGCProxyExceptionID id = OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR;
 	    	throw new OGCProxyException(id, "WQPLayerBuildingService", "uploadShapefile()", "Exception: File [" + layerZipFile + "] DOES NOT EXIST");
 	    }
-		LOG.info("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Uploading Shapefile Complete");
+		LOG.debug("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Uploading Shapefile Complete");
 		
 		/*
 		 * Let GeoServer catch up with its dataset ingestion.
@@ -844,7 +725,7 @@ public class WQPLayerBuildingService {
 		try {
 			Thread.sleep(geoserverCatchupTime);
 		} catch (InterruptedException e) {
-			LOG.warn("WQPLayerBuildingService.buildDynamicLayer() caught InterruptedException when running the GeoServer Catchup Time sleep.  Continuing...");
+			LOG.warn("WQPLayerBuildingService.buildDynamicLayer() caught InterruptedException when running the GeoServer Catchup Time sleep.  Continuing...", e);
 		}
 		
 		/*
@@ -864,7 +745,7 @@ public class WQPLayerBuildingService {
 		try {
 			statusCode = httpClient.execute(new HttpGet(workspaceURI)).getStatusLine().getStatusCode();
 		} catch (Exception e){
-			e.printStackTrace();
+			LOG.error(e.getLocalizedMessage(), e);
 			throw new OGCProxyException(OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR, "WQPLayerBuildingService", "verifyWorkspaceExists()", 
 					"Exception: " + e.getLocalizedMessage());
 		}
@@ -881,9 +762,9 @@ public class WQPLayerBuildingService {
 	        httpPut.setEntity(fileEntity);
 	
 	        statusCode = httpClient.execute(httpPut).getStatusLine().getStatusCode();
-			LOG.info("WQPLayerBuildingService.buildDynamicLayer() INFO: \nGeoServer response for request [" + uri + "] is: \n[" + statusCode + "]");
+			LOG.debug("WQPLayerBuildingService.buildDynamicLayer() INFO: \nGeoServer response for request [" + uri + "] is: \n[" + statusCode + "]");
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error(e.getLocalizedMessage(), e);
 			throw new OGCProxyException(OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR, "WQPLayerBuildingService", "putShapefile()", 
 					"Exception: " + e.getLocalizedMessage());
 		}
@@ -909,7 +790,7 @@ public class WQPLayerBuildingService {
 			httpPost.addHeader("content-type", mediaType);
 			statusCode = httpClient.execute(httpPost).getStatusLine().getStatusCode();
 		} catch (Exception e) {
-			e.printStackTrace();
+			LOG.error(e.getLocalizedMessage(), e);
 			throw new OGCProxyException(OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR, "WQPLayerBuildingService", "createWorkspace()", 
 					"Exception: " + e.getLocalizedMessage());
 		}

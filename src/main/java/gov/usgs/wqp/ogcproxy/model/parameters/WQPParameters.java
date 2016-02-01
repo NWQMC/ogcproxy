@@ -1,8 +1,5 @@
 package gov.usgs.wqp.ogcproxy.model.parameters;
 
-import gov.usgs.wqp.ogcproxy.utils.StringUtils;
-
-
 /**
  * WQPParameters
  * @author prusso
@@ -11,13 +8,6 @@ import gov.usgs.wqp.ogcproxy.utils.StringUtils;
  *	any OGCProxy call.
  */
 public enum WQPParameters {
-	searchParams, UNKNOWN;
+	searchParams;
 
-	public static WQPParameters getTypeFromString(String string) {
-		return StringUtils.getTypeFromString(string, UNKNOWN);
-	}
-
-	public static String getStringFromType(WQPParameters type) {
-		return StringUtils.getStringFromType(type, UNKNOWN);
-	}
 }

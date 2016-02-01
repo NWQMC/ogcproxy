@@ -79,8 +79,7 @@ public class WQPDynamicLayerCachingServiceTest {
 	
 	@Test
 	public void initializeTest() {
-		when(environment.getProperty("wmscache.layercache.period")).thenReturn("","123");
-		when(environment.getProperty("wmscache.layercache.sleep")).thenReturn("","456");
+		when(environment.getProperty("proxy.thread.sleep")).thenReturn("","456");
 		when(environment.getProperty("wqp.geoserver.proto")).thenReturn("","https");
 		when(environment.getProperty("wqp.geoserver.host")).thenReturn("","somewhere");
 		when(environment.getProperty("wqp.geoserver.port")).thenReturn("","8443");
@@ -109,7 +108,6 @@ public class WQPDynamicLayerCachingServiceTest {
 		//start over and apply some.
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "initialized", false);
 		service.initialize();
-		assertEquals(Long.valueOf("123"), Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "cacheTimeout"));
 		assertEquals(Long.valueOf("456"), Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "threadSleep"));
 		assertEquals("https", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverProtocol"));
 		assertEquals("somewhere", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverHost"));
@@ -219,7 +217,7 @@ public class WQPDynamicLayerCachingServiceTest {
 		cache.put("123456", new DynamicLayerCache("dynamicSites_123456"));
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<>();
 		searchParams.put("key", Arrays.asList("a", "b"));
-		DynamicLayerCache c2 = new DynamicLayerCache(searchParams, OGCServices.UNKNOWN);
+		DynamicLayerCache c2 = new DynamicLayerCache(searchParams, OGCServices.WFS);
 		c2.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
 		cache.put(c2.getKey(), c2);
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "requestToLayerCache", cache);
@@ -254,7 +252,6 @@ public class WQPDynamicLayerCachingServiceTest {
 	}
 
 	private void assertEnvironmentDefaults() {
-		assertEquals(Long.valueOf("604800000"), Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "cacheTimeout"));
 		assertEquals(Long.valueOf("500"), Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "threadSleep"));
 		assertEquals("http", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverProtocol"));
 		assertEquals("localhost", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverHost"));

@@ -1,8 +1,5 @@
 package gov.usgs.wqp.ogcproxy.model.providers;
 
-import gov.usgs.wqp.ogcproxy.utils.StringUtils;
-
-
 /**
  * SourceProvider
  * @author prusso
@@ -13,11 +10,4 @@ import gov.usgs.wqp.ogcproxy.utils.StringUtils;
 public enum SourceProvider {
 	NWIS, STEWARDS, STORET, BIODATA, UNKNOWN;
 
-	public static SourceProvider getTypeFromString(String string) {
-		return StringUtils.getTypeFromString(string, UNKNOWN);
-	}
-
-	public static String getStringFromType(SourceProvider type) {
-		return StringUtils.getStringFromType(type, UNKNOWN);
-	}
 }
