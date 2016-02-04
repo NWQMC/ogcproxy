@@ -35,12 +35,10 @@ import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
 
 public class WQPDynamicLayerCachingService {
 	private static final Logger LOG = LoggerFactory.getLogger(WQPDynamicLayerCachingService.class);
-	
-	/*
-	 * Static Local		===========================================================
-	 * ========================================================================
-	 */
-	/* ====================================================================== */
+
+	public static final String DATASTORES = "dataStores";
+	public static final String DATASTORE = "dataStore";
+
 	@Autowired
 	private Environment environment;
 	private static boolean initialized;
@@ -48,17 +46,17 @@ public class WQPDynamicLayerCachingService {
 	private static Map<String, DynamicLayerCache> requestToLayerCache;
 	
 	private static long threadSleep  = 500;
-	private static String geoserverProtocol  = "http";
-	private static String geoserverHost      = "localhost";
-	private static String geoserverPort      = "8080";
-	private static String geoserverContext   = "/geoserver";
-	private static String geoserverWorkspace = "qw_portal_map";
-	private static String geoserverRestLayersSuffix = "/rest/layers.json";
-	private static String geoserverRestLayers = "http://localhost:8080/geoserver/rest/layers.json";
-	private static String geoserverRestURI = "/rest";
-	private static String geoserverRestWorkspacesURI = geoserverRestURI + "/workspaces";
-	private static String geoserverUser      = "";
-	private static String geoserverPass      = "";
+	private static String geoserverProtocol   = "http";
+	private static String geoserverHost       = "localhost";
+	private static String geoserverPort       = "8080";
+	private static String geoserverContext    = "geoserver";
+	private static String wqpWorkspace        = "qw_portal_map";
+	private static String geoserverBaseUri    = "";
+	private static String geoserverDatastores = "datastores.json";
+	private static String geoserverRest       = "rest";
+	private static String geoserverWorkspaces = "workspaces";
+	private static String geoserverUser = "";
+	private static String geoserverPass = "";
 	/* ====================================================================== */
 		
 	/*
@@ -136,11 +134,11 @@ public class WQPDynamicLayerCachingService {
 			if (!isEmpty(tmp)) {
 				geoserverPass = tmp;
 			}
-			geoserverRestLayers = geoserverProtocol + "://" + geoserverHost + ":" + geoserverPort + geoserverContext + geoserverRestLayersSuffix;
 			tmp = environment.getProperty("wqp.geoserver.workspace");
 			if (!isEmpty(tmp)) {
-				geoserverWorkspace = tmp;
+				wqpWorkspace = tmp;
 			}
+			geoserverBaseUri = geoserverProtocol + "://" + geoserverHost + ":" + geoserverPort + "/" + geoserverContext;
 			populateCache();
 		}
 	}
@@ -287,8 +285,7 @@ public class WQPDynamicLayerCachingService {
 	}
 	
 	protected void clearGeoserverWorkspace() {
-		String deleteUri = geoserverProtocol + "://" + geoserverHost + ":" + geoserverPort + geoserverContext + geoserverRestWorkspacesURI
-				+ "/" + geoserverWorkspace + "?recurse=true";
+		String deleteUri = String.join("/", geoserverBaseUri, geoserverRest, geoserverWorkspaces, wqpWorkspace) + "?recurse=true";
 		try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(getCredentialsProvider()).build()) {
 			HttpDelete httpDelete = new HttpDelete(deleteUri);
 			httpClient.execute(httpDelete);
@@ -304,10 +301,10 @@ public class WQPDynamicLayerCachingService {
 		 * do is actually utilize the thread-safe methods we have already and
 		 * clear each item one at a time.
 		 */
-		List<String> cacheKeys = new Vector<String>(WQPDynamicLayerCachingService.requestToLayerCache.keySet());
+		List<String> cacheKeys = new Vector<>(WQPDynamicLayerCachingService.requestToLayerCache.keySet());
 		int originalCount = cacheKeys.size();
 		
-		List<String> uncleared = new Vector<String>();
+		List<String> uncleared = new Vector<>();
 		
 		for (String cacheKey : cacheKeys) {
 			DynamicLayerCache cache = WQPDynamicLayerCachingService.requestToLayerCache.get(cacheKey);
@@ -354,13 +351,13 @@ public class WQPDynamicLayerCachingService {
 		 */
 		LOG.debug("WQPDynamicLayerCachingService.populateCache() START");
 		try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(getCredentialsProvider()).build()) {
-			//TODO switch to datastores!!! http://cida-eros-wqpgsqa.er.usgs.gov:8080/geoserver/rest/workspaces/qw_portal_map/datastores.json
-			JsonObject jsonObject = httpClient.execute(new HttpGet(geoserverRestLayers), new JsonObjectResponseHandler());
+			String uri = String.join("/", geoserverBaseUri, geoserverRest, geoserverWorkspaces, wqpWorkspace, geoserverDatastores);
+			JsonObject jsonObject = httpClient.execute(new HttpGet(uri), new JsonObjectResponseHandler());
 			Iterator<JsonElement> i = getResponseIterator(jsonObject);
 			while (i.hasNext()) {
 				JsonObject layer = i.next().getAsJsonObject();
 				LOG.debug("WQPDynamicLayerCachingService.populateCache() with [" + layer.get("name").getAsString() + "]");
-				DynamicLayerCache cacheIt = new DynamicLayerCache(layer.get("name").getAsString());
+				DynamicLayerCache cacheIt = new DynamicLayerCache(layer.get("name").getAsString(), wqpWorkspace);
 				try {
 					getLayerCache(cacheIt);
 				} catch (OGCProxyException e) {
@@ -375,11 +372,12 @@ public class WQPDynamicLayerCachingService {
 	
 	protected Iterator<JsonElement> getResponseIterator(JsonObject jsonObject) {
 		Iterator<JsonElement> rtn = new JsonArray().iterator();
-
-		//TODO switch to datastores/datastore!!!
-		if (null != jsonObject && jsonObject.get("layers").isJsonObject()
-				&& jsonObject.getAsJsonObject("layers").get("layer").isJsonArray()) {
-			rtn = jsonObject.getAsJsonObject("layers").getAsJsonArray("layer").iterator();
+		//We are expecting {"dataStores": {"dataStore: [{....}, {....}, ...]}}
+		if (null != jsonObject 
+				&& jsonObject.has(DATASTORES) && jsonObject.get(DATASTORES).isJsonObject()
+				&& jsonObject.getAsJsonObject(DATASTORES).has(DATASTORE)
+				&& jsonObject.getAsJsonObject(DATASTORES).get(DATASTORE).isJsonArray()) {
+			rtn = jsonObject.getAsJsonObject(DATASTORES).getAsJsonArray(DATASTORE).iterator();
 		}
 		return rtn;
 	}

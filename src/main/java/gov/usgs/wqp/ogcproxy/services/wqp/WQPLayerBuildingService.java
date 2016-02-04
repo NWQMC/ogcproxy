@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,11 +47,8 @@ import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
 import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
 import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeature;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
-import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.SimplePointParser;
-import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
-import gov.usgs.wqp.ogcproxy.utils.ProxyServiceResult;
 import gov.usgs.wqp.ogcproxy.utils.ShapeFileUtils;
 import gov.usgs.wqp.ogcproxy.utils.TimeProfiler;
 import gov.usgs.wqp.ogcproxy.utils.WQPUtils;
@@ -60,19 +56,9 @@ import gov.usgs.wqp.ogcproxy.utils.WQPUtils;
 public class WQPLayerBuildingService {
 	private static final Logger LOG = LoggerFactory.getLogger(WQPLayerBuildingService.class);
 	
-	/*
-	 * Beans		===========================================================
-	 * ========================================================================
-	 */
 	@Autowired
 	private WQPDynamicLayerCachingService layerCachingService;
-	/* ====================================================================== */
-		
-	/*
-	 * Static Local		=======================================================
-	 * ========================================================================
-	 */
-	/* ====================================================================== */
+
 	private static final String WMS_GET_CAPABILITIES_CONTENT = "<Layer queryable=\"1\">" +
 			"<Name>wqp_sites</Name>" +
 			"<Title>wqp_sites</Title>" +
@@ -116,18 +102,18 @@ public class WQPLayerBuildingService {
 	private Environment environment;
 	private static boolean initialized;
 	
-	private static String geoserverProtocol  = "http";
-	private static String geoserverHost      = "localhost";
-	private static String geoserverPort      = "8080";
-	private static String geoserverContext   = "/geoserver";
-	private static String geoserverWorkspace = "qw_portal_map";
-	private static String geoserverUser      = "";
-	private static String geoserverPass      = "";
-	private static String geoserverURIPrefix = "http://localhost:8080/geoserver";
-	private static String geoserverRestURI = "/rest";
-	private static String geoserverRestWorkspacesURI = geoserverRestURI + "/workspaces";
-	private static String geoserverRestNamespacesURI = geoserverRestURI + "/namespaces";
-	private static String geoserverRestDataStoresURI = "/datastores";
+	private static String geoserverProtocol   = "http";
+	private static String geoserverHost       = "localhost";
+	private static String geoserverPort       = "8080";
+	private static String geoserverContext    = "geoserver";
+	private static String wqpWorkspace        = "qw_portal_map";
+	private static String geoserverUser       = "";
+	private static String geoserverPass       = "";
+	private static String geoserverBaseURI    = "";
+	private static String geoserverRest       = "rest";
+	private static String geoserverWorkspaces = "workspaces";
+	private static String geoserverNamespaces = "namespaces";
+	private static String geoserverDataStores = "datastores";
 	
 	private static String simpleStationProtocol = "http";
 	private static String simpleStationHost     = "cida-eros-wqpdev.er.usgs.gov";
@@ -148,18 +134,15 @@ public class WQPLayerBuildingService {
     // 15 seconds, default is infinite
 	private static int client_connection_timeout = 15 * 1000;
 	
-	private static long geoserverCatchupTime     = 1000;       // 1000ms or 1s
-			  	// GeoServer has a race condition from when it finished uploading a shapefile to when
-				// the layer and datasource for that shapefile are available.  This is a wait time before
-				// we mark the layer AVAILABLE
+  	// GeoServer has a race condition from when it finished uploading a shapefile to when
+	// the layer and datasource for that shapefile are available.  This is a wait time before
+	// we mark the layer AVAILABLE
+    // 1000ms or 1s
+	private static long geoserverCatchupTime     = 1000;
 	
 	private CloseableHttpClient httpClient;
 	
-	
-	
-	/* ====================================================================== */
 	private static final WQPLayerBuildingService INSTANCE = new WQPLayerBuildingService();
-	/* ====================================================================== */
 	
 	/**
 	 * Private Constructor for Singleton Pattern
@@ -215,7 +198,7 @@ public class WQPLayerBuildingService {
 			}
 			tmp = environment.getProperty("wqp.geoserver.workspace");
 			if (!isEmpty(tmp)) {
-				geoserverWorkspace = tmp;
+				wqpWorkspace = tmp;
 			}
 			tmp = environment.getProperty("wqp.geoserver.user");
 			if (!isEmpty(tmp)) {
@@ -226,7 +209,7 @@ public class WQPLayerBuildingService {
 				geoserverPass = tmp;
 			}
 			
-			geoserverURIPrefix = geoserverProtocol + "://" + geoserverHost + ":" + geoserverPort + geoserverContext;
+			geoserverBaseURI = geoserverProtocol + "://" + geoserverHost + ":" + geoserverPort + "/" + geoserverContext;
 			
 			/*
 			 * Get all URL properties for calling WQP for data
@@ -293,143 +276,6 @@ public class WQPLayerBuildingService {
 					.setDefaultRequestConfig(config).build();
 		}
 	}
-	
-	public ProxyServiceResult getDynamicLayer(Map<String,String> ogcParams, SearchParameters<String,
-			List<String>> searchParams, Collection<String> layerParams, OGCServices originatingService,
-			ProxyDataSourceParameter dataSource) {
-
-		/*
-		 * Next we need to see if this layer has already been requested
-		 * and is available.
-		 *
-		 * Good WMS test requests are:
-		 *
-		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;characteristicName:Hafnium&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
-		 *
-		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A53;characteristicName:Gasoline&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
-		 *
-		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A55;characteristicName:Uranium&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
-		 *
-		 * 		http://172.16.81.145:8080/ogcproxy/wms?layers=wqp_sites&searchParams=countrycode:US;statecode:US%3A55;characteristicName:Atrazine&request=GetMap&height=825&width=1710&format=image%2Fjpeg&bbox=-124.73142200000001%2C24.955967%2C-66.969849%2C49.371735
-		 *
-		 * 		http://172.16.81.145:8080/ogcproxy/wms?request=GetFeatureInfo&service=WMS&srs=EPSG:4326&styles=&transparent=true&version=1.1.1&format=image/png&bbox=-123.3984375,30.29701788337205,-49.5703125,50.62507306341435&height=616&width=1680&layers=wqp_sites&query_layers=wqp_sites&info_format=text/html&x=776&y=299&searchParams=huc:06*%7C07*%3BsampleMedia:Water%3BcharacteristicType:Nutrient
-		 *
-		 * Good WFS test requests are:
-		 *
-		 * 		http://172.16.81.145:8080/ogcproxy/wfs?service=WFS&request=GetFeature&version=1.0.0&typeName=qw_portal_map:dynamicSites_1789281855&styles=&outputFormat=application/json
-		 *
-		 * 		http://172.16.81.145:8080/ogcproxy/wfs?request=GetFeature&version=1.0.0&typeName=qw_portal_map:dynamicSites_1789281855&styles=&outputFormat=application/json
-		 *
-		 * 		http://172.16.81.145:8080/ogcproxy/wfs?request=GetFeature&version=1.0.0&typeName=wqp_sites&searchParams=countrycode:US;statecode:US%3A51;huc:06*%7C07*%3BsampleMedia:Water%3BcharacteristicType:Nutrient&styles=&outputFormat=application/json
-		 */
-		
-		DynamicLayerCache layerCache = null;
-		
-		try {
-			DynamicLayerCache defaultLayerCache = new DynamicLayerCache(searchParams, originatingService);
-			layerCache = layerCachingService.getLayerCache(defaultLayerCache);
-			
-			/*
-			 * We should be blocked above with the getLayerCache() call and should only
-			 * get a value for layerCache when its finished performing an action.  The
-			 * valid non-action status's are AVAILABLE (default), INITIAL, EMPTY and ERROR
-			 */
-			switch (layerCache.getCurrentStatus()) {
-				case INITIATED:
-					LOG.debug("WQPLayerBuildingService.getDynamicLayer() Created new DynamicLayerCache for key [" +
-							searchParams.unsignedHashCode() +"].  Setting status to BUILDING and creating layer...");
-					
-					/*
-					 * We just created a new cache object.  This means there is no
-					 * layer currently for this request in our GeoServer.  We now
-					 * need to make this layer through the WMSLayerService.
-					 */
-					layerCache.setCurrentStatus(DynamicLayerStatus.BUILDING);
-					
-					/*
-					 * We now call the simplestation url with our search params
-					 * (along with a mimeType=xml) in order to retrieve the data
-					 * that creates the layer:
-					 *
-					 * 		http://www.waterqualitydata.us/simplestation/search?countycode=US%3A40%3A109&characteristicName=Atrazine&mimeType=xml
-					 *
-					 * Documentation is from http://waterqualitydata.us/webservices_documentation.jsp
-					 * except we call "simplestation" instead of "Station"
-					 */
-					String geoserverRestPutShapefileURI = geoserverURIPrefix + geoserverRestWorkspacesURI + "/" + geoserverWorkspace + geoserverRestDataStoresURI;
-					String layerName = buildDynamicLayer(searchParams, geoserverRestPutShapefileURI, geoserverUser, geoserverPass);
-					if (isEmpty(layerName)) {
-						layerCache.setCurrentStatus(DynamicLayerStatus.EMPTY);
-						
-						LOG.debug("WQPLayerBuildingService.getDynamicLayer() Unable to create layer [" + layerCache.getLayerName() +
-								"] for key ["+ searchParams.unsignedHashCode() +
-								"].  Its status is [" + layerCache.getCurrentStatus().toString() +
-								"].  Since it is an empty request this means the search parameters did not " +
-								"result in any matching criteria.");
-						return ProxyServiceResult.EMPTY;
-					}
-					
-					//TODO Also check to see if the layer is enabled in GeoServer...
-					
-					layerCache.setLayerName(layerName);
-					layerCache.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
-					
-					LOG.debug("WQPLayerBuildingService.getDynamicLayer() Finished building layer for key ["+
-							searchParams.unsignedHashCode() +
-							"].  Layer name is [" + layerCache.getLayerName() + "].  Setting status to " +
-							"AVAILABLE and continuing on to GeoServer WMS request...");
-					break;
-				
-				case EMPTY:
-					LOG.debug("WQPLayerBuildingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
-							"] for key ["+ searchParams.unsignedHashCode() +
-							"] and its status is [" + layerCache.getCurrentStatus().toString() +
-							"].  Since it is an empty request this means the search parameters did not " +
-							"result in any matching criteria.");
-					return ProxyServiceResult.EMPTY;
-				
-				case ERROR:
-					LOG.error("WQPLayerBuildingService.getDynamicLayer() Error: Layer cache is in an ERROR state and cannot continue request.");
-					return ProxyServiceResult.ERROR;
-				
-				default:
-					LOG.debug("WQPLayerBuildingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
-							"] for key ["+ searchParams.unsignedHashCode() +
-							"] and its status is [" + layerCache.getCurrentStatus().toString() +
-							"].  Continuing on to GeoServer WMS request...");
-					break;
-			}
-		} catch (OGCProxyException e) {
-			LOG.error(e.traceBack());
-			
-			if (layerCache != null) {
-				layerCache.setCurrentStatus(DynamicLayerStatus.ERROR);
-				layerCachingService.removeLayerCache(layerCache.getSearchParameters().unsignedHashCode() + "");
-			}
-			
-			LOG.error("WQPLayerBuildingService.getDynamicLayer() Error: Layer was not created for search parameters.");
-			return ProxyServiceResult.ERROR;
-		}
-		
-		/*
-		 * We finally got a layer name (and its been added to GeoServer, lets
-		 * add this layer to the layer parameter in the OGC request
-		 */
-		for (String layerParam : layerParams) {
-			String currentLayer = ogcParams.get(layerParam);
-			if ( isEmpty(currentLayer) 
-					|| (currentLayer.equals(dataSource.toString())) ) {
-				currentLayer = geoserverWorkspace + ":" + layerCache.getLayerName();
-			} else {
-				currentLayer += "," + geoserverWorkspace + ":" + layerCache.getLayerName();
-			}
-			ogcParams.put(layerParam, currentLayer);
-		}
-		
-		return ProxyServiceResult.SUCCESS;
-	}
-	
-	
 	
 	public String addGetCapabilitiesInfo(OGCServices serviceType, String serverContent) {
 		/*
@@ -529,9 +375,7 @@ public class WQPLayerBuildingService {
 		return mv;
 	}
 	
-	
-	private String buildDynamicLayer(SearchParameters<String, List<String>> searchParams, String geoServerURI, String geoServerUser, String geoServerPass)
-			throws OGCProxyException {
+	public String buildDynamicLayer(SearchParameters<String, List<String>> searchParams) throws OGCProxyException {
 		String layerName = DynamicLayerCache.DYNAMIC_LAYER_PREFIX + searchParams.unsignedHashCode();
 		SimpleFeatureType featureType;
 		
@@ -577,7 +421,7 @@ public class WQPLayerBuildingService {
 		/* 
 		 * Upload the shapefile to geoserver
 		 */
-		uploadShapefile(layerName, geoServerURI);
+		uploadShapefile(layerName);
 		
 		TimeProfiler.endTimer("WQPLayerBuildingService.buildDynamicLayer() INFO: ShapeFileConverter Overall Time", LOG);
 		
@@ -603,7 +447,7 @@ public class WQPLayerBuildingService {
 	}
 	
 	private List<FeatureDAO> parseInput(String filename, SimpleFeatureType featureType) throws OGCProxyException {
-		List<FeatureDAO> featureList = new ArrayList<FeatureDAO>();
+		List<FeatureDAO> featureList = new ArrayList<>();
 		try {
 			TimeProfiler.startTimer("WQX_OB_XML Parse Execution Time");
 			SimplePointParser spp = new SimplePointParser(filename, new SimpleFeatureBuilder(featureType));
@@ -626,7 +470,7 @@ public class WQPLayerBuildingService {
 		ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
 		TimeProfiler.endTimer("WQPLayerBuildingService.createShapeFile() INFO: GeoTools - ShapefileDataStoreFactory Creation Time", LOG);
 
-		Map<String, Serializable> params = new HashMap<String, Serializable>();
+		Map<String, Serializable> params = new HashMap<>();
 		try {
 			params.put("url", newFile.toURI().toURL());
 		} catch (MalformedURLException e) {
@@ -659,7 +503,7 @@ public class WQPLayerBuildingService {
 		 * Get our features
 		 */
 		TimeProfiler.startTimer("WQPLayerBuildingService.createShapeFile() INFO: GeoTools - SimpleFeature List Creation Time");
-		List<SimpleFeature> features = new ArrayList<SimpleFeature>();
+		List<SimpleFeature> features = new ArrayList<>();
 		for (FeatureDAO feature : featureList) {
 			features.add(feature.getSimpleFeature());
 		}
@@ -679,7 +523,8 @@ public class WQPLayerBuildingService {
 		return true;
 	}
 	
-	private void uploadShapefile(String layerName, String geoServerURI) throws OGCProxyException {
+	private void uploadShapefile(String layerName) throws OGCProxyException {
+		String geoServerURI = String.join("/", geoserverBaseURI, geoserverRest, geoserverWorkspaces, wqpWorkspace, geoserverDataStores);
 		/*
 		 * Upload the zipped shapefile
 		 *
@@ -697,7 +542,7 @@ public class WQPLayerBuildingService {
 		File file = new File(layerZipFile);
 	    if (file.exists()) {
 	    	try (CloseableHttpClient httpClient2 = HttpClients.custom().setDefaultCredentialsProvider(getCredentialsProvider()).build()) {
-		    	verifyWorkspaceExists(httpClient2, geoServerURI);
+		    	verifyWorkspaceExists(httpClient2);
 		    	putShapefile(httpClient2, restPut, ShapeFileUtils.MEDIATYPE_APPLICATION_ZIP, file);
 	    	} catch (IOException e) {
 	    		LOG.error(e.getLocalizedMessage(), e);
@@ -739,9 +584,9 @@ public class WQPLayerBuildingService {
 		
 	}
 
-	protected void verifyWorkspaceExists(CloseableHttpClient httpClient, String geoServerURI) throws OGCProxyException {
+	protected void verifyWorkspaceExists(CloseableHttpClient httpClient) throws OGCProxyException {
 		int statusCode = -1;
-		String workspaceURI = geoServerURI.replace(geoserverRestDataStoresURI, ".json");
+		String workspaceURI = String.join("/", geoserverBaseURI, geoserverRest, geoserverWorkspaces, wqpWorkspace) + ".json";
 		try {
 			statusCode = httpClient.execute(new HttpGet(workspaceURI)).getStatusLine().getStatusCode();
 		} catch (Exception e){
@@ -778,9 +623,9 @@ public class WQPLayerBuildingService {
 		/*
 		 * We will actually try to create a namespace (which will automatically create the workspace)
 		 */
-		String uri = geoserverURIPrefix + geoserverRestNamespacesURI;
+		String uri = String.join("/", geoserverBaseURI, geoserverRest, geoserverNamespaces);
 		String mediaType = "text/xml";
-		String object = "<namespace><prefix>" + geoserverWorkspace
+		String object = "<namespace><prefix>" + wqpWorkspace
 				+ "</prefix><uri>http://www.waterqualitydata.us/ogcservices</uri></namespace>";
 		int statusCode = -1;
 		try {

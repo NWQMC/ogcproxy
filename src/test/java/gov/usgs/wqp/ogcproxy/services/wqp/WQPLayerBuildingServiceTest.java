@@ -50,7 +50,13 @@ public class WQPLayerBuildingServiceTest {
 	}
 
 	@Test
+	public void initializeTest() {
+		//TODO
+	}
+
+	@Test
 	public void uploadShapefileTest() {
+		//TODO
 //		private void uploadShapefile(String layerName, String geoServerURI, String geoServerUser, String geoServerPass) throws OGCProxyException {
 	}
 
@@ -62,7 +68,7 @@ public class WQPLayerBuildingServiceTest {
 			when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_OK, HttpStatus.SC_NOT_FOUND, HttpStatus.SC_OK);
 			
 			try {
-				service.verifyWorkspaceExists(httpClient, "abc");
+				service.verifyWorkspaceExists(httpClient);
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
 				if (e instanceof OGCProxyException && e.getMessage().contains("Hi")) {
@@ -73,11 +79,11 @@ public class WQPLayerBuildingServiceTest {
 			}
 			verify(httpClient, times(1)).execute(any(HttpGet.class));
 
-			service.verifyWorkspaceExists(httpClient, "abc");
+			service.verifyWorkspaceExists(httpClient);
 			verify(httpClient, times(2)).execute(any(HttpGet.class));
 			
 			try {
-				service.verifyWorkspaceExists(httpClient, "abc");
+				service.verifyWorkspaceExists(httpClient);
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
 				if (e instanceof OGCProxyException && e.getMessage().contains("Exception: Invalid status code from geoserver:200")) {

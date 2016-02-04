@@ -41,4 +41,14 @@ public class ProxyUtilTest {
 		assertEquals(OGCServices.WMS, ProxyUtil.getRequestedService(OGCServices.WMS, wms));
 	}
 
+	@Test
+	public void separateParametersTest() {
+		//TODO
+	}
+
+	@Test
+	public void getServerRequestURIAsStringTest() {
+		//TODO
+	}
+
 }

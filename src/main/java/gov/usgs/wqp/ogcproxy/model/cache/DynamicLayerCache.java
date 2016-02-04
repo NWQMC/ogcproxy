@@ -22,17 +22,20 @@ public class DynamicLayerCache {
 	public static final String DYNAMIC_LAYER_PREFIX = "dynamicSites_";
 
 	private String layerName;
+	private String workspace;
 	private DynamicLayerStatus currentStatus;
 	private SearchParameters<String, List<String>> searchParameters;
 	private Date dateCreated;
+	//This should probably be the "data source" when we have more than WQP
 	private OGCServices originatingService;
 
 	/** 
 	 * Constructor for Layers found in Geoserver.
 	 * @param layerName - layer name as retrieved from Geoserver.
 	 */
-	public DynamicLayerCache(final String layerName) {
+	public DynamicLayerCache(final String layerName, String workspace) {
 		this.layerName = layerName;
+		this.workspace = workspace;
 		this.currentStatus = DynamicLayerStatus.AVAILABLE;
 	}
 
@@ -41,8 +44,9 @@ public class DynamicLayerCache {
 	 * @param searchParams - parsed WQP search parms.
 	 * @param originatingService - .
 	 */
-	public DynamicLayerCache(final SearchParameters<String, List<String>> searchParams, OGCServices originatingService) {
+	public DynamicLayerCache(final SearchParameters<String, List<String>> searchParams, OGCServices originatingService, String workspace) {
 		this.layerName = DYNAMIC_LAYER_PREFIX + searchParams.unsignedHashCode();
+		this.workspace = workspace;
 		this.searchParameters = searchParams;
 		this.currentStatus = DynamicLayerStatus.INITIATED;
 		this.dateCreated = new Date();
@@ -53,8 +57,8 @@ public class DynamicLayerCache {
 		return this.layerName;
 	}
 	
-	public void setLayerName(String name) {
-		this.layerName = name;
+	public String getQualifiedLayerName() {
+		return String.join(":", workspace, layerName); 
 	}
 
 	public DynamicLayerStatus getCurrentStatus() {
@@ -84,7 +88,9 @@ public class DynamicLayerCache {
 	public void setOriginatingService(OGCServices originatingService) {
 		this.originatingService = originatingService;
 	}
+
 	public String getKey() {
 		return layerName.replace(DYNAMIC_LAYER_PREFIX, "");
 	}
+
 }
