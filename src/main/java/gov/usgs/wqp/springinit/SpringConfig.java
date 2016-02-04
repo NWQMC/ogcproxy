@@ -17,6 +17,7 @@ import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
+import gov.usgs.wqp.ogcproxy.services.LayerCachingService;
 import gov.usgs.wqp.ogcproxy.services.ProxyService;
 import gov.usgs.wqp.ogcproxy.services.RESTService;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
@@ -77,13 +78,18 @@ public class SpringConfig extends WebMvcConfigurerAdapter {
 	}
 	
 	@Bean
-	public WQPDynamicLayerCachingService layerCachingService() {
+	public WQPDynamicLayerCachingService wqpLayerCachingService() {
 		return WQPDynamicLayerCachingService.getInstance();
 	}
 	
 	@Bean
 	public WQPLayerBuildingService wqpLayerBuildingService() {
 		return WQPLayerBuildingService.getInstance();
+	}
+	
+	@Bean
+	public LayerCachingService layerCachingService() {
+		return LayerCachingService.getInstance();
 	}
 	
 	@Bean

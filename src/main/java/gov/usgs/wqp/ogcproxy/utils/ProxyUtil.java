@@ -1,5 +1,6 @@
 package gov.usgs.wqp.ogcproxy.utils;
 
+import gov.usgs.wqp.ogcproxy.model.OGCRequest;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.parameters.WQPParameters;
@@ -50,22 +51,18 @@ public class ProxyUtil {
 	 * parameters.  Search parameters are used for creating dynamic layers.
 	 *
 	 * @param requestParams
-	 * @param ogcParams
-	 * @param searchParams
 	 * @return
 	 */
-	public static boolean separateParameters(Map<String,String> requestParams, Map<String,String> ogcParams, Map<String, List<String>> searchParams) {
+	public static OGCRequest separateParameters(OGCServices ogcService, Map<String, String> requestParams) {
+		//This is here because the URL is a default request service but could receive a request of either WFS/WMS service
+		OGCServices realOgcService = ProxyUtil.getRequestedService(ogcService, requestParams);
+		
 		if (requestParams == null) {
-			return false;
+			return new OGCRequest(realOgcService);
 		}
 		
-		if (ogcParams == null) {
-			ogcParams = new HashMap<String,String>();
-		}
-		
-		if (searchParams == null) {
-			searchParams = new SearchParameters<String,List<String>>();
-		}
+		Map<String, String> ogcParams = new HashMap<>();
+		SearchParameters<String,List<String>> searchParams = new SearchParameters<>();
 		
 		LOG.debug("ProxyUtil.separateParameters() REQUEST PARAMS:\n" + requestParams);
 		
@@ -112,7 +109,7 @@ public class ProxyUtil {
 			LOG.debug("ProxyUtil.separateParameters() SEARCH PARAMETER MAP:\n[" + searchParams + "]");
 		}
 		
-		return true;
+		return new OGCRequest(realOgcService, ogcParams, searchParams);
 	}
 	
 	
@@ -125,16 +122,7 @@ public class ProxyUtil {
 	 * @return
 	 */
 	public static String getServerRequestURIAsString(HttpServletRequest clientrequest, Map<String,String> ogcParams, String forwardURL, String context) {
-        String proxyPath = clientrequest.getContextPath() + clientrequest.getServletPath();
-        
-        /*
-         * With the proxyPath we need to replace the ogcproxy context with the
-         * passed in context
-         */
-        String requestContext = clientrequest.getContextPath();
-        proxyPath = proxyPath.replace(requestContext, context);
-
-        StringBuilder requestBuffer = new StringBuilder(forwardURL + proxyPath + "?");
+        StringBuilder requestBuffer = new StringBuilder(forwardURL).append("/").append(context).append(clientrequest.getServletPath()).append("?");
         
         String sep = "";
         for (Map.Entry<String,String> paramEntry : ogcParams.entrySet()) {

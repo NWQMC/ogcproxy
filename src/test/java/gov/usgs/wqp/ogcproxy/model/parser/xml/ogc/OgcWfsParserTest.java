@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +11,8 @@ import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.util.UriUtils;
 
+import gov.usgs.wqp.ogcproxy.model.OGCRequest;
+import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
 
@@ -363,9 +364,8 @@ public class OgcWfsParserTest {
 		System.out.println(requestParams);
 		System.out.println();
 		
-		SearchParameters<String, List<String>> searchParams = new SearchParameters<String, List<String>>();
-		Map<String, String> ogcParams = new HashMap<String, String>();
-		ProxyUtil.separateParameters(requestParams, ogcParams, searchParams);
+		OGCRequest ogcRequest = ProxyUtil.separateParameters(OGCServices.WFS, requestParams);
+		SearchParameters<String, List<String>> searchParams = ogcRequest.getSearchParams();
 		
 		System.out.println();
 		System.out.println(searchParams);
