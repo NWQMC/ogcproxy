@@ -65,8 +65,6 @@ public class OGCRequest {
         case WMS:
         	if ("GetLegendGraphic".equalsIgnoreCase(ogcRequestType)) {
         		replaceableLayer = checkIfApplicable(ogcParams, WMSParameters.layer.toString());
-        		//TODO Make this more generic (not WQP specific)
-        		ogcParams.put(WMSParameters.style.toString(), "wqp_sources");
         	} else {
         		replaceableLayer = checkIfApplicable(ogcParams, WMSParameters.layers.toString());
             	if (null == replaceableLayer) {
