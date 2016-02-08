@@ -54,13 +54,13 @@ public class ProxyUtil {
 	 * @return
 	 */
 	public static OGCRequest separateParameters(OGCServices ogcService, Map<String, String> requestParams) {
+		if (requestParams == null || requestParams.isEmpty()) {
+			return new OGCRequest(ogcService);
+		}
+
 		//This is here because the URL is a default request service but could receive a request of either WFS/WMS service
 		OGCServices realOgcService = ProxyUtil.getRequestedService(ogcService, requestParams);
-		
-		if (requestParams == null) {
-			return new OGCRequest(realOgcService);
-		}
-		
+
 		Map<String, String> ogcParams = new HashMap<>();
 		SearchParameters<String,List<String>> searchParams = new SearchParameters<>();
 		
@@ -221,7 +221,7 @@ public class ProxyUtil {
      */
     public static OGCServices getRequestedService(OGCServices calledService, Map<String, String> ogcParams) {
 		try {
-	    	String serviceValue = ogcParams.get(OGC_SERVICE_PARAMETER).toUpperCase();
+	    	String serviceValue = ogcParams.get(getCaseSensitiveParameter(OGC_SERVICE_PARAMETER, ogcParams)).toUpperCase();
 	    	return OGCServices.valueOf(serviceValue);
 		} catch (Exception e) {
 			return calledService;
@@ -243,13 +243,13 @@ public class ProxyUtil {
      * @return
      */
     public static String getCaseSensitiveParameter(String ourParam, Map<String,String> requestParams) {
-    	
-    	for (String key : requestParams.keySet()) {
-    		if ( key.equalsIgnoreCase(ourParam) ) {
-	        	return key;
-	        }
-    	}
-    	
+    	if (null != requestParams) {
+	    	for (String key : requestParams.keySet()) {
+	    		if ( key.equalsIgnoreCase(ourParam) ) {
+		        	return key;
+		        }
+	    	}
+    	}    	
     	return ourParam;
     }
 }

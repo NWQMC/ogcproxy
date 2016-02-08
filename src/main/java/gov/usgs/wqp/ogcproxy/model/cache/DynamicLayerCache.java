@@ -3,6 +3,7 @@ package gov.usgs.wqp.ogcproxy.model.cache;
 import java.util.Date;
 import java.util.List;
 
+import gov.usgs.wqp.ogcproxy.model.OGCRequest;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
@@ -32,6 +33,7 @@ public class DynamicLayerCache {
 	/** 
 	 * Constructor for Layers found in Geoserver.
 	 * @param layerName - layer name as retrieved from Geoserver.
+	 * @param workspace - the workspace this layer resides in on geoserver.
 	 */
 	public DynamicLayerCache(final String layerName, String workspace) {
 		this.layerName = layerName;
@@ -41,16 +43,16 @@ public class DynamicLayerCache {
 
 	/** 
 	 * Constructor for Layer requests from WQP.
-	 * @param searchParams - parsed WQP search parms.
-	 * @param originatingService - .
+	 * @param ogcRequest - the normalized request.
+	 * @param workspace - the workspace this layer resides in on geoserver.
 	 */
-	public DynamicLayerCache(final SearchParameters<String, List<String>> searchParams, OGCServices originatingService, String workspace) {
-		this.layerName = DYNAMIC_LAYER_PREFIX + searchParams.unsignedHashCode();
+	public DynamicLayerCache(final OGCRequest ogcRequest, String workspace) {
+		this.layerName = DYNAMIC_LAYER_PREFIX + ogcRequest.getSearchParams().unsignedHashCode();
 		this.workspace = workspace;
-		this.searchParameters = searchParams;
+		this.searchParameters = ogcRequest.getSearchParams();
 		this.currentStatus = DynamicLayerStatus.INITIATED;
 		this.dateCreated = new Date();
-		this.originatingService = originatingService;
+		this.originatingService = ogcRequest.getOgcService();
 	}
 	
 	public String getLayerName() {
@@ -93,4 +95,7 @@ public class DynamicLayerCache {
 		return layerName.replace(DYNAMIC_LAYER_PREFIX, "");
 	}
 
+	public void setWorkspace(String workspace) {
+		this.workspace = workspace;
+	}
 }

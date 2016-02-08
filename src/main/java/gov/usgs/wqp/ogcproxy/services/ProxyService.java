@@ -55,7 +55,7 @@ import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WFSParameters;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.RequestWrapper;
-import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
+import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
 import gov.usgs.wqp.ogcproxy.utils.ProxyServiceResult;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
@@ -66,10 +66,7 @@ public class ProxyService {
 	private Environment environment;
 
 	@Autowired
-	private WQPLayerBuildingService wqpLayerBuildingService;
-
-	@Autowired
-	private LayerCachingService layerCachingService;
+	private WQPDynamicLayerCachingService layerCachingService;
 	
 	private static final Logger LOG = LoggerFactory.getLogger(ProxyService.class);
 	
@@ -93,6 +90,46 @@ public class ProxyService {
 	private static Set<String> ignoredClientRequestHeaderSet  = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 	private static Set<String> ignoredServerResponseHeaderSet = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
 	
+	
+	public static final String WMS_GET_CAPABILITIES_CONTENT = "<Layer queryable=\"1\">" +
+			"<Name>wqp_sites</Name>" +
+			"<Title>wqp_sites</Title>" +
+			"<Abstract />" +
+			"<KeywordList>" +
+			"<Keyword>features</Keyword>" +
+			"<Keyword>wqp_sites</Keyword>" +
+			"</KeywordList>" +
+			"<CRS>EPSG:4326</CRS>" +
+			"<EX_GeographicBoundingBox>" +
+			"<westBoundLongitude>-179.144806</westBoundLongitude>" +
+			"<eastBoundLongitude>179.76416</eastBoundLongitude>" +
+			"<southBoundLatitude>18.913826</southBoundLatitude>" +
+			"<northBoundLatitude>71.332649</northBoundLatitude>" +
+			"</EX_GeographicBoundingBox>" +
+			"<BoundingBox CRS=\"CRS:84\" minx=\"-179.144806\" miny=\"18.913826\"" +
+			" maxx=\"179.76416\" maxy=\"71.332649\" />" +
+			"<BoundingBox CRS=\"EPSG:4326\" minx=\"18.913826\" miny=\"-179.144806\"" +
+			" maxx=\"71.332649\" maxy=\"179.76416\" />" +
+			"<Style>" +
+			"<Name>point</Name>" +
+			"<Title>Default Point</Title>" +
+			"<Abstract>A sample style that draws a point</Abstract>" +
+			"</Style>" +
+			"</Layer>";
+
+	/**
+	 * WFS GetFeature allows the use of the searchParams parameter.  Declare it in the GetCapabilities
+	 * document with the ows:AnyValue indicator (http://schemas.opengis.net/ows/1.1.0/owsDomainType.xsd)
+	 */
+	public static final String WFS_GET_CAPABILITIES_CONTENT = "<ows:Parameter name=\"searchParams\">" +
+			"<ows:AnyValue />" +
+			"</ows:Parameter>" +
+			"<ows:Parameter name=\"typeName\">" +
+			"<ows:AllowedValues>" +
+			"<ows:Value>wqp_sites</ows:Value>" +
+			"</ows:AllowedValues>" +
+			"</ows:Parameter>";
+
 	private static final ProxyService INSTANCE = new ProxyService();
 
 	private CloseableHttpClient serverClient;
@@ -563,7 +600,7 @@ public class ProxyService {
 			// to the OGC spec
 			switch (ogcRequest.getDataSource()) {
 				case WQP_SITES: 
-					stringContent = wqpLayerBuildingService.addGetCapabilitiesInfo(ogcRequest.getOgcService(), stringContent);
+					stringContent = addGetCapabilitiesInfo(ogcRequest.getOgcService(), stringContent);
 					break;
 				default:
 					break;
@@ -595,6 +632,87 @@ public class ProxyService {
 		} else {
 			return stringContent.getBytes();
 		}
+	}
+
+	
+	public String addGetCapabilitiesInfo(OGCServices serviceType, String serverContent) {
+		/*
+		 * For now we are assuming all GetCapabilities responses are XML.
+		 *
+		 * We are going to take the easy way out.  Instead of creating an XML
+		 * document and parsing it and figuring out where specific elements are
+		 * blah blah blah, we are just going to insert our specific XML blob in
+		 * the location it needs to be.
+		 *
+		 * The main reason I am doing this is because its fast and cheap.  A
+		 * very large String of XML is smaller in memory than an entire XML DOM
+		 * object of the same string.
+		 */
+		StringBuffer newContent = new StringBuffer();
+		
+		switch (serviceType) {
+			case WMS:
+				/*
+				 * For WMS, our XLM blob just needs to live inside the parent
+				 * <Layer> element.  Since it can live ANYWHERE in the parent
+				 * <Layer></Layer> element we will just look for the LAST
+				 * closing </Layer> tag and insert our stuff before it.
+				 */
+				int closingParentTag = serverContent.lastIndexOf("</Layer>");
+				if (closingParentTag == -1) {
+					LOG.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WMS GetCapabilities response from mapping service does not contain a closing </Layer> element.  Returning silently...");
+					return serverContent;
+				}
+				
+				newContent.append(serverContent.substring(0, closingParentTag));
+				newContent.append(WMS_GET_CAPABILITIES_CONTENT);
+				newContent.append(serverContent.substring(closingParentTag, serverContent.length()));
+				break;
+			
+			case WFS:
+				/*
+				 * WFS GetCapabilities response is different than WMS.  Most of our
+				 * WFS requests will center around GetFeature so we need to add
+				 * the "searchParams" parameter definition to the GetFeature operation
+				 * description.
+				 *
+				 * We will look for string token: "<ows:Operation name="GetFeature">"
+				 * and then look for the closing "</ows:DCP>" tag (a required child
+				 * element for an operation http://schemas.opengis.net/ows/1.1.0/owsOperationsMetadata.xsd).
+				 *
+				 * Once we found the closing </ows:DCP> tag of the GetFeature operation, we insert
+				 * our XML after it and append the rest of the document below it.  If we dont find
+				 * this tag we'll just insert it right before the closing </ows:Operation> tag.
+				 */
+				int getFeatureTag = serverContent.lastIndexOf("<ows:Operation name=\"GetFeature\">");
+				if (getFeatureTag == -1) {
+					LOG.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WFS GetCapabilities response from mapping service does not contain a <ows:Operation name=\"GetFeature\"> element.  Returning silently...");
+					return serverContent;
+				}
+				
+				int insertTag = serverContent.indexOf("</ows:DCP>", getFeatureTag);
+				if (insertTag == -1) {
+					LOG.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WFS GetCapabilities response from mapping service does not contain a closing </ows:DCP> element from the location of the <ows:Operation name=\"GetFeature\"> tag.  Looking for closing Operation tag.");
+					
+					insertTag = serverContent.indexOf("</ows:Operation>", getFeatureTag);
+					if (insertTag == -1) {
+						LOG.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WFS GetCapabilities response from mapping service does not contain a closing </ows:Operation> element from the location of the <ows:Operation name=\"GetFeature\"> tag.  Returning silently...");
+						return serverContent;
+					}
+				} else {
+					insertTag += "</ows:DCP>".length();
+				}
+				
+				newContent.append(serverContent.substring(0, insertTag));
+				newContent.append(WFS_GET_CAPABILITIES_CONTENT);
+				newContent.append(serverContent.substring(insertTag, serverContent.length()));
+				break;
+			
+			default:
+				break;
+		}
+
+		return newContent.toString();
 	}
 
 }

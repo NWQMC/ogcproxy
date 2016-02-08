@@ -45,8 +45,10 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
+import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.geo.JsonObjectResponseHandler;
 import gov.usgs.wqp.ogcproxy.geo.JsonObjectResponseHandlerTest;
+import gov.usgs.wqp.ogcproxy.model.OGCRequest;
 import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
@@ -87,7 +89,7 @@ public class WQPDynamicLayerCachingServiceTest {
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverHost", "localhost");
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverPort", "8080");
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverContext", "geoserver");
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "wqpWorkspace", "qw_portal_map");
+		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverWorkspace", "qw_portal_map");
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverBaseUri", "");
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverUser", "");
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverPass", "");
@@ -122,7 +124,7 @@ public class WQPDynamicLayerCachingServiceTest {
 		assertEquals("somewhere", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverHost"));
 		assertEquals("8443", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverPort"));
 		assertEquals("mycontext", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverContext"));
-		assertEquals("some_workspace", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "wqpWorkspace"));
+		assertEquals("some_workspace", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverWorkspace"));
 		assertEquals("https://somewhere:8443/mycontext", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverBaseUri"));
 		assertEquals("useme", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverUser"));
 		assertEquals("secret", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverPass"));
@@ -223,7 +225,8 @@ public class WQPDynamicLayerCachingServiceTest {
 		cache.put("123456", new DynamicLayerCache("dynamicSites_123456", "qw_portal_map"));
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<>();
 		searchParams.put("key", Arrays.asList("a", "b"));
-		DynamicLayerCache c2 = new DynamicLayerCache(searchParams, OGCServices.WFS, "qw_portal_map");
+		OGCRequest ogcRequest = new OGCRequest(OGCServices.WFS, null, searchParams);
+		DynamicLayerCache c2 = new DynamicLayerCache(ogcRequest, "qw_portal_map");
 		c2.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
 		cache.put(c2.getKey(), c2);
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "requestToLayerCache", cache);
@@ -261,6 +264,53 @@ public class WQPDynamicLayerCachingServiceTest {
 		assertEquals("pass", credentials.getPassword());
 		assertEquals("me", credentials.getUserPrincipal().getName());
 	}
+	
+	@Test
+	public void getLayerCacheTest() {
+		DynamicLayerCache existingCache = new DynamicLayerCache("dynamicSites_123456", "qw_portal_map");
+		Map<String, DynamicLayerCache> cache = new ConcurrentHashMap<>();
+		cache.put("123456", existingCache);
+		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "requestToLayerCache", cache);
+		DynamicLayerCache defaultCache = new DynamicLayerCache("12345678", "testWorkspace");
+		try {
+			assertEquals(defaultCache, service.getLayerCache(defaultCache));
+		} catch (Exception e) {
+			fail("Didn't expect to get exception: " + e.getLocalizedMessage());
+		}
+		
+		defaultCache = new DynamicLayerCache("123456", "qw_portal_map");
+		try {
+			assertEquals(existingCache, service.getLayerCache(defaultCache));
+			verify(service).waitForFinalStatus(any(DynamicLayerCache.class));
+		} catch (Exception e) {
+			fail("Didn't expect to get exception: " + e.getLocalizedMessage());
+		}
+	}
+
+	@Test
+	public void waitForFinalStatusTest() {
+		DynamicLayerCache currentCache = new DynamicLayerCache("12345678", "testWorkspace");
+		currentCache.setCurrentStatus(DynamicLayerStatus.ERROR);
+		try {
+			service.waitForFinalStatus(currentCache);
+			fail("Didn't get expected OGCProxyException");
+		} catch (Exception e) {
+			if (e instanceof OGCProxyException && e.getLocalizedMessage().contains("Its current status is [ERROR].")) {
+				//Cool!
+			} else {
+				fail("Wrong exception thrown!");
+			}
+		}
+		
+		currentCache.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
+		try {
+			assertEquals(currentCache, service.waitForFinalStatus(currentCache));
+		} catch (Exception e) {
+			fail("Didn't expect to get exception: " + e.getLocalizedMessage());
+		}
+
+		//TODO waiting tests
+	}
 
 	private void assertEnvironmentDefaults() {
 		assertEquals(Long.valueOf("500"), Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "threadSleep"));
@@ -268,7 +318,7 @@ public class WQPDynamicLayerCachingServiceTest {
 		assertEquals("localhost", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverHost"));
 		assertEquals("8080", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverPort"));
 		assertEquals("geoserver", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverContext"));
-		assertEquals("qw_portal_map", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "wqpWorkspace"));
+		assertEquals("qw_portal_map", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverWorkspace"));
 		assertEquals("http://localhost:8080/geoserver", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverBaseUri"));
 		assertEquals("", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverUser"));
 		assertEquals("", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverPass"));
