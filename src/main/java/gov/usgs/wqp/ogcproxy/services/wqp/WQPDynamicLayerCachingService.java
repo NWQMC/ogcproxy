@@ -30,6 +30,7 @@ import com.google.gson.JsonObject;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.geo.JsonObjectResponseHandler;
+import gov.usgs.wqp.ogcproxy.model.OGCRequest;
 import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
 import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
 
@@ -38,6 +39,9 @@ public class WQPDynamicLayerCachingService {
 
 	public static final String DATASTORES = "dataStores";
 	public static final String DATASTORE = "dataStore";
+
+	@Autowired
+	private WQPLayerBuildingService wqpLayerBuildingService;
 
 	@Autowired
 	private Environment environment;
@@ -50,7 +54,7 @@ public class WQPDynamicLayerCachingService {
 	private static String geoserverHost       = "localhost";
 	private static String geoserverPort       = "8080";
 	private static String geoserverContext    = "geoserver";
-	private static String wqpWorkspace        = "qw_portal_map";
+	private static String geoserverWorkspace  = "qw_portal_map";
 	private static String geoserverBaseUri    = "";
 	private static String geoserverDatastores = "datastores.json";
 	private static String geoserverRest       = "rest";
@@ -136,13 +140,106 @@ public class WQPDynamicLayerCachingService {
 			}
 			tmp = environment.getProperty("wqp.geoserver.workspace");
 			if (!isEmpty(tmp)) {
-				wqpWorkspace = tmp;
+				geoserverWorkspace = tmp;
 			}
 			geoserverBaseUri = geoserverProtocol + "://" + geoserverHost + ":" + geoserverPort + "/" + geoserverContext;
 			populateCache();
 		}
 	}
 	
+	/** 
+	 * Entry point for our vendor-specific searchParams layer building. If all goes well, there will be a layer created based 
+	 * on the searchParams and uploaded to geoserver for use in completing this call and others with the same base parameters. 
+	 * @param ogcRequest The parsed request and background information from the requesting service.
+	 * @return the layer name if successful, otherwise and empty string.
+	 */
+	public String getDynamicLayer(OGCRequest ogcRequest) {
+		DynamicLayerCache layerCache = null;
+		
+		try {
+			DynamicLayerCache defaultLayerCache = new DynamicLayerCache(ogcRequest, geoserverWorkspace);
+			layerCache = getLayerCache(defaultLayerCache);
+			
+			/*
+			 * We should be blocked above with the getLayerCache() call and should only
+			 * get a value for layerCache when its finished performing an action.  The
+			 * valid non-action status's are AVAILABLE (default), INITIAL, EMPTY and ERROR
+			 */
+			switch (layerCache.getCurrentStatus()) {
+				case INITIATED:
+					LOG.debug("WQPDynamicLayerCachingService.getDynamicLayer() Created new DynamicLayerCache for key [" +
+							ogcRequest.getSearchParams().unsignedHashCode() +"].  Setting status to BUILDING and creating layer...");
+					
+					/*
+					 * We just created a new cache object.  This means there is no
+					 * layer currently for this request in our GeoServer.  We now
+					 * need to make this layer through the WMSLayerService.
+					 */
+					layerCache.setCurrentStatus(DynamicLayerStatus.BUILDING);
+					
+					/*
+					 * We now call the simplestation url with our search params
+					 * (along with a mimeType=xml) in order to retrieve the data
+					 * that creates the layer:
+					 *
+					 * 		http://www.waterqualitydata.us/simplestation/search?countycode=US%3A40%3A109&characteristicName=Atrazine&mimeType=xml
+					 *
+					 * Documentation is from http://waterqualitydata.us/webservices_documentation.jsp
+					 * except we call "simplestation" instead of "Station"
+					 */
+					//TODO - rather than giving string, maybe just throw exception if problems in buildDynamicLayer
+					if (isEmpty(wqpLayerBuildingService.buildDynamicLayer(ogcRequest.getSearchParams()))) {
+						layerCache.setCurrentStatus(DynamicLayerStatus.EMPTY);
+						
+						LOG.debug("WQPDynamicLayerCachingService.getDynamicLayer() Unable to create layer [" + layerCache.getLayerName() +
+								"] for key ["+ ogcRequest.getSearchParams().unsignedHashCode() +
+								"].  Its status is [" + layerCache.getCurrentStatus().toString() +
+								"].  Since it is an empty request this means the search parameters did not " +
+								"result in any matching criteria.");
+					} else {
+					
+						//TODO Also check to see if the layer is enabled in GeoServer...
+						
+						layerCache.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
+						
+						LOG.debug("WQPDynamicLayerCachingService.getDynamicLayer() Finished building layer for key ["+
+								ogcRequest.getSearchParams().unsignedHashCode() +
+								"].  Layer name is [" + layerCache.getLayerName() + "].  Setting status to " +
+								"AVAILABLE and continuing on to GeoServer WMS request...");
+					}
+					break;
+				
+				case EMPTY:
+					LOG.debug("WQPDynamicLayerCachingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
+							"] for key ["+ ogcRequest.getSearchParams().unsignedHashCode() +
+							"] and its status is [" + layerCache.getCurrentStatus().toString() +
+							"].  Since it is an empty request this means the search parameters did not " +
+							"result in any matching criteria.");
+					break;
+				
+				case ERROR:
+					LOG.error("WQPDynamicLayerCachingService.getDynamicLayer() Error: Layer cache is in an ERROR state and cannot continue request.");
+					break;
+				
+				default:
+					LOG.debug("WQPDynamicLayerCachingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
+							"] for key ["+ ogcRequest.getSearchParams().unsignedHashCode() +
+							"] and its status is [" + layerCache.getCurrentStatus().toString() +
+							"].  Continuing on to GeoServer WMS request...");
+					break;
+			}
+		} catch (Exception e) {
+			if (layerCache != null) {
+				layerCache.setCurrentStatus(DynamicLayerStatus.ERROR);
+				removeLayerCache(layerCache.getKey());
+			}
+			
+			LOG.error("WQPDynamicLayerCachingService.getDynamicLayer() Error: Layer was not created for search parameters.", e);
+		}
+		
+		return null == layerCache ? "" : layerCache.getQualifiedLayerName();
+	}
+
 	/**
 	 * getLayerCache()
 	 * @param defaultLayerCache
@@ -190,13 +287,17 @@ public class WQPDynamicLayerCachingService {
 			}
 		}
 		
+		return waitForFinalStatus(currentCache);
+	}
+	
+	protected DynamicLayerCache waitForFinalStatus(DynamicLayerCache currentCache) throws OGCProxyException {
 		/*
 		 * Lets check to see if this cache's status is an error.  If so we need
 		 * to throw.
 		 */
 		if (currentCache.getCurrentStatus() == DynamicLayerStatus.ERROR) {
 			String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : Caught Interrupted Exception waiting for " +
-					  "Cache object [" + key + "] status to change.  Its current status is [" +
+					  "Cache object [" + currentCache.getKey() + "] status to change.  Its current status is [" +
 					  currentCache.getCurrentStatus().toString() +
 					  "].  Throwing Exception...";
 			LOG.error(msg);
@@ -223,7 +324,7 @@ public class WQPDynamicLayerCachingService {
 			
 			try {
 				String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : DynamicLayerCache object exists for key [" +
-							 key + "] but its status is [" +
+						currentCache.getKey() + "] but its status is [" +
 							 currentCache.getCurrentStatus().toString() +
 							 "].  Waiting " + WQPDynamicLayerCachingService.threadSleep + "ms";
 				LOG.debug(msg);
@@ -232,7 +333,7 @@ public class WQPDynamicLayerCachingService {
 			} catch (InterruptedException e) {
 				if ((currentCache.getCurrentStatus() != DynamicLayerStatus.AVAILABLE) && (currentCache.getCurrentStatus() != DynamicLayerStatus.EMPTY)) {
 					String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : Caught Interrupted Exception waiting for " +
-							  "Cache object [" + key + "] status to change.  Its current status is [" +
+							  "Cache object [" + currentCache.getKey() + "] status to change.  Its current status is [" +
 							  currentCache.getCurrentStatus().toString() +
 							  "].  Throwing Exception...";
 					LOG.error(msg);
@@ -244,7 +345,7 @@ public class WQPDynamicLayerCachingService {
 		}
 		
 		String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : DynamicLayerCache object " +
-				  "exists for key " + key +  ". Returning object with status [" +
+				  "exists for key " + currentCache.getKey() +  ". Returning object with status [" +
 				  currentCache.getCurrentStatus().toString() + "]";
 		LOG.debug(msg);
 		
@@ -285,7 +386,7 @@ public class WQPDynamicLayerCachingService {
 	}
 	
 	protected void clearGeoserverWorkspace() {
-		String deleteUri = String.join("/", geoserverBaseUri, geoserverRest, geoserverWorkspaces, wqpWorkspace) + "?recurse=true";
+		String deleteUri = String.join("/", geoserverBaseUri, geoserverRest, geoserverWorkspaces, geoserverWorkspace) + "?recurse=true";
 		try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(getCredentialsProvider()).build()) {
 			HttpDelete httpDelete = new HttpDelete(deleteUri);
 			httpClient.execute(httpDelete);
@@ -351,13 +452,13 @@ public class WQPDynamicLayerCachingService {
 		 */
 		LOG.debug("WQPDynamicLayerCachingService.populateCache() START");
 		try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(getCredentialsProvider()).build()) {
-			String uri = String.join("/", geoserverBaseUri, geoserverRest, geoserverWorkspaces, wqpWorkspace, geoserverDatastores);
+			String uri = String.join("/", geoserverBaseUri, geoserverRest, geoserverWorkspaces, geoserverWorkspace, geoserverDatastores);
 			JsonObject jsonObject = httpClient.execute(new HttpGet(uri), new JsonObjectResponseHandler());
 			Iterator<JsonElement> i = getResponseIterator(jsonObject);
 			while (i.hasNext()) {
 				JsonObject layer = i.next().getAsJsonObject();
 				LOG.debug("WQPDynamicLayerCachingService.populateCache() with [" + layer.get("name").getAsString() + "]");
-				DynamicLayerCache cacheIt = new DynamicLayerCache(layer.get("name").getAsString(), wqpWorkspace);
+				DynamicLayerCache cacheIt = new DynamicLayerCache(layer.get("name").getAsString(), geoserverWorkspace);
 				try {
 					getLayerCache(cacheIt);
 				} catch (OGCProxyException e) {

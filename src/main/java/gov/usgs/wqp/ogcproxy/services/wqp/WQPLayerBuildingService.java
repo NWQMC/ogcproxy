@@ -46,7 +46,6 @@ import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
 import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
 import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeature;
-import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.parser.xml.wqx.SimplePointParser;
 import gov.usgs.wqp.ogcproxy.utils.ShapeFileUtils;
@@ -59,45 +58,6 @@ public class WQPLayerBuildingService {
 	@Autowired
 	private WQPDynamicLayerCachingService layerCachingService;
 
-	private static final String WMS_GET_CAPABILITIES_CONTENT = "<Layer queryable=\"1\">" +
-			"<Name>wqp_sites</Name>" +
-			"<Title>wqp_sites</Title>" +
-			"<Abstract />" +
-			"<KeywordList>" +
-			"<Keyword>features</Keyword>" +
-			"<Keyword>wqp_sites</Keyword>" +
-			"</KeywordList>" +
-			"<CRS>EPSG:4326</CRS>" +
-			"<EX_GeographicBoundingBox>" +
-			"<westBoundLongitude>-179.144806</westBoundLongitude>" +
-			"<eastBoundLongitude>179.76416</eastBoundLongitude>" +
-			"<southBoundLatitude>18.913826</southBoundLatitude>" +
-			"<northBoundLatitude>71.332649</northBoundLatitude>" +
-			"</EX_GeographicBoundingBox>" +
-			"<BoundingBox CRS=\"CRS:84\" minx=\"-179.144806\" miny=\"18.913826\"" +
-			" maxx=\"179.76416\" maxy=\"71.332649\" />" +
-			"<BoundingBox CRS=\"EPSG:4326\" minx=\"18.913826\" miny=\"-179.144806\"" +
-			" maxx=\"71.332649\" maxy=\"179.76416\" />" +
-			"<Style>" +
-			"<Name>point</Name>" +
-			"<Title>Default Point</Title>" +
-			"<Abstract>A sample style that draws a point</Abstract>" +
-			"</Style>" +
-			"</Layer>";
-	
-	/**
-	 * WFS GetFeature allows the use of the searchParams parameter.  Declare it in the GetCapabilities
-	 * document with the ows:AnyValue indicator (http://schemas.opengis.net/ows/1.1.0/owsDomainType.xsd)
-	 */
-	private static final String WFS_GET_CAPABILITIES_CONTENT = "<ows:Parameter name=\"searchParams\">" +
-			"<ows:AnyValue />" +
-			"</ows:Parameter>" +
-			"<ows:Parameter name=\"typeName\">" +
-			"<ows:AllowedValues>" +
-			"<ows:Value>wqp_sites</ows:Value>" +
-			"</ows:AllowedValues>" +
-			"</ows:Parameter>";
-	
 	@Autowired
 	private Environment environment;
 	private static boolean initialized;
@@ -106,7 +66,7 @@ public class WQPLayerBuildingService {
 	private static String geoserverHost       = "localhost";
 	private static String geoserverPort       = "8080";
 	private static String geoserverContext    = "geoserver";
-	private static String wqpWorkspace        = "qw_portal_map";
+	private static String geoserverWorkspace  = "qw_portal_map";
 	private static String geoserverUser       = "";
 	private static String geoserverPass       = "";
 	private static String geoserverBaseURI    = "";
@@ -198,7 +158,7 @@ public class WQPLayerBuildingService {
 			}
 			tmp = environment.getProperty("wqp.geoserver.workspace");
 			if (!isEmpty(tmp)) {
-				wqpWorkspace = tmp;
+				geoserverWorkspace = tmp;
 			}
 			tmp = environment.getProperty("wqp.geoserver.user");
 			if (!isEmpty(tmp)) {
@@ -276,87 +236,7 @@ public class WQPLayerBuildingService {
 					.setDefaultRequestConfig(config).build();
 		}
 	}
-	
-	public String addGetCapabilitiesInfo(OGCServices serviceType, String serverContent) {
-		/*
-		 * For now we are assuming all GetCapabilities responses are XML.
-		 *
-		 * We are going to take the easy way out.  Instead of creating an XML
-		 * document and parsing it and figuring out where specific elements are
-		 * blah blah blah, we are just going to insert our specific XML blob in
-		 * the location it needs to be.
-		 *
-		 * The main reason I am doing this is because its fast and cheap.  A
-		 * very large String of XML is smaller in memory than an entire XML DOM
-		 * object of the same string.
-		 */
-		StringBuffer newContent = new StringBuffer();
-		
-		switch (serviceType) {
-			case WMS:
-				/*
-				 * For WMS, our XLM blob just needs to live inside the parent
-				 * <Layer> element.  Since it can live ANYWHERE in the parent
-				 * <Layer></Layer> element we will just look for the LAST
-				 * closing </Layer> tag and insert our stuff before it.
-				 */
-				int closingParentTag = serverContent.lastIndexOf("</Layer>");
-				if (closingParentTag == -1) {
-					LOG.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WMS GetCapabilities response from mapping service does not contain a closing </Layer> element.  Returning silently...");
-					return serverContent;
-				}
-				
-				newContent.append(serverContent.substring(0, closingParentTag));
-				newContent.append(WMS_GET_CAPABILITIES_CONTENT);
-				newContent.append(serverContent.substring(closingParentTag, serverContent.length()));
-				break;
-			
-			case WFS:
-				/*
-				 * WFS GetCapabilities response is different than WMS.  Most of our
-				 * WFS requests will center around GetFeature so we need to add
-				 * the "searchParams" parameter definition to the GetFeature operation
-				 * description.
-				 *
-				 * We will look for string token: "<ows:Operation name="GetFeature">"
-				 * and then look for the closing "</ows:DCP>" tag (a required child
-				 * element for an operation http://schemas.opengis.net/ows/1.1.0/owsOperationsMetadata.xsd).
-				 *
-				 * Once we found the closing </ows:DCP> tag of the GetFeature operation, we insert
-				 * our XML after it and append the rest of the document below it.  If we dont find
-				 * this tag we'll just insert it right before the closing </ows:Operation> tag.
-				 */
-				int getFeatureTag = serverContent.lastIndexOf("<ows:Operation name=\"GetFeature\">");
-				if (getFeatureTag == -1) {
-					LOG.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WFS GetCapabilities response from mapping service does not contain a <ows:Operation name=\"GetFeature\"> element.  Returning silently...");
-					return serverContent;
-				}
-				
-				int insertTag = serverContent.indexOf("</ows:DCP>", getFeatureTag);
-				if (insertTag == -1) {
-					LOG.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WFS GetCapabilities response from mapping service does not contain a closing </ows:DCP> element from the location of the <ows:Operation name=\"GetFeature\"> tag.  Looking for closing Operation tag.");
-					
-					insertTag = serverContent.indexOf("</ows:Operation>", getFeatureTag);
-					if (insertTag == -1) {
-						LOG.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WFS GetCapabilities response from mapping service does not contain a closing </ows:Operation> element from the location of the <ows:Operation name=\"GetFeature\"> tag.  Returning silently...");
-						return serverContent;
-					}
-				} else {
-					insertTag += "</ows:DCP>".length();
-				}
-				
-				newContent.append(serverContent.substring(0, insertTag));
-				newContent.append(WFS_GET_CAPABILITIES_CONTENT);
-				newContent.append(serverContent.substring(insertTag, serverContent.length()));
-				break;
-			
-			default:
-				break;
-		}
 
-		return newContent.toString();
-	}
-	
 	public ModelAndView getCacheStatus() {
 		ModelAndView mv = new ModelAndView("wqp_cache_status.jsp");
 		
@@ -524,7 +404,7 @@ public class WQPLayerBuildingService {
 	}
 	
 	private void uploadShapefile(String layerName) throws OGCProxyException {
-		String geoServerURI = String.join("/", geoserverBaseURI, geoserverRest, geoserverWorkspaces, wqpWorkspace, geoserverDataStores);
+		String geoServerURI = String.join("/", geoserverBaseURI, geoserverRest, geoserverWorkspaces, geoserverWorkspace, geoserverDataStores);
 		/*
 		 * Upload the zipped shapefile
 		 *
@@ -586,7 +466,7 @@ public class WQPLayerBuildingService {
 
 	protected void verifyWorkspaceExists(CloseableHttpClient httpClient) throws OGCProxyException {
 		int statusCode = -1;
-		String workspaceURI = String.join("/", geoserverBaseURI, geoserverRest, geoserverWorkspaces, wqpWorkspace) + ".json";
+		String workspaceURI = String.join("/", geoserverBaseURI, geoserverRest, geoserverWorkspaces, geoserverWorkspace) + ".json";
 		try {
 			statusCode = httpClient.execute(new HttpGet(workspaceURI)).getStatusLine().getStatusCode();
 		} catch (Exception e){
@@ -625,7 +505,7 @@ public class WQPLayerBuildingService {
 		 */
 		String uri = String.join("/", geoserverBaseURI, geoserverRest, geoserverNamespaces);
 		String mediaType = "text/xml";
-		String object = "<namespace><prefix>" + wqpWorkspace
+		String object = "<namespace><prefix>" + geoserverWorkspace
 				+ "</prefix><uri>http://www.waterqualitydata.us/ogcservices</uri></namespace>";
 		int statusCode = -1;
 		try {
