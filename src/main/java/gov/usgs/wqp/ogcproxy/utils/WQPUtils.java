@@ -46,10 +46,8 @@ import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 public class WQPUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(WQPUtils.class);
 	
-	public static void parseSearchParams(String searchParamString, Map<String, List<String>> searchParams) {
-		if (searchParams == null) {
-			searchParams = new SearchParameters<String,List<String>>();
-		}
+	public static SearchParameters<String, List<String>> parseSearchParams(String searchParamString) {
+		SearchParameters<String, List<String>> searchParams = new SearchParameters<>();
 		
 		//log.info("WQPUtils.parseSearchParams() - SearchParamString = [" + searchParamString + "]");
 		
@@ -114,11 +112,13 @@ public class WQPUtils {
 				searchParams.get(key).addAll(values);
 			}
 		}
+		return searchParams;
 	}
 	
 	public static HttpUriRequest generateSimpleStationRequest(Map<String, List<String>> searchParams, String simpleStationURL) throws OGCProxyException {
 		return generateSimpleStationRequest(searchParams, simpleStationURL, new LinkedList<String>());
 	}
+
 	public static HttpUriRequest generateSimpleStationRequest(Map<String, List<String>> searchParams, String simpleStationURL, List<String> multiparams)
 			throws OGCProxyException {
 		HttpUriRequest request = null;

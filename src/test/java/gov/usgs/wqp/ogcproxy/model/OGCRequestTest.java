@@ -47,7 +47,7 @@ public class OGCRequestTest {
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<>();
 		searchParams.put("wqp", Arrays.asList("nope", "nada"));
 
-		OGCRequest ogcRequest = new OGCRequest(null, null, null);
+		OGCRequest ogcRequest = new OGCRequest(null, null, null, null);
 		assertNull(ogcRequest.getOgcService());
 		assertTrue(ogcRequest.getOgcParams().isEmpty());
 		assertTrue(ogcRequest.getSearchParams().isEmpty());
@@ -55,7 +55,7 @@ public class OGCRequestTest {
 		assertTrue(ogcRequest.getReplaceableLayers().isEmpty());
 		assertEquals(ProxyDataSourceParameter.UNKNOWN, ogcRequest.getDataSource());
 
-		ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, searchParams);
+		ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, searchParams, null);
 		assertEquals(OGCServices.WMS, ogcRequest.getOgcService());
 		assertTrue(ogcRequest.getOgcParams().equals(ogcParams));
 		assertTrue(ogcRequest.getSearchParams().equals(searchParams));
@@ -163,24 +163,24 @@ public class OGCRequestTest {
 	}
 
 	@Test
-	public void isValidRequestTest() {
+	public void isValidVendorRequestTest() {
 		Map<String, String> ogcParams = new HashMap<>();
 		ogcParams.put(WMSParameters.layer.toString(), ProxyDataSourceParameter.WQP_SITES.toString());
 		ogcParams.put("ReQuEsT", OGCRequest.GET_LEGEND_GRAPHIC);
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<>();
 		searchParams.put("wqp", Arrays.asList("nope", "nada"));
 
-		OGCRequest ogcRequest = new OGCRequest(OGCServices.WMS, null, null);
-		assertFalse(ogcRequest.isValidRequest());
+		OGCRequest ogcRequest = new OGCRequest(OGCServices.WMS, null, null, null);
+		assertFalse(ogcRequest.isValidVendorRequest());
 
-		ogcRequest = new OGCRequest(OGCServices.WMS, null, searchParams);
-		assertFalse(ogcRequest.isValidRequest());
+		ogcRequest = new OGCRequest(OGCServices.WMS, null, searchParams, null);
+		assertFalse(ogcRequest.isValidVendorRequest());
 
-		ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, null);
-		assertFalse(ogcRequest.isValidRequest());
+		ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, null, null);
+		assertFalse(ogcRequest.isValidVendorRequest());
 
-		ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, searchParams);
-		assertTrue(ogcRequest.isValidRequest());
+		ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, searchParams, null);
+		assertTrue(ogcRequest.isValidVendorRequest());
 	}
 
 	@Test
@@ -191,14 +191,14 @@ public class OGCRequestTest {
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<>();
 		searchParams.put("wqp", Arrays.asList("nope", "nada"));
 
-		OGCRequest ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, searchParams);
+		OGCRequest ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, searchParams, null);
 		ogcRequest.setLayerFromVendor("hah");
 		assertEquals(ogcRequest.getOgcParams().get(WMSParameters.layers.toString()), "hah");
 		assertEquals(ogcRequest.getOgcParams().get(WMSParameters.query_layers.toString()), "hah");
 
 		ogcParams.put(WMSParameters.layers.toString(), "abc," + ProxyDataSourceParameter.WQP_SITES.toString());
 		ogcParams.put(WMSParameters.query_layers.toString(), ProxyDataSourceParameter.WQP_SITES.toString()+ ",abc");
-		ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, searchParams);
+		ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, searchParams, null);
 		ogcRequest.setLayerFromVendor("hah");
 		assertEquals(ogcRequest.getOgcParams().get(WMSParameters.layers.toString()), "abc,hah");
 		assertEquals(ogcRequest.getOgcParams().get(WMSParameters.query_layers.toString()), "hah,abc");

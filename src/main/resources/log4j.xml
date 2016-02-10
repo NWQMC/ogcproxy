@@ -19,6 +19,10 @@
         </layout>
     </appender>
     
+    <category name="gov.usgs.wqp">
+        <level value="debug"/>
+    </category>
+
     <root>
         <level  value="info"/>
         <appender-ref ref="myconsole" />

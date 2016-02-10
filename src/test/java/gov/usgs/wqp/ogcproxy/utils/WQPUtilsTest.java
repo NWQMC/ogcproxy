@@ -1,9 +1,8 @@
 package gov.usgs.wqp.ogcproxy.utils;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,8 +16,7 @@ public class WQPUtilsTest {
 	
 	@Before
 	public void init() throws Exception {
-		searchParams = new LinkedHashMap<String, List<String>>();
-		WQPUtils.parseSearchParams(searchParamString, searchParams);
+		searchParams = WQPUtils.parseSearchParams(searchParamString);
 	}
 	
 	

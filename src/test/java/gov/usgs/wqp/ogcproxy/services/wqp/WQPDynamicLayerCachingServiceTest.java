@@ -225,7 +225,7 @@ public class WQPDynamicLayerCachingServiceTest {
 		cache.put("123456", new DynamicLayerCache("dynamicSites_123456", "qw_portal_map"));
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<>();
 		searchParams.put("key", Arrays.asList("a", "b"));
-		OGCRequest ogcRequest = new OGCRequest(OGCServices.WFS, null, searchParams);
+		OGCRequest ogcRequest = new OGCRequest(OGCServices.WFS, null, searchParams, null);
 		DynamicLayerCache c2 = new DynamicLayerCache(ogcRequest, "qw_portal_map");
 		c2.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
 		cache.put(c2.getKey(), c2);

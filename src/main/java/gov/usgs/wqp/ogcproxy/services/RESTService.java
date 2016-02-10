@@ -9,7 +9,6 @@ import org.springframework.web.servlet.ModelAndView;
 
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
-import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
 
 public class RESTService {
 	private static final Logger LOG = LoggerFactory.getLogger(RESTService.class);
