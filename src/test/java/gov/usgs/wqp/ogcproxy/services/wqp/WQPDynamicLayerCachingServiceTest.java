@@ -93,6 +93,8 @@ public class WQPDynamicLayerCachingServiceTest {
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverBaseUri", "");
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverUser", "");
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverPass", "");
+		
+		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "requestToLayerCache", new ConcurrentHashMap<String, DynamicLayerCache>());
 	}
 	
 	@Test
