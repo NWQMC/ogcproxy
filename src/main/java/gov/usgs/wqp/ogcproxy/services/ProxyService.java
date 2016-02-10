@@ -10,7 +10,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
@@ -35,7 +34,6 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
@@ -51,10 +49,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
-import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WFSParameters;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
-import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
-import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.RequestWrapper;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
 import gov.usgs.wqp.ogcproxy.utils.ProxyServiceResult;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
@@ -234,17 +229,16 @@ public class ProxyService {
 	 *
 	 * @param request
 	 * @param response
-	 * @param requestParams
 	 * @param finalResult
 	 */
 	public DeferredResult<String> performRequest(HttpServletRequest request, HttpServletResponse response, 
-			Map<String, String> requestParams, OGCServices ogcService) {
+			OGCServices ogcService) {
 		
 		DeferredResult<String> deferredResult = new DeferredResult<String>();
 		
 		//Interrogate the request, converting our vendor parameter values into the appropriate ogc values.
 		//This may include building the dynamic layer associated with out "searchParams".
-		OGCRequest ogcRequest = convertVendorParms(requestParams, ogcService);
+		OGCRequest ogcRequest = convertVendorParms(request, ogcService);
 
 		// We now need to perform the proxy call to the GeoServer and return the result to the client
 		boolean proxySuccess = proxyRequest(request, response, ogcRequest);
@@ -259,10 +253,10 @@ public class ProxyService {
 		return deferredResult;
 	}
 
-	protected OGCRequest convertVendorParms(Map<String, String> requestParams, OGCServices ogcService) {
-		OGCRequest ogcRequest = ProxyUtil.separateParameters(ogcService, requestParams);
+	protected OGCRequest convertVendorParms(HttpServletRequest request, OGCServices ogcService) {
+		OGCRequest ogcRequest = ProxyUtil.separateParameters(request, ogcService);
 		
-		if (ogcRequest.isValidRequest()) {
+		if (ogcRequest.isValidVendorRequest()) {
 			// We can now proceed with the request. Depending on the value of
 			// the layer parameter we will call the correct layer building service.
 			LOG.debug("ProxyService.performRequest() Info: Kicking off search parameter logic for data source ["
@@ -275,7 +269,6 @@ public class ProxyService {
 
 		return ogcRequest;
 	}
-
 	
 	/**
 	 * Logic and supporting methods stolen from
@@ -290,7 +283,7 @@ public class ProxyService {
 			OGCRequest ogcRequest) {
 		
 		try {
-			HttpUriRequest serverRequest = generateServerRequest(clientRequest, ogcRequest.getOgcParams());
+			HttpUriRequest serverRequest = generateServerRequest(clientRequest, ogcRequest);
 			handleServerRequest(clientRequest, clientResponse, serverRequest, ogcRequest);
 		} catch (OGCProxyException e) {
 			LOG.error("ProxyService.proxyRequest() Error: proxying client request: " + e.getMessage(), e);
@@ -300,14 +293,14 @@ public class ProxyService {
 		return true;
 	}
 
-	private HttpUriRequest generateServerRequest( HttpServletRequest clientRequest, final Map<String, String> ogcParams) 
+	private HttpUriRequest generateServerRequest(HttpServletRequest clientRequest, final OGCRequest ogcRequest) 
 			throws OGCProxyException {
 		
 		HttpUriRequest serverRequest = null;
 		
 		try {
 			// 1) Generate Server URI
-			String serverRequestURIAsString = ProxyUtil.getServerRequestURIAsString(clientRequest, ogcParams,
+			String serverRequestURIAsString = ProxyUtil.getServerRequestURIAsString(clientRequest, ogcRequest.getOgcParams(),
 							ProxyService.forwardUrl, ProxyService.geoserverContext);
 
 			LOG.debug("ProxyService.generateServerRequest(): request to GeoServer is: [\n" + serverRequestURIAsString + "]");
@@ -318,25 +311,25 @@ public class ProxyService {
 
 			// 2 ) Create request base on client request method
 			switch (clientRequest.getMethod().toUpperCase()) {
-            case "HEAD":
+            case HttpHead.METHOD_NAME:
 				serverRequest = new HttpHead(serverRequestURI);
                 break;
-            case "GET":
+            case HttpGet.METHOD_NAME:
 				serverRequest = new HttpGet(serverRequestURI);
                 break;
-            case "POST":
+            case HttpPost.METHOD_NAME:
 				serverRequest = new HttpPost(serverRequestURI);
                 break;
-            case "PUT":
+            case HttpPut.METHOD_NAME:
 				serverRequest = new HttpPut(serverRequestURI);
                 break;
-            case "DELETE":
+            case HttpDelete.METHOD_NAME:
 				serverRequest = new HttpDelete(serverRequestURI);
                 break;
-            case "TRACE":
+            case HttpTrace.METHOD_NAME:
 				serverRequest = new HttpTrace(serverRequestURI);
                 break;
-            case "OPTIONS":
+            case HttpOptions.METHOD_NAME:
 				serverRequest = new HttpOptions(serverRequestURI);
                 break;
 			default:
@@ -350,32 +343,16 @@ public class ProxyService {
 			ProxyUtil.generateServerRequestHeaders(clientRequest, serverRequest, ProxyService.ignoredClientRequestHeaderSet);
 
 			// 4) Copy client request body to server request
-			int contentLength = clientRequest.getContentLength();
-			String body = "";
-			// revise the length to the length of the body without the searchParams
-			if (clientRequest instanceof RequestWrapper) {
-				String dynamicLayerName = ogcParams.get(WFSParameters.typeName.toString());
-				body = ((RequestWrapper)clientRequest).getPostBodySansSearchParams();
-				if ( ! isEmpty(dynamicLayerName) ) {
-					body = ((RequestWrapper)clientRequest).getPostBodySansSearchParams().replaceAll(ProxyDataSourceParameter.WQP_SITES.toString(), dynamicLayerName);
-				}
-				// TODO asdf need to replace typeName with dynamic layer name here
-				contentLength = body.length();
-			}
+			String body = ogcRequest.getRequestBody();
+			int contentLength = body.length();
 			
 			if (contentLength > 0) {
 				// is this a POST (or PUT)
 				if (serverRequest instanceof HttpEntityEnclosingRequest) {
 					try {
 						HttpEntityEnclosingRequest entityRequest = (HttpEntityEnclosingRequest) serverRequest;
-						
-						InputStreamEntity serverRequestEntity = new InputStreamEntity(clientRequest.getInputStream(), contentLength);
-						serverRequestEntity.setContentType(clientRequest.getContentType());
-						((HttpEntityEnclosingRequest) serverRequest).setEntity(serverRequestEntity);
-												
 				        HttpEntity entity = new ByteArrayEntity(body.getBytes("UTF-8"));
 				        entityRequest.setEntity(entity);
-				 
 					} catch (IOException e) {
 						String msg = "ProxyService.generateServerRequest() Exception : Error reading client request body [" + e.getMessage() + "].";
 						LOG.error(msg, e);

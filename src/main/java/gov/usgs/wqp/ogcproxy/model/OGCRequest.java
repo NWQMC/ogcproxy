@@ -25,6 +25,7 @@ public class OGCRequest {
 	private String requestType;
 	private Set<String> replaceableLayers;
 	private ProxyDataSourceParameter dataSource;
+	private String requestBody;
 	
 	public OGCRequest(OGCServices ogcService) {
 		this.ogcService = ogcService;
@@ -33,13 +34,15 @@ public class OGCRequest {
 		this.requestType = "";
 		this.replaceableLayers = new HashSet<>();
 		this.dataSource = ProxyDataSourceParameter.UNKNOWN;
+		this.requestBody = "";
 	}
 
 	public OGCRequest(OGCServices ogcService, Map<String, String> ogcParams,
-			SearchParameters<String, List<String>> searchParams) {
+			SearchParameters<String, List<String>> searchParams, String requestBody) {
 		this.ogcService = ogcService;
 		this.ogcParams = null == ogcParams ? new HashMap<>() : ogcParams;
 		this.searchParams = null == searchParams ? new SearchParameters<>() : searchParams;
+		this.requestBody = null == requestBody ? "" : requestBody;
 		
 		setRequestType(this.ogcParams);
 		setReplaceableLayersAndDataSource(this.ogcService, this.ogcParams, this.requestType);
@@ -149,7 +152,11 @@ public class OGCRequest {
 		return replaceableLayers;
 	}
 
-	public boolean isValidRequest() {
+	public String getRequestBody() {
+		return requestBody;
+	}
+
+	public boolean isValidVendorRequest() {
 		return !searchParams.isEmpty() && dataSource != ProxyDataSourceParameter.UNKNOWN;
 	}
 
@@ -172,6 +179,8 @@ public class OGCRequest {
 			}
 			ogcParams.put(param, newValue.toString());
 		}
+		
+		requestBody = requestBody.replaceAll(ProxyDataSourceParameter.WQP_SITES.toString(), layerName);
 	}
 
 }

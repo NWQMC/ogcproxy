@@ -26,7 +26,7 @@ public class DynamicLayerCacheTest {
 	public void singleArgConstructorTest() {
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<>();
 		searchParams.put("hello", Arrays.asList("world"));
-		OGCRequest ogcRequest = new OGCRequest(OGCServices.WFS, null, searchParams);
+		OGCRequest ogcRequest = new OGCRequest(OGCServices.WFS, null, searchParams, null);
 		DynamicLayerCache cache = new DynamicLayerCache(ogcRequest, "qw_portal_map");
 		assertEquals(DynamicLayerCache.DYNAMIC_LAYER_PREFIX + "3187351746", cache.getLayerName());
 		assertEquals("3187351746", cache.getKey());

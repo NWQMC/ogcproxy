@@ -1,7 +1,5 @@
 package gov.usgs.wqp.ogcproxy.controllers;
 
-import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -13,13 +11,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.ModelAndView;
 
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
-import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.OgcWfsParser;
-import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.RequestWrapper;
 import gov.usgs.wqp.ogcproxy.services.ProxyService;
 import gov.usgs.wqp.ogcproxy.services.RESTService;
 import gov.usgs.wqp.ogcproxy.utils.ApplicationVersion;
@@ -59,9 +54,9 @@ public class OGCProxyController {
 	 * @return
 	 */
 	@RequestMapping(value="**/wms", method={RequestMethod.GET})
-    public DeferredResult<String>  wmsProxy(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
+    public DeferredResult<String>  wmsProxy(HttpServletRequest request, HttpServletResponse response) {
 		LOG.debug("OGCProxyController.wmsProxy() INFO - Performing request.");
-		return proxyService.performRequest(request, response, requestParams, OGCServices.WMS);
+		return proxyService.performRequest(request, response, OGCServices.WMS);
 	}
 	
 	/** 
@@ -74,27 +69,11 @@ public class OGCProxyController {
 	 * @return
 	 */
 	@RequestMapping(value="**/wfs", method=RequestMethod.GET)
-    public DeferredResult<String> wfsProxyGet(HttpServletRequest request, HttpServletResponse response, @RequestParam Map<String,String> requestParams) {
+    public DeferredResult<String> wfsProxyGet(HttpServletRequest request, HttpServletResponse response) {
 		LOG.debug("OGCProxyController.wfsProxy() INFO - Performing request.");
-		return proxyService.performRequest(request, response, requestParams, OGCServices.WFS);
+		return proxyService.performRequest(request, response, OGCServices.WFS);
 	}
 
-	/** 
-	 * Parses the POST'd document into a map of parameters before continuing on with the request processing.
-	 * 
-	 * @param request
-	 * @param response
-	 * @param ogcService
-	 */
-	public void handleServiceCallPost(HttpServletRequest request, HttpServletResponse response, OGCServices ogcService) {
-		OgcWfsParser ogcParser =  new OgcWfsParser(request);
-		Map<String, String> requestParams = ogcParser.requestParamsPayloadToMap();
-		request = new RequestWrapper(request, ogcParser.getBodyMinusSearchParams());
-		
-		proxyService.performRequest(request, response, requestParams, ogcService);
-	}
-
-	
 	/** 
 	 * WMS Post endpoint.
 	 * May actually contain a WMS or WFS call - the "SERVICE" parameter is used to determine the actual service being called.
@@ -106,7 +85,7 @@ public class OGCProxyController {
 	@RequestMapping(value="**/wms", method=RequestMethod.POST)
     public void wmsProxyPost(HttpServletRequest request, HttpServletResponse response) {
 		LOG.debug("OGCProxyController.wmsProxyPost() INFO - Performing request.");
-		handleServiceCallPost(request, response, OGCServices.WMS);
+		proxyService.performRequest(request, response, OGCServices.WMS);
 	}
 
 	/** 
@@ -120,7 +99,7 @@ public class OGCProxyController {
 	@RequestMapping(value="**/wfs", method=RequestMethod.POST)
     public void wfsProxyPost(HttpServletRequest request, HttpServletResponse response) {
 		LOG.debug("OGCProxyController.wfsProxyPost() INFO - Performing request.");
-		handleServiceCallPost(request, response, OGCServices.WFS);
+		proxyService.performRequest(request, response, OGCServices.WFS);
 	}
 	
 	/** 

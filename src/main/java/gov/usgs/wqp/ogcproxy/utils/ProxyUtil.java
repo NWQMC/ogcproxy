@@ -1,10 +1,5 @@
 package gov.usgs.wqp.ogcproxy.utils;
 
-import gov.usgs.wqp.ogcproxy.model.OGCRequest;
-import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
-import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
-import gov.usgs.wqp.ogcproxy.model.parameters.WQPParameters;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -19,9 +14,16 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.http.Header;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import gov.usgs.wqp.ogcproxy.model.OGCRequest;
+import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
+import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
+import gov.usgs.wqp.ogcproxy.model.parameters.WQPParameters;
+import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.OgcParser;
 
 /**
  * ProxyUtil
@@ -53,7 +55,21 @@ public class ProxyUtil {
 	 * @param requestParams
 	 * @return
 	 */
-	public static OGCRequest separateParameters(OGCServices ogcService, Map<String, String> requestParams) {
+	public static OGCRequest separateParameters(HttpServletRequest request, OGCServices ogcService) {
+		Map<String, String[]> requestParams = request.getParameterMap();
+		String requestBody = ""; 
+		if (HttpPost.METHOD_NAME.equalsIgnoreCase(request.getMethod())) {
+			OgcParser ogcParser = new OgcParser(request);
+			try {
+				ogcParser.parse();
+				requestParams = ogcParser.getRequestParamsAsMap();
+				requestBody = ogcParser.getBodyMinusVendorParams();
+			} catch (Exception e) {
+				//TODO - maybe something?
+				LOG.error(e.getLocalizedMessage(), e);
+			}
+		}
+
 		if (requestParams == null || requestParams.isEmpty()) {
 			return new OGCRequest(ogcService);
 		}
@@ -62,7 +78,7 @@ public class ProxyUtil {
 		OGCServices realOgcService = ProxyUtil.getRequestedService(ogcService, requestParams);
 
 		Map<String, String> ogcParams = new HashMap<>();
-		SearchParameters<String,List<String>> searchParams = new SearchParameters<>();
+		SearchParameters<String, List<String>> searchParams = new SearchParameters<>();
 		
 		LOG.debug("ProxyUtil.separateParameters() REQUEST PARAMS:\n" + requestParams);
 		
@@ -75,7 +91,7 @@ public class ProxyUtil {
 		String servletSearchParamName = ProxyUtil.searchParamKey;
 		
 		boolean containsSearchQuery = false;
-	    for (Map.Entry<String, String> pairs : requestParams.entrySet()) {
+	    for (Map.Entry<String, String[]> pairs : requestParams.entrySet()) {
 	        
 	        String key = pairs.getKey();
 	        containsSearchQuery = ProxyUtil.searchParamKey.equalsIgnoreCase(key);
@@ -94,22 +110,18 @@ public class ProxyUtil {
 	        	continue;
 	        }
 	        
-	        ogcParams.put(key, pairs.getValue());
+	        ogcParams.put(key, String.join(",", pairs.getValue()));
 	    }
 	    LOG.debug("ProxyUtil.separateParameters() OGC PARAMETER MAP:\n[" + ogcParams + "]");
 		
-		String searchParamString = requestParams.get(servletSearchParamName);
-		if (searchParamString != null) {
-			/*
-			 * This is a "create layer" request.  We need to first see if it exists  salready.
-			 * http://www.waterqualitydata.us/Station/search?countrycode=US&statecode=US%3A04|US%3A06&countycode=US%3A04%3A001|US%3A04%3A007|US%3A06%3A011|US%3A06%3A101&within=10&lat=46.12&long=-89.15&siteType=Estuary&organization=BCHMI&siteid=usgs-station&huc=010801*&sampleMedia=Air&characteristicType=Biological&characteristicName=Soluble+Reactive+Phosphorus+(SRP)&pCode=00065&startDateLo=01-01-1991&startDateHi=02-02-1992&providers=NWIS&providers=STEWARDS&providers=STORET&bBox=-89.68%2C-89.15%2C45.93%2C46.12&mimeType=csv&zip=yes
-			 */
-			WQPUtils.parseSearchParams(searchParamString, searchParams);
-			
+//		if (searchParamString != null) {
+		if (containsSearchQuery) {
+			String searchParamString = String.join(";", requestParams.get(servletSearchParamName));
+			searchParams = WQPUtils.parseSearchParams(searchParamString);
 			LOG.debug("ProxyUtil.separateParameters() SEARCH PARAMETER MAP:\n[" + searchParams + "]");
 		}
 		
-		return new OGCRequest(realOgcService, ogcParams, searchParams);
+		return new OGCRequest(realOgcService, ogcParams, searchParams, requestBody);
 	}
 	
 	
@@ -219,9 +231,10 @@ public class ProxyUtil {
      * @param calledService
      * @return
      */
-    public static OGCServices getRequestedService(OGCServices calledService, Map<String, String> ogcParams) {
+    public static OGCServices getRequestedService(OGCServices calledService, Map<String, String[]> ogcParams) {
 		try {
-	    	String serviceValue = ogcParams.get(getCaseSensitiveParameter(OGC_SERVICE_PARAMETER, ogcParams)).toUpperCase();
+			//We only expect one service value and any Exceptions will be eaten and the original called service returned. 
+	    	String serviceValue = ogcParams.get(getCaseSensitiveParameter(OGC_SERVICE_PARAMETER, ogcParams))[0].toUpperCase();
 	    	return OGCServices.valueOf(serviceValue);
 		} catch (Exception e) {
 			return calledService;
@@ -242,7 +255,7 @@ public class ProxyUtil {
      * @param requestParams
      * @return
      */
-    public static String getCaseSensitiveParameter(String ourParam, Map<String,String> requestParams) {
+    public static String getCaseSensitiveParameter(String ourParam, Map<String, ?> requestParams) {
     	if (null != requestParams) {
 	    	for (String key : requestParams.keySet()) {
 	    		if ( key.equalsIgnoreCase(ourParam) ) {
