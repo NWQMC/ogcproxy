@@ -94,7 +94,6 @@ public class ProxyUtil {
 	    for (Map.Entry<String, String[]> pairs : requestParams.entrySet()) {
 	        
 	        String key = pairs.getKey();
-	        containsSearchQuery = ProxyUtil.searchParamKey.equalsIgnoreCase(key);
 	        
 	        /*
 	         * OGC Spec for WFS and WMS states clearly that parameters shall NOT be
@@ -105,7 +104,8 @@ public class ProxyUtil {
 	         * upper cases all of its parameters including this specific parameter.  We
 	         * will make the "searchParams" case insensitive
 	         */
-	        if (containsSearchQuery) {
+	        if (ProxyUtil.searchParamKey.equalsIgnoreCase(key)) {
+	        	containsSearchQuery = true;
 	        	servletSearchParamName = key;
 	        	continue;
 	        }
@@ -114,7 +114,6 @@ public class ProxyUtil {
 	    }
 	    LOG.debug("ProxyUtil.separateParameters() OGC PARAMETER MAP:\n[" + ogcParams + "]");
 		
-//		if (searchParamString != null) {
 		if (containsSearchQuery) {
 			String searchParamString = String.join(";", requestParams.get(servletSearchParamName));
 			searchParams = WQPUtils.parseSearchParams(searchParamString);
