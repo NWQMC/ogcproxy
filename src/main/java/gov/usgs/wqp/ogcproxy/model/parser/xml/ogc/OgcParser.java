@@ -72,23 +72,23 @@ public class OgcParser {
 	}
 
 	protected void parseWfs(Document doc) throws UnsupportedEncodingException {
-		NodeList nodes = doc.getElementsByTagName("wfs:Query");
+		NodeList nodes = doc.getElementsByTagNameNS("*", "Query");
 		//Only expect one Query node
 		requestParams.put(WFSParameters.typeName.toString(),
 				new String[] {getAttributeText(nodes.item(0).getAttributes(), WFSParameters.typeName.toString())});
 		requestParams.put(WFSParameters.typeNames.toString(),
 				new String[] {getAttributeText(nodes.item(0).getAttributes(), WFSParameters.typeNames.toString())});
 		
-		getVendorParams(doc.getElementsByTagName("ogc:PropertyIsEqualTo"));
+		getVendorParams(doc.getElementsByTagNameNS("*", "PropertyIsEqualTo"));
 	}
 
 	protected void parseWms(Document doc) throws UnsupportedEncodingException {
-		NodeList nodes = doc.getElementsByTagName("NamedLayer");
+		NodeList nodes = doc.getElementsByTagNameNS("*", "NamedLayer");
 		//Only expect one NamedLayer node
 		requestParams.put(WMSParameters.layers.toString(),
 				new String[] {getNodeText((Element) nodes.item(0), "Name")});
 		
-		getVendorParams(doc.getElementsByTagName("ogc:PropertyIsEqualTo"));
+		getVendorParams(doc.getElementsByTagNameNS("*", "PropertyIsEqualTo"));
 	}
 
 	protected void getVendorParams(NodeList vendorParams) throws UnsupportedEncodingException {
@@ -108,18 +108,18 @@ public class OgcParser {
 	}
 
 	protected boolean isSearchParams(Element element) {
-		return WQPParameters.searchParams.toString().equalsIgnoreCase(getNodeText(element, "ogc:PropertyName"));
+		return WQPParameters.searchParams.toString().equalsIgnoreCase(getNodeText(element, "PropertyName"));
 	}
 	
 	protected String getSearchParams(Element element) throws UnsupportedEncodingException {
-		return UriUtils.decode(getNodeText(element, "ogc:Literal"), "UTF-8");
+		return UriUtils.decode(getNodeText(element, "Literal"), "UTF-8");
 	}
 
 	protected String getNodeText(Element element, String nodeName) {
-		if (null != element && null != element.getElementsByTagName(nodeName) &&
-				0 < element.getElementsByTagName(nodeName).getLength()) {
+		if (null != element && null != element.getElementsByTagNameNS("*", nodeName) &&
+				0 < element.getElementsByTagNameNS("*", nodeName).getLength()) {
 			//Only expect one.
-			return element.getElementsByTagName(nodeName).item(0).getTextContent();
+			return element.getElementsByTagNameNS("*", nodeName).item(0).getTextContent();
 		} else {
 			return "";
 		}
