@@ -23,11 +23,15 @@ import gov.usgs.wqp.ogcproxy.utils.ApplicationVersion;
 public class OGCProxyController {
 	private static final Logger LOG = LoggerFactory.getLogger(OGCProxyController.class);
 	
-	@Autowired
 	private ProxyService proxyService;
-	
-	@Autowired
 	private RESTService restService;
+
+	@Autowired
+	public OGCProxyController(ProxyService proxyService,
+			RESTService restService) {
+		this.proxyService = proxyService;
+		this.restService = restService;
+	}
 
 	/** 
 	 * Root context of the Application
@@ -54,7 +58,7 @@ public class OGCProxyController {
 	 * @return
 	 */
 	@RequestMapping(value="**/wms", method={RequestMethod.GET})
-    public DeferredResult<String>  wmsProxy(HttpServletRequest request, HttpServletResponse response) {
+    public DeferredResult<String>  wmsProxyGet(HttpServletRequest request, HttpServletResponse response) {
 		LOG.debug("OGCProxyController.wmsProxy() INFO - Performing request.");
 		return proxyService.performRequest(request, response, OGCServices.WMS);
 	}
@@ -112,7 +116,7 @@ public class OGCProxyController {
     public DeferredResult<ModelAndView> restCacheStatus(@PathVariable String site) {
 		DeferredResult<ModelAndView> finalResult = new DeferredResult<ModelAndView>();
 		
-		restService.checkCacheStatus(site, finalResult);
+		finalResult.setResult(restService.checkCacheStatus(site));
 		
 		return finalResult;
 	}
@@ -127,7 +131,7 @@ public class OGCProxyController {
     public DeferredResult<ModelAndView> restClearCache(@PathVariable String site) {
 		DeferredResult<ModelAndView> finalResult = new DeferredResult<ModelAndView>();
 		
-		restService.clearCacheBySite(site, finalResult);
+		finalResult.setResult(restService.clearCacheBySite(site));
 		
 		return finalResult;
 	}

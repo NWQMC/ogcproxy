@@ -10,7 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class WQPUtilsTest {
-	String requestParamString ="filter1=value1a%3Avalue1b%3Bvalue2%3Bvalue3&filter2=value1a%3Avalue1b%3Bvalue2a%3Avalue2b&filter3=value1&filter3=value2&filter3=value3&mimeType=xml";
+	String requestParamString ="filter1=value1a%3Avalue1b%3Bvalue2%3Bvalue3&filter2=value1a%3Avalue1b%3Bvalue2a%3Avalue2b&filter3=value1&filter3=value2&filter3=value3&mimeType=geojson";
 	String searchParamString = "filter1:value1a:value1b|value2|value3;filter2:value1a:value1b|value2a:value2b;filter3:value1;filter3:value2;filter3:value3";
 	Map<String, List<String>> searchParams;
 	
@@ -62,7 +62,7 @@ public class WQPUtilsTest {
 		List<String> multiparams = new ArrayList<String>();
 		multiparams.add("filter3");
 		String url = WQPUtils.generateSimpleStationRequest(searchParams, "http://prefix", multiparams).getURI().toString();
-		assertEquals("http://prefix?"+requestParamString,url);
+		assertEquals("http://prefix?"+requestParamString, url);
 	}
 	
 }

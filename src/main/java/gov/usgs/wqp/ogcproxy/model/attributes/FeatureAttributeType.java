@@ -10,6 +10,6 @@ package gov.usgs.wqp.ogcproxy.model.attributes;
  *	Note that the names are limited to 10 characters!!!
  */
 public enum FeatureAttributeType {
-	provider, orgName, orgId, locName, name, type, point;
+	provider, orgName, orgId, locName, name, type, searchType, point, huc8;
 
 }

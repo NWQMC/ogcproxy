@@ -180,13 +180,15 @@ public class SimplePointFeatureTest {
 		double defaultLong = -91;
 		double defaultLat = 85;
 		Point defaultPoint = this.geometryFactory.createPoint(new Coordinate(defaultLong, defaultLat));
+		String defaultSearchType = "MT";
+		String defaultHuc8 = "87654312";
 		
 		/**
 		 * Start our tests
 		 *
 		 * Create our SimplePointFeature
 		 */
-		SimplePointFeature currentPointFeature = new SimplePointFeature(this.usedFeatureBuilder, defaultProvider, defaultName, defaultType, defaultLong, defaultLat);
+		SimplePointFeature currentPointFeature = new SimplePointFeature(this.usedFeatureBuilder, defaultProvider, defaultName, defaultType, defaultLong, defaultLat, defaultSearchType, defaultHuc8);
 		
 		/**
 		 * Check typical feature values
@@ -197,6 +199,8 @@ public class SimplePointFeatureTest {
 		assertEquals(defaultPoint, currentPointFeature.getPoint());
 		assertEquals(defaultProvider, currentPointFeature.getProvider());
 		assertEquals(defaultType, currentPointFeature.getType());
+		assertEquals(defaultSearchType, currentPointFeature.getSearchType());
+		assertEquals(defaultHuc8, currentPointFeature.getHuc8());
 		
 		/**
 		 * Check complex feature BaseAttributeType datastructure
@@ -294,7 +298,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Create our SimplePointFeature
 		 */
-		SimplePointFeature testableFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.NWIS, testName, testType, testLong, testLat);
+		SimplePointFeature testableFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.NWIS, testName, testType, testLong, testLat, null, null);
 		
 		/**
 		 * Test our name
@@ -386,7 +390,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Create our SimplePointFeature
 		 */
-		SimplePointFeature testableFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.NWIS, testName, testType, testLong, testLat);
+		SimplePointFeature testableFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.NWIS, testName, testType, testLong, testLat, null, null);
 		
 		/**
 		 * Test our type
@@ -478,7 +482,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Create our SimplePointFeature
 		 */
-		SimplePointFeature testableFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.NWIS, testName, testType, testLong, testLat);
+		SimplePointFeature testableFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.NWIS, testName, testType, testLong, testLat, null, null);
 		
 		/**
 		 * Test our long
@@ -586,7 +590,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Create our SimplePointFeature
 		 */
-		SimplePointFeature testableFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.NWIS, testName, testType, testLong, testLat);
+		SimplePointFeature testableFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.NWIS, testName, testType, testLong, testLat, null, null);
 		
 		/**
 		 * Test our lat
@@ -689,7 +693,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Create our SimplePointFeature
 		 */
-		SimplePointFeature testableFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.NWIS, testName, testType, testLong, testLat);
+		SimplePointFeature testableFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.NWIS, testName, testType, testLong, testLat, null, null);
 				
 		/**
 		 * Test our Point
@@ -794,7 +798,7 @@ public class SimplePointFeatureTest {
 		/**
 		 * Create our SimplePointFeature
 		 */
-		SimplePointFeature testableFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.NWIS, testName, testType, testLong, testLat);
+		SimplePointFeature testableFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.NWIS, testName, testType, testLong, testLat, null, null);
 		
 		/**
 		 * Test our provider
@@ -883,14 +887,16 @@ public class SimplePointFeatureTest {
 			fail("Failed requesting featureType: " + e.getMessage());
 		}
 		assertEquals("Location", featureType.getName().getLocalPart());
-		assertEquals(7, featureType.getAttributeCount());
+		assertEquals(9, featureType.getAttributeCount());
 		assertEquals("the_geom", featureType.getAttributeDescriptors().get(0).getName().getLocalPart());
 		assertEquals(FeatureAttributeType.orgId.toString(), featureType.getAttributeDescriptors().get(1).getName().getLocalPart());
 		assertEquals(FeatureAttributeType.orgName.toString(), featureType.getAttributeDescriptors().get(2).getName().getLocalPart());
 		assertEquals(FeatureAttributeType.name.toString(), featureType.getAttributeDescriptors().get(3).getName().getLocalPart());
 		assertEquals(FeatureAttributeType.locName.toString(), featureType.getAttributeDescriptors().get(4).getName().getLocalPart());
 		assertEquals(FeatureAttributeType.type.toString(), featureType.getAttributeDescriptors().get(5).getName().getLocalPart());
-		assertEquals(FeatureAttributeType.provider.toString(), featureType.getAttributeDescriptors().get(6).getName().getLocalPart());
+		assertEquals(FeatureAttributeType.searchType.toString(), featureType.getAttributeDescriptors().get(6).getName().getLocalPart());
+		assertEquals(FeatureAttributeType.huc8.toString(), featureType.getAttributeDescriptors().get(7).getName().getLocalPart());
+		assertEquals(FeatureAttributeType.provider.toString(), featureType.getAttributeDescriptors().get(8).getName().getLocalPart());
 	
 		SimplePointFeature currentPointFeature = new SimplePointFeature(this.usedFeatureBuilder, SourceProvider.UNKNOWN);
 		currentPointFeature.setLatitude(43.3836014);
@@ -899,7 +905,9 @@ public class SimplePointFeatureTest {
 		currentPointFeature.setOrgName("Berry Berry Good Garden Rentals");
 		currentPointFeature.setName("BBGGR-00000123");
 		currentPointFeature.setLocationName("DS1 Well");
-		currentPointFeature.setType("Well");
+		currentPointFeature.setType("Well of mine");
+		currentPointFeature.setSearchType("Well");
+		currentPointFeature.setHuc8("12345687");
 
 		SimpleFeature generatedFeature = currentPointFeature.getSimpleFeature();
 		assertEquals(geometryFactory.createPoint(new Coordinate(-88.9773314, 43.3836014)), generatedFeature.getAttribute("the_geom"));
@@ -907,7 +915,9 @@ public class SimplePointFeatureTest {
 		assertEquals("Berry Berry Good Garden Rentals", generatedFeature.getAttribute(FeatureAttributeType.orgName.toString()));
 		assertEquals("BBGGR-00000123", generatedFeature.getAttribute(FeatureAttributeType.name.toString()));
 		assertEquals("DS1 Well", generatedFeature.getAttribute(FeatureAttributeType.locName.toString()));
-		assertEquals("Well", generatedFeature.getAttribute(FeatureAttributeType.type.toString()));
+		assertEquals("Well of mine", generatedFeature.getAttribute(FeatureAttributeType.type.toString()));
+		assertEquals("Well", generatedFeature.getAttribute(FeatureAttributeType.searchType.toString()));
+		assertEquals("12345687", generatedFeature.getAttribute(FeatureAttributeType.huc8.toString()));
 		assertEquals(SourceProvider.UNKNOWN.toString(), generatedFeature.getAttribute(FeatureAttributeType.provider.toString()));
 	}
 

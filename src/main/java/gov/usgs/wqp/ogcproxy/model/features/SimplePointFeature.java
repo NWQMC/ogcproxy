@@ -14,6 +14,7 @@ import org.opengis.feature.simple.SimpleFeatureType;
 import org.opengis.referencing.FactoryException;
 import org.opengis.referencing.NoSuchAuthorityCodeException;
 
+import com.google.gson.JsonObject;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
@@ -40,6 +41,8 @@ public class SimplePointFeature implements FeatureDAO {
 	private String name;
 	private String locationName;
 	private String type;
+	private String searchType;
+	private String huc8;
 	private double longitude;
 	private double latitude;
 	private Point point;
@@ -64,6 +67,8 @@ public class SimplePointFeature implements FeatureDAO {
 		this.provider = srcProvider;
 		this.name = "";
 		this.type = "";
+		this.searchType = "";
+		this.huc8 = "";
 		this.longitude = 0.0;
 		this.latitude = 0.0;
 		
@@ -74,6 +79,8 @@ public class SimplePointFeature implements FeatureDAO {
 			put(BaseAttributeType.Provider, provider.toString());
 			put(BaseAttributeType.LocationIdentifier, type);
 			put(BaseAttributeType.LocationType, type);
+			put(BaseAttributeType.ResolvedMonitoringLocationTypeName, searchType);
+			put(BaseAttributeType.HUCEightDigitCode, huc8);
 			put(BaseAttributeType.Longitude, "" + longitude);
 			put(BaseAttributeType.Latitude, "" + latitude);
 		}};
@@ -82,6 +89,8 @@ public class SimplePointFeature implements FeatureDAO {
 			put(FeatureAttributeType.provider, provider.toString());
 			put(FeatureAttributeType.name, name);
 			put(FeatureAttributeType.type, type);
+			put(FeatureAttributeType.searchType, searchType);
+			put(FeatureAttributeType.huc8, huc8);
 			put(FeatureAttributeType.point, point);
 		}};
 		
@@ -89,12 +98,15 @@ public class SimplePointFeature implements FeatureDAO {
 	}
 	
 	@SuppressWarnings("serial")
-	public SimplePointFeature(SimpleFeatureBuilder featureBuilder, SourceProvider srcProvider, String featureName, String featureType, double lng, double lat) {
+	public SimplePointFeature(SimpleFeatureBuilder featureBuilder, SourceProvider srcProvider, String featureName, String featureType,
+			double lng, double lat, String searchType, String huc8) {
 		this.featureBuilder = featureBuilder;
 		
 		this.provider = srcProvider;
 		this.name = featureName;
 		this.type = featureType;
+		this.searchType = searchType;
+		this.huc8 = huc8;
 		this.longitude = lng;
 		this.latitude = lat;
 		
@@ -105,17 +117,67 @@ public class SimplePointFeature implements FeatureDAO {
 			put(BaseAttributeType.Provider, provider.toString());
 			put(BaseAttributeType.LocationIdentifier, name);
 			put(BaseAttributeType.LocationType, type);
+			put(BaseAttributeType.ResolvedMonitoringLocationTypeName, searchType);
+			put(BaseAttributeType.HUCEightDigitCode, huc8);
+			put(BaseAttributeType.Longitude, "" + longitude);
+			put(BaseAttributeType.Latitude, "" + latitude);
+		}};
+
+		featureAttribs = new HashMap<FeatureAttributeType, Object>() {{
+			put(FeatureAttributeType.provider, provider.toString());
+			put(FeatureAttributeType.name, name);
+			put(FeatureAttributeType.type, type);
+			put(FeatureAttributeType.searchType, searchType);
+			put(FeatureAttributeType.huc8, huc8);
+			put(FeatureAttributeType.point, point);
+		}};
+				
+		this.featureIsDirty = true;
+	}
+
+	@SuppressWarnings("serial")
+	public SimplePointFeature(SimpleFeatureBuilder featureBuilder, JsonObject jsonFeature) {
+		this.featureBuilder = featureBuilder;
+
+		this.provider = SourceProvider.valueOf(jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive("ProviderName").getAsString());
+		this.name = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive("MonitoringLocationIdentifier").getAsString();
+		this.locationName = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive("MonitoringLocationName").getAsString();
+		this.type = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive("MonitoringLocationTypeName").getAsString();
+		this.searchType = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive("ResolvedMonitoringLocationTypeName").getAsString();
+		this.huc8 = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive("HUCEightDigitCode").getAsString();
+		this.longitude = jsonFeature.getAsJsonObject("geometry").getAsJsonArray("coordinates").get(0).getAsDouble();
+		this.latitude = jsonFeature.getAsJsonObject("geometry").getAsJsonArray("coordinates").get(1).getAsDouble();
+		this.orgId = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive("OrganizationIdentifier").getAsString();
+		this.orgName = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive("OrganizationFormalName").getAsString();
+		
+		this.geometryFactory = JTSFactoryFinder.getGeometryFactory();
+		this.point = this.geometryFactory.createPoint(new Coordinate(this.longitude, this.latitude));
+		
+		baseAttribs = new HashMap<BaseAttributeType, String>() {{
+			put(BaseAttributeType.Provider, provider.toString());
+			put(BaseAttributeType.OrganizationName, orgName);
+			put(BaseAttributeType.OrganizationId, orgId);
+			put(BaseAttributeType.LocationName, locationName);
+			put(BaseAttributeType.LocationIdentifier, name);
+			put(BaseAttributeType.LocationType, type);
+			put(BaseAttributeType.ResolvedMonitoringLocationTypeName, searchType);
+			put(BaseAttributeType.HUCEightDigitCode, huc8);
 			put(BaseAttributeType.Longitude, "" + longitude);
 			put(BaseAttributeType.Latitude, "" + latitude);
 		}};
 		
 		featureAttribs = new HashMap<FeatureAttributeType, Object>() {{
 			put(FeatureAttributeType.provider, provider.toString());
+			put(FeatureAttributeType.orgName, orgName);
+			put(FeatureAttributeType.orgId, orgId);
+			put(FeatureAttributeType.locName, locationName);
 			put(FeatureAttributeType.name, name);
 			put(FeatureAttributeType.type, type);
+			put(FeatureAttributeType.searchType, searchType);
+			put(FeatureAttributeType.huc8, huc8);
 			put(FeatureAttributeType.point, point);
 		}};
-				
+
 		this.featureIsDirty = true;
 	}
 
@@ -160,6 +222,28 @@ public class SimplePointFeature implements FeatureDAO {
 		this.type = type;
 		baseAttribs.put(BaseAttributeType.LocationType, type);
 		featureAttribs.put(FeatureAttributeType.type, type);
+		this.featureIsDirty = true;
+	}
+
+	public String getSearchType() {
+		return searchType;
+	}
+
+	public void setSearchType(String searchType) {
+		this.searchType = searchType;
+		baseAttribs.put(BaseAttributeType.ResolvedMonitoringLocationTypeName, searchType);
+		featureAttribs.put(FeatureAttributeType.searchType, searchType);
+		this.featureIsDirty = true;
+	}
+
+	public String getHuc8() {
+		return huc8;
+	}
+
+	public void setHuc8(String huc8) {
+		this.huc8 = huc8;
+		baseAttribs.put(BaseAttributeType.HUCEightDigitCode, huc8);
+		featureAttribs.put(FeatureAttributeType.huc8, huc8);
 		this.featureIsDirty = true;
 	}
 
@@ -262,6 +346,8 @@ public class SimplePointFeature implements FeatureDAO {
 			this.featureBuilder.add(this.name);
 			this.featureBuilder.add(this.locationName);
 			this.featureBuilder.add(this.type);
+			this.featureBuilder.add(this.searchType);
+			this.featureBuilder.add(this.huc8);
 			this.featureBuilder.add(provider.toString());
 			this.simpleFeature = featureBuilder.buildFeature(null);
 			
@@ -284,6 +370,8 @@ public class SimplePointFeature implements FeatureDAO {
 		sb.append("\tName:\t\t" + this.name + "\n");
 		sb.append("\tLocation Name:\t" + this.locationName + "\n");
 		sb.append("\tType:\t\t" + this.type + "\n");
+		sb.append("\tSearchType:\t\t" + this.searchType + "\n");
+		sb.append("\tHUC8:\t\t" + this.huc8 + "\n");
 		sb.append("\tOrgName:\t" + this.orgName + "\n");
 		sb.append("\tOrgId:\t\t" + this.orgId + "\n");
 		sb.append("\tLongitude:\t" + this.longitude + "\n");
@@ -308,6 +396,8 @@ public class SimplePointFeature implements FeatureDAO {
 			        builder.length(32).add(FeatureAttributeType.name.toString(), String.class);
 			        builder.length(256).add(FeatureAttributeType.locName.toString(), String.class);
 			        builder.length(32).add(FeatureAttributeType.type.toString(), String.class);
+			        builder.length(32).add(FeatureAttributeType.searchType.toString(), String.class);
+			        builder.length(32).add(FeatureAttributeType.huc8.toString(), String.class);
 			        builder.length(32).add(FeatureAttributeType.provider.toString(), String.class);
 			        
 			        // build the type
