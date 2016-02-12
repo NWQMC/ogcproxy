@@ -8,6 +8,7 @@ package gov.usgs.wqp.ogcproxy.model.attributes;
  *	in a dataset used for creating a shapefile.
  */
 public enum BaseAttributeType {
-	Provider, OrganizationName, OrganizationId, LocationName, LocationIdentifier, LocationType, Latitude, Longitude;
+	Provider, OrganizationName, OrganizationId, LocationName, LocationIdentifier, LocationType, Latitude, Longitude,
+	ResolvedMonitoringLocationTypeName, HUCEightDigitCode;
 
 }

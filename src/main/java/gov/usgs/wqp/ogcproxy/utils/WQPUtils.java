@@ -115,10 +115,6 @@ public class WQPUtils {
 		return searchParams;
 	}
 	
-	public static HttpUriRequest generateSimpleStationRequest(Map<String, List<String>> searchParams, String simpleStationURL) throws OGCProxyException {
-		return generateSimpleStationRequest(searchParams, simpleStationURL, new LinkedList<String>());
-	}
-
 	public static HttpUriRequest generateSimpleStationRequest(Map<String, List<String>> searchParams, String simpleStationURL, List<String> multiparams)
 			throws OGCProxyException {
 		HttpUriRequest request = null;
@@ -158,7 +154,7 @@ public class WQPUtils {
         }
         
         // Add our mimeType argument
-        requestURI.append("&mimeType=xml");
+        requestURI.append("&mimeType=geojson");
         
         URI serverRequestURI;
 		try {
@@ -223,7 +219,7 @@ public class WQPUtils {
         
         HttpEntity methodEntity = methodResponse.getEntity();
         
-        String filePath = workingDirectory + "/" + layerName + ".xml";
+        String filePath = workingDirectory + "/" + layerName + ".geojson";
         BufferedInputStream bis = null;
         BufferedOutputStream bos = null;
 		try {

@@ -3,11 +3,13 @@ package gov.usgs.wqp.ogcproxy.services.wqp;
 import static org.springframework.util.StringUtils.isEmpty;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -41,8 +43,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
+import gov.usgs.wqp.ogcproxy.geo.JsonObjectResponseHandler;
 import gov.usgs.wqp.ogcproxy.model.FeatureDAO;
 import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
 import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeature;
@@ -79,7 +86,7 @@ public class WQPLayerBuildingService {
 	private static String simpleStationHost     = "cida-eros-wqpdev.er.usgs.gov";
 	private static String simpleStationPort     = "8080";
 	private static String simpleStationContext  = "/qw_portal_core";
-	private static String simpleStationPath     = "/simplestation/search";
+	private static String simpleStationPath     = "/station/search";
 	private static String simpleStationRequest  = "";
 	
 	private static String workingDirectory      = "";
@@ -277,7 +284,8 @@ public class WQPLayerBuildingService {
 			 * Parse the input
 			 */
 			LOG.debug("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Parsing input (" + dataFile.getAbsolutePath() + ")");
-			featureList = parseInput(dataFile.getAbsolutePath(), featureType);
+			featureList = processInput(dataFile.getAbsolutePath(), featureType);
+//			featureList = parseInput(dataFile.getAbsolutePath(), featureType);
 			LOG.debug("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Parsing Complete");
 		} finally {
 			if (!dataFile.delete()) {
@@ -324,6 +332,35 @@ public class WQPLayerBuildingService {
 		}
 
 		return new File(dataFilename);
+	}
+	
+	private List<FeatureDAO> processInput(String filename, SimpleFeatureType featureType) throws OGCProxyException {
+		List<FeatureDAO> featureList = new ArrayList<>();
+		try {
+			TimeProfiler.startTimer("WQX_OB_XML Parse Execution Time");
+			JsonParser parser = new JsonParser();
+			Object obj = parser.parse(new FileReader(filename));
+			if (obj instanceof JsonObject && ((JsonObject) obj).has("features") && ((JsonObject) obj).get("features").isJsonArray()) {
+				featureList.addAll(processFeatures(((JsonObject) obj).getAsJsonArray("features").iterator(), featureType)); 
+			}
+			TimeProfiler.endTimer("WQX_OB_XML Parse Execution Time", LOG);
+		} catch (Exception e) {
+			LOG.error("WQPLayerBuildingService.parseInput() Exception: " + e.getMessage());
+			String msg = "WQPLayerBuildingService.buildDynamicLayer() EXCEPTION : Parsing the input failed.  Throwing Exception...";
+			LOG.error(msg, e);
+			OGCProxyExceptionID id = OGCProxyExceptionID.DATAFILE_PARSING_ERROR;
+			throw new OGCProxyException(id, "WQPLayerBuildingService", "buildDynamicLayer()", msg);
+		}
+		return featureList;
+	}
+
+	private List<FeatureDAO> processFeatures(Iterator<JsonElement> i, SimpleFeatureType featureType) {
+		List<FeatureDAO> features = new ArrayList<>();
+		while (i.hasNext()) {
+			JsonObject jsonFeature = i.next().getAsJsonObject();
+			features.add(new SimplePointFeature(new SimpleFeatureBuilder(featureType), jsonFeature));
+		}
+		return features;
 	}
 	
 	private List<FeatureDAO> parseInput(String filename, SimpleFeatureType featureType) throws OGCProxyException {
