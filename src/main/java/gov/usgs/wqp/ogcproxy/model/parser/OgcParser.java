@@ -1,5 +1,6 @@
-package gov.usgs.wqp.ogcproxy.model.parser.xml.ogc;
+package gov.usgs.wqp.ogcproxy.model.parser;
 
+import java.io.IOException;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -8,25 +9,32 @@ import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.util.UriUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
+import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
+import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WFSParameters;
 import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.WQPParameters;
 
 public class OgcParser {
+	private static final Logger LOG = LoggerFactory.getLogger(OgcParser.class);
 
 	private final HttpServletRequest request;
 	private String bodyMinusVendorParams;
@@ -45,22 +53,30 @@ public class OgcParser {
 		return bodyMinusVendorParams;
 	}
 
-	public void parse() throws Exception {
-		Document doc = getDocument();
-		Node root = doc.getDocumentElement();
-		
-		requestParams.put("request", new String[] {root.getLocalName()});
-		requestParams.put("version", new String[] {getAttributeText(root.getAttributes(), "version")});
-		String service = getAttributeText(root.getAttributes(), "service");
-		requestParams.put("service", new String[] {service});
-		
-		if (OGCServices.WFS.toString().contentEquals(service)) {
-			parseWfs(doc);
-		} else {
-			parseWms(doc);
+	public void parse() throws OGCProxyException {
+		try {
+			Document doc = getDocument();
+			Node root = doc.getDocumentElement();
+			
+			requestParams.put("request", new String[] {root.getLocalName()});
+			requestParams.put("version", new String[] {getAttributeText(root.getAttributes(), "version")});
+			String service = getAttributeText(root.getAttributes(), "service");
+			requestParams.put("service", new String[] {service});
+			
+			if (OGCServices.WFS.toString().contentEquals(service)) {
+				parseWfs(doc);
+			} else {
+				parseWms(doc);
+			}
+			
+			bodyMinusVendorParams = domToString(doc);
+		} catch (Exception e) {
+			String msg = "Error parsing request body [" + e.getMessage() + "].";
+			LOG.error(msg, e);
+
+			OGCProxyExceptionID id = OGCProxyExceptionID.ERROR_READING_CLIENT_REQUEST_BODY;
+			throw new OGCProxyException(id, "OgcParser", "parse()", msg);
 		}
-		
-		bodyMinusVendorParams = domToString(doc);
 	}
 
 	protected String getAttributeText(NamedNodeMap attrs, String attrName) {
@@ -88,21 +104,19 @@ public class OgcParser {
 		requestParams.put(WMSParameters.layers.toString(),
 				new String[] {getNodeText((Element) nodes.item(0), "Name")});
 		
-		getVendorParams(doc.getElementsByTagNameNS("*", "PropertyIsEqualTo"));
+		getVendorParams(doc.getElementsByTagNameNS("*", "Vendor"));
 	}
 
 	protected void getVendorParams(NodeList vendorParams) throws UnsupportedEncodingException {
 		for (int i = 0; i < vendorParams.getLength(); i++) {
 			Node param = vendorParams.item(i);
 		
-			if (Node.ELEMENT_NODE == param.getNodeType()) {
-				if (isSearchParams((Element) param)) {
-					requestParams.put(WQPParameters.searchParams.toString(), new String[] {getSearchParams((Element) param)});
-					//Geoserver might not like our vendor param in the xml document, so just remove it all the time.
-					param.getParentNode().removeChild(param);
+			if (Node.ELEMENT_NODE == param.getNodeType() && isSearchParams((Element) param)) {
+				requestParams.put(WQPParameters.searchParams.toString(), new String[] {getSearchParams((Element) param)});
+				//Geoserver might not like our vendor param in the xml document, so just remove it all the time.
+				param.getParentNode().removeChild(param);
 					
-					break;
-				}
+				break;
 			}
 		}
 	}
@@ -125,12 +139,11 @@ public class OgcParser {
 		}
 	}
 
-	protected Document getDocument() throws Exception {
+	protected Document getDocument() throws SAXException, IOException, ParserConfigurationException {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 	    dbf.setNamespaceAware(true);
 		DocumentBuilder db = dbf.newDocumentBuilder();
-		Document doc = db.parse(request.getInputStream());
-		return doc;
+		return db.parse(request.getInputStream());
 	}
 
 	protected String domToString(Document doc) {
@@ -145,6 +158,7 @@ public class OgcParser {
 			text = writer.toString();
 		} catch (TransformerException ex) {
 			// returns null
+			LOG.trace("Could not convert Dcoument back to a String", ex);
 		}
 		return text;
 	}

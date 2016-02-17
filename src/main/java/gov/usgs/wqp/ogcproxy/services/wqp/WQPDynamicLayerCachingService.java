@@ -90,7 +90,7 @@ public class WQPDynamicLayerCachingService {
 	
 	@PostConstruct
 	public void initialize() {
-		LOG.debug("WQPDynamicLayerCachingService.initialize() called");
+		LOG.trace("WQPDynamicLayerCachingService.initialize() called");
 		
 		/*
 		 * Since we are using Spring DI we cannot access the environment bean
@@ -110,7 +110,7 @@ public class WQPDynamicLayerCachingService {
 			try {
 				threadSleep = Long.parseLong(environment.getProperty("proxy.thread.sleep"));
 			} catch (Exception e) {
-				LOG.error("WQPDynamicLayerCachingService() Constructor Exception: Failed to parse property [proxy.thread.sleep] " +
+				LOG.error("Failed to parse property [proxy.thread.sleep] " +
 						  "- Keeping thread sleep default to [" + threadSleep + "].\n" + e.getMessage() + "\n");
 			}
 			
@@ -167,7 +167,7 @@ public class WQPDynamicLayerCachingService {
 			 */
 			switch (layerCache.getCurrentStatus()) {
 				case INITIATED:
-					LOG.debug("WQPDynamicLayerCachingService.getDynamicLayer() Created new DynamicLayerCache for key [" +
+					LOG.trace("Created new DynamicLayerCache for key [" +
 							ogcRequest.getSearchParams().unsignedHashCode() +"].  Setting status to BUILDING and creating layer...");
 					
 					/*
@@ -191,7 +191,7 @@ public class WQPDynamicLayerCachingService {
 					if (isEmpty(wqpLayerBuildingService.buildDynamicLayer(ogcRequest.getSearchParams()))) {
 						layerCache.setCurrentStatus(DynamicLayerStatus.EMPTY);
 						
-						LOG.debug("WQPDynamicLayerCachingService.getDynamicLayer() Unable to create layer [" + layerCache.getLayerName() +
+						LOG.error("Unable to create layer [" + layerCache.getLayerName() +
 								"] for key ["+ ogcRequest.getSearchParams().unsignedHashCode() +
 								"].  Its status is [" + layerCache.getCurrentStatus().toString() +
 								"].  Since it is an empty request this means the search parameters did not " +
@@ -202,7 +202,7 @@ public class WQPDynamicLayerCachingService {
 						
 						layerCache.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
 						
-						LOG.debug("WQPDynamicLayerCachingService.getDynamicLayer() Finished building layer for key ["+
+						LOG.trace("Finished building layer for key ["+
 								ogcRequest.getSearchParams().unsignedHashCode() +
 								"].  Layer name is [" + layerCache.getLayerName() + "].  Setting status to " +
 								"AVAILABLE and continuing on to GeoServer WMS request...");
@@ -210,7 +210,7 @@ public class WQPDynamicLayerCachingService {
 					break;
 				
 				case EMPTY:
-					LOG.debug("WQPDynamicLayerCachingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
+					LOG.error("Retrieved layer name [" + layerCache.getLayerName() +
 							"] for key ["+ ogcRequest.getSearchParams().unsignedHashCode() +
 							"] and its status is [" + layerCache.getCurrentStatus().toString() +
 							"].  Since it is an empty request this means the search parameters did not " +
@@ -218,11 +218,11 @@ public class WQPDynamicLayerCachingService {
 					break;
 				
 				case ERROR:
-					LOG.error("WQPDynamicLayerCachingService.getDynamicLayer() Error: Layer cache is in an ERROR state and cannot continue request.");
+					LOG.error("Layer cache is in an ERROR state and cannot continue request.");
 					break;
 				
 				default:
-					LOG.debug("WQPDynamicLayerCachingService.getDynamicLayer() Retrieved layer name [" + layerCache.getLayerName() +
+					LOG.trace("Retrieved layer name [" + layerCache.getLayerName() +
 							"] for key ["+ ogcRequest.getSearchParams().unsignedHashCode() +
 							"] and its status is [" + layerCache.getCurrentStatus().toString() +
 							"].  Continuing on to GeoServer WMS request...");
@@ -234,7 +234,7 @@ public class WQPDynamicLayerCachingService {
 				removeLayerCache(layerCache.getKey());
 			}
 			
-			LOG.error("WQPDynamicLayerCachingService.getDynamicLayer() Error: Layer was not created for search parameters.", e);
+			LOG.error("Layer was not created for search parameters.", e);
 		}
 		
 		return null == layerCache ? "" : layerCache.getQualifiedLayerName();
@@ -277,10 +277,10 @@ public class WQPDynamicLayerCachingService {
 					currentCache = defaultLayerCache;
 					WQPDynamicLayerCachingService.requestToLayerCache.put(key, currentCache);
 					
-					String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : DynamicLayerCache object does not " +
-							  "exist for key " + key +  ". Creating new Cache Object and setting status to [" +
-							  currentCache.getCurrentStatus().toString() + "]";
-					LOG.debug(msg);
+					String msg = "DynamicLayerCache object does not exist for key " + key
+							+  ". Creating new Cache Object and setting status to [" +
+							currentCache.getCurrentStatus().toString() + "]";
+					LOG.trace(msg);
 					
 					return currentCache;
 				}
@@ -296,10 +296,9 @@ public class WQPDynamicLayerCachingService {
 		 * to throw.
 		 */
 		if (currentCache.getCurrentStatus() == DynamicLayerStatus.ERROR) {
-			String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : Caught Interrupted Exception waiting for " +
-					  "Cache object [" + currentCache.getKey() + "] status to change.  Its current status is [" +
-					  currentCache.getCurrentStatus().toString() +
-					  "].  Throwing Exception...";
+			String msg = "Caught Interrupted Exception waiting for Cache object [" + currentCache.getKey()
+				+ "] status to change.  Its current status is [" +
+				currentCache.getCurrentStatus().toString() + "].  Throwing Exception...";
 			LOG.error(msg);
 			
 			OGCProxyExceptionID id = OGCProxyExceptionID.LAYER_CREATION_FAILED;
@@ -323,16 +322,16 @@ public class WQPDynamicLayerCachingService {
 			|| (currentCache.getCurrentStatus() == DynamicLayerStatus.INITIATED)) {
 			
 			try {
-				String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : DynamicLayerCache object exists for key [" +
+				String msg = "DynamicLayerCache object exists for key [" +
 						currentCache.getKey() + "] but its status is [" +
 							 currentCache.getCurrentStatus().toString() +
 							 "].  Waiting " + WQPDynamicLayerCachingService.threadSleep + "ms";
-				LOG.debug(msg);
+				LOG.trace(msg);
 				
 				Thread.sleep(WQPDynamicLayerCachingService.threadSleep);
 			} catch (InterruptedException e) {
 				if ((currentCache.getCurrentStatus() != DynamicLayerStatus.AVAILABLE) && (currentCache.getCurrentStatus() != DynamicLayerStatus.EMPTY)) {
-					String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : Caught Interrupted Exception waiting for " +
+					String msg = "Caught Interrupted Exception waiting for " +
 							  "Cache object [" + currentCache.getKey() + "] status to change.  Its current status is [" +
 							  currentCache.getCurrentStatus().toString() +
 							  "].  Throwing Exception...";
@@ -344,10 +343,9 @@ public class WQPDynamicLayerCachingService {
 			}
 		}
 		
-		String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : DynamicLayerCache object " +
-				  "exists for key " + currentCache.getKey() +  ". Returning object with status [" +
-				  currentCache.getCurrentStatus().toString() + "]";
-		LOG.debug(msg);
+		String msg = "DynamicLayerCache object exists for key " + currentCache.getKey() +  ". Returning object with status [" +
+				currentCache.getCurrentStatus().toString() + "]";
+		LOG.trace(msg);
 		
 		return currentCache;
 	}
@@ -361,10 +359,10 @@ public class WQPDynamicLayerCachingService {
 			 * see it as invalid
 			 */
 			if (currentCache != null) {
-				String msg = "WQPDynamicLayerCachingService.getLayerCache() INFO : Removed Layer Cache for layer name [" +
+				String msg = "Removed Layer Cache for layer name [" +
 							 currentCache.getLayerName() + "] for key [" + searchParamKey + "].  Invalidating " +
 							 "cache for any current threads.";
-				LOG.debug(msg);
+				LOG.trace(msg);
 				currentCache.setCurrentStatus(DynamicLayerStatus.ERROR);
 			}
 		}
@@ -433,13 +431,12 @@ public class WQPDynamicLayerCachingService {
 		int clearedCount = originalCount - uncleared.size();
 		
 		if (!uncleared.isEmpty()) {
-			LOG.error("WQPDynamicLayerCachingService.clearCache() ERROR: Removed cache count [" + clearedCount +
+			LOG.error("Removed cache count [" + clearedCount +
 					  "] does not equal total cache count [" + originalCount + "].  Potentially introducing " +
 					  "stale layers {" + uncleared + "}");
 		}
 		
-		LOG.debug("WQPDynamicLayerCachingService.clearCache() INFO: Removed cache count [" + clearedCount +
-				  "] from cache.");
+		LOG.trace("Removed cache count [" + clearedCount + "] from cache.");
 		
 		return clearedCount;
 	}
@@ -450,14 +447,14 @@ public class WQPDynamicLayerCachingService {
 		 * We should be finished before this service responds to any requests, but we will use the thread safe getLayerCache()
 		 * just in case...
 		 */
-		LOG.debug("WQPDynamicLayerCachingService.populateCache() START");
+		LOG.trace("START");
 		try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(getCredentialsProvider()).build()) {
 			String uri = String.join("/", geoserverBaseUri, geoserverRest, geoserverWorkspaces, geoserverWorkspace, geoserverDatastores);
 			JsonObject jsonObject = httpClient.execute(new HttpGet(uri), new JsonObjectResponseHandler());
 			Iterator<JsonElement> i = getResponseIterator(jsonObject);
 			while (i.hasNext()) {
 				JsonObject layer = i.next().getAsJsonObject();
-				LOG.debug("WQPDynamicLayerCachingService.populateCache() with [" + layer.get("name").getAsString() + "]");
+				LOG.trace("With [" + layer.get("name").getAsString() + "]");
 				DynamicLayerCache cacheIt = new DynamicLayerCache(layer.get("name").getAsString(), geoserverWorkspace);
 				try {
 					getLayerCache(cacheIt);
@@ -468,7 +465,7 @@ public class WQPDynamicLayerCachingService {
 		} catch (Exception e) {
 			LOG.error("Problems loading cache from geoserver: " + e.getLocalizedMessage(), e);
 		}
-		LOG.debug("WQPDynamicLayerCachingService.populateCache() FINISH");
+		LOG.trace("FINISH");
 	}
 	
 	protected Iterator<JsonElement> getResponseIterator(JsonObject jsonObject) {

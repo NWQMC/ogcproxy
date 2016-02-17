@@ -13,7 +13,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -95,7 +94,7 @@ public class WQPUtils {
 			List<String> keyValue = Arrays.asList(pairs.split(":", 2));
 			
 			if (keyValue.size() != 2) {
-				LOG.warn("WQPUtils.parseSearchParams() ERROR: keyValue pair [" + pairs + "] does not split evenly with a colon.  " +
+				LOG.error("KeyValue pair [" + pairs + "] does not split evenly with a colon.  " +
 						  "Resulting split results in an array of size {" + keyValue.size() + "} with values: " + keyValue +
 						  ".  Skipping this search param.");
 				continue;
@@ -146,7 +145,7 @@ public class WQPUtils {
 			try {
 				encodedValue = URLEncoder.encode(joinedValues.toString(), "UTF-8").replaceAll("%26","&").replaceAll("%3D","=");
 			} catch (UnsupportedEncodingException e) {
-				LOG.error("WQPUtils.generateSimpleStationRequest() Encoding parameter value exception:\n[" + e.getMessage() + "].  Using un-encoded value instead [" + joinedValues.toString() + "]");
+				LOG.error("Encoding parameter value exception:\n[" + e.getMessage() + "].  Using un-encoded value instead [" + joinedValues.toString() + "]");
 				encodedValue = joinedValues.toString();
 			}
 			
@@ -158,16 +157,16 @@ public class WQPUtils {
         
         URI serverRequestURI;
 		try {
-			LOG.info("WQPUtils.generateSimpleStationRequest() " + requestURI.toString());
+			LOG.trace("WQPUtils.generateSimpleStationRequest() " + requestURI.toString());
 			serverRequestURI = (new URL(requestURI.toString())).toURI();
 		} catch (MalformedURLException e) {
-			String msg = "WQPUtils.generateSimpleStationRequest() Exception : Syntax error parsing server URL [" + e.getMessage() + "].";
+			String msg = "Exception : Syntax error parsing server URL [" + e.getMessage() + "].";
 			LOG.error(msg);
 			
 			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;
 			throw new OGCProxyException(id, "WQPUtils", "generateSimpleStationRequest()", msg);
       } catch (URISyntaxException e) {
-      	    String msg = "WQPUtils.generateSimpleStationRequest() Exception : Syntax error parsing server URL [" + e.getMessage() + "].";
+      	    String msg = "Exception : Syntax error parsing server URL [" + e.getMessage() + "].";
 			LOG.error(msg);
 			
 			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;
@@ -189,15 +188,13 @@ public class WQPUtils {
             HttpContext localContext = new BasicHttpContext();
             methodResponse = httpClient.execute(serverRequest, localContext);
         } catch (ClientProtocolException e) {
-            String msg = "WQPUtils.retrieveSearchParamData() Exception : Client protocol error [" +
-            			 e.getMessage() + "]";
+            String msg = "Exception : Client protocol error [" + e.getMessage() + "]";
 			LOG.error(msg);
 			
 			OGCProxyExceptionID id = OGCProxyExceptionID.CLIENT_PROTOCOL_ERROR;
 			throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
         } catch (IOException e) {
-        	String msg = "WQPUtils.retrieveSearchParamData() Exception : I/O error on server request [" +
-            			 e.getMessage() + "]";
+        	String msg = "Exception : I/O error on server request [" + e.getMessage() + "]";
 			LOG.error(msg);
 			
 			OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_REQUEST_IO_ERROR;
@@ -206,10 +203,10 @@ public class WQPUtils {
         
         StatusLine serverStatusLine = methodResponse.getStatusLine();
         int statusCode = serverStatusLine.getStatusCode();
-        LOG.debug("WQPUtils.retrieveSearchParamData() DEBUG: Server status code " + statusCode);
+        LOG.debug("DEBUG: Server status code " + statusCode);
         
         if (statusCode != 200) {
-        	String msg = "WQPUtils.retrieveSearchParamData() Invalid response from WQP server.  Status code [" +
+        	String msg = "Invalid response from WQP server.  Status code [" +
         			statusCode + "].\nResponseHeaders: [" + Arrays.toString(methodResponse.getAllHeaders());
 			LOG.error(msg);
 			
@@ -231,7 +228,7 @@ public class WQPUtils {
 				bos.write(buff,0,count);
 			}
 		} catch (Exception e) {
-			String msg = "WQPUtils.retrieveSearchParamData() Exception reading response from server [" +
+			String msg = "Exception reading response from server [" +
        			 e.getMessage() + "] Check that the path exists: " + filePath;
 			LOG.error(msg);
 			
@@ -243,7 +240,7 @@ public class WQPUtils {
                 // connection pool for future reuse!
                 EntityUtils.consume(methodEntity);
             } catch (IOException e) {
-                LOG.error("WQPUtils.retrieveSearchParamData() Error: consuming remaining bytes in server response entity from SimpleStation request [" + serverRequest.getURI() + "]");
+                LOG.error("Consuming remaining bytes in server response entity from SimpleStation request [" + serverRequest.getURI() + "]");
             }
         	
 			try {
@@ -255,8 +252,7 @@ public class WQPUtils {
 					bis.close();
 				}
 			} catch (IOException e) {
-				String msg = "WQPUtils.retrieveSearchParamData() Exception closing buffered streams [" +
-		       			 e.getMessage() + "] continuing...";
+				String msg = "Exception closing buffered streams [" + e.getMessage() + "] continuing...";
 				LOG.error(msg);
 			}
          }

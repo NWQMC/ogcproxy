@@ -18,7 +18,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 import gov.usgs.wqp.ogcproxy.services.ProxyService;
-import gov.usgs.wqp.ogcproxy.services.RESTService;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
 
@@ -89,11 +88,6 @@ public class SpringConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public ProxyService proxyService() {
 		return ProxyService.getInstance();
-	}
-	
-	@Bean
-	public RESTService restService() {
-		return RESTService.getInstance();
 	}
 
 }

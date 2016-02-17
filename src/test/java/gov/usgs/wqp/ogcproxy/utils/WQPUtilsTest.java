@@ -65,4 +65,9 @@ public class WQPUtilsTest {
 		assertEquals("http://prefix?"+requestParamString, url);
 	}
 	
+	@Test
+	public void retrieveSearchParamDataTest() {
+		//TODO
+	}
+
 }
