@@ -50,10 +50,119 @@ public class WQPLayerBuildingServiceTest {
 	}
 
 	@Test
+	public void buildDynamicLayerTest() {
+		//TODO
+	}
+
+	@Test
+	public void createShapeFileTest() {
+		//TODO
+	}
+
+	@Test
+	public void createWorkspaceTest() {
+		try {
+			when(httpClient.execute(any(HttpPost.class))).thenThrow(new IOException("Hi")).thenReturn(response);
+			when(response.getStatusLine()).thenReturn(statusLine);
+			when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_OK, HttpStatus.SC_CREATED);
+			
+			try {
+				service.createWorkspace(httpClient);
+				fail("didn't get the OGCProxyException we were expecting");
+			} catch (Exception e) {
+				if (e instanceof OGCProxyException && e.getMessage().contains("Hi")) {
+					//nothing to see here - is expected behavior
+				} else {
+					fail("Wrong exception thrown: " + e.getLocalizedMessage());
+				}
+			}
+			verify(httpClient, times(1)).execute(any(HttpPost.class));
+			
+			try {
+				service.createWorkspace(httpClient);
+				fail("didn't get the OGCProxyException we were expecting");
+			} catch (Exception e) {
+				if (e instanceof OGCProxyException && e.getMessage().contains("Invalid status code from geoserver:200")) {
+					//nothing to see here - is expected behavior
+				} else {
+					fail("Wrong exception thrown: " + e.getLocalizedMessage());
+				}
+			}
+			verify(httpClient, times(2)).execute(any(HttpPost.class));
+			
+			//This time golden
+			service.createWorkspace(httpClient);
+			verify(httpClient, times(3)).execute(any(HttpPost.class));
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail(e.getLocalizedMessage());
+		}
+	}
+
+	@Test
+	public void getCredentialsProviderTest() {
+		//TODO (maybe)
+	}
+
+	@Test
+	public void getGeoJsonDataTest() {
+		//TODO
+	}
+
+	@Test
 	public void initializeTest() {
 		//TODO
 	}
 
+	@Test
+	public void processFeaturesTest() {
+		//TODO
+	}
+
+	@Test
+	public void processInputTest() {
+		//TODO
+	}
+
+	@Test
+	public void putShapefileTest() {
+		try {
+			when(httpClient.execute(any(HttpPut.class))).thenThrow(new IOException("Hi")).thenReturn(response);
+			when(response.getStatusLine()).thenReturn(statusLine);
+			when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_CREATED, HttpStatus.SC_OK);
+			
+			try {
+				service.putShapefile(httpClient, "abc", "application/xml", new File("myFile"));
+				fail("didn't get the OGCProxyException we were expecting");
+			} catch (Exception e) {
+				if (e instanceof OGCProxyException && e.getMessage().contains("Hi")) {
+					//nothing to see here - is expected behavior
+				} else {
+					fail("Wrong exception thrown: " + e.getLocalizedMessage());
+				}
+			}
+			verify(httpClient, times(1)).execute(any(HttpPut.class));
+
+			service.putShapefile(httpClient, "abc", "application/xml", new File("myFile"));
+			verify(httpClient, times(2)).execute(any(HttpPut.class));
+			
+			try {
+				service.putShapefile(httpClient, "abc", "application/xml", new File("myFile"));
+				fail("didn't get the OGCProxyException we were expecting");
+			} catch (Exception e) {
+				if (e instanceof OGCProxyException && e.getMessage().contains("Exception: Invalid status code from geoserver:200")) {
+					//nothing to see here - is expected behavior
+				} else {
+					fail("Wrong exception thrown: " + e.getLocalizedMessage());
+				}
+			}
+			verify(httpClient, times(3)).execute(any(HttpPut.class));
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail(e.getLocalizedMessage());
+		}
+	}
+	
 	@Test
 	public void uploadShapefileTest() {
 		//TODO
@@ -99,83 +208,10 @@ public class WQPLayerBuildingServiceTest {
 			fail(e.getLocalizedMessage());
 		}		
 	}
-
+	
 	@Test
-	public void putShapefileTest() {
-		try {
-			when(httpClient.execute(any(HttpPut.class))).thenThrow(new IOException("Hi")).thenReturn(response);
-			when(response.getStatusLine()).thenReturn(statusLine);
-			when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_CREATED, HttpStatus.SC_OK);
-			
-			try {
-				service.putShapefile(httpClient, "abc", "application/xml", new File("myFile"));
-				fail("didn't get the OGCProxyException we were expecting");
-			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Hi")) {
-					//nothing to see here - is expected behavior
-				} else {
-					fail("Wrong exception thrown: " + e.getLocalizedMessage());
-				}
-			}
-			verify(httpClient, times(1)).execute(any(HttpPut.class));
-
-			service.putShapefile(httpClient, "abc", "application/xml", new File("myFile"));
-			verify(httpClient, times(2)).execute(any(HttpPut.class));
-			
-			try {
-				service.putShapefile(httpClient, "abc", "application/xml", new File("myFile"));
-				fail("didn't get the OGCProxyException we were expecting");
-			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Exception: Invalid status code from geoserver:200")) {
-					//nothing to see here - is expected behavior
-				} else {
-					fail("Wrong exception thrown: " + e.getLocalizedMessage());
-				}
-			}
-			verify(httpClient, times(3)).execute(any(HttpPut.class));
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail(e.getLocalizedMessage());
-		}
+	public void writeToShapeFileTest() {
+		//TODO
 	}
 
-	@Test
-	public void createWorkspaceTest() {
-		try {
-			when(httpClient.execute(any(HttpPost.class))).thenThrow(new IOException("Hi")).thenReturn(response);
-			when(response.getStatusLine()).thenReturn(statusLine);
-			when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_OK, HttpStatus.SC_CREATED);
-			
-			try {
-				service.createWorkspace(httpClient);
-				fail("didn't get the OGCProxyException we were expecting");
-			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Hi")) {
-					//nothing to see here - is expected behavior
-				} else {
-					fail("Wrong exception thrown: " + e.getLocalizedMessage());
-				}
-			}
-			verify(httpClient, times(1)).execute(any(HttpPost.class));
-			
-			try {
-				service.createWorkspace(httpClient);
-				fail("didn't get the OGCProxyException we were expecting");
-			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Invalid status code from geoserver:200")) {
-					//nothing to see here - is expected behavior
-				} else {
-					fail("Wrong exception thrown: " + e.getLocalizedMessage());
-				}
-			}
-			verify(httpClient, times(2)).execute(any(HttpPost.class));
-			
-			//This time golden
-			service.createWorkspace(httpClient);
-			verify(httpClient, times(3)).execute(any(HttpPost.class));
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail(e.getLocalizedMessage());
-		}
-	}
 }

@@ -3,40 +3,28 @@ package gov.usgs.wqp.ogcproxy.services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
 
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
 
+@Component
 public class RESTService {
 	private static final Logger LOG = LoggerFactory.getLogger(RESTService.class);
-	
-	@Autowired
-	private WQPDynamicLayerCachingService layerCachingService;
-	
-	private static final RESTService INSTANCE = new RESTService();
 
-	
-	/**
-	 * Private Constructor for Singleton Pattern
-	 */
-    private RESTService() {
+	private WQPDynamicLayerCachingService layerCachingService;
+
+	@Autowired
+	public RESTService(WQPDynamicLayerCachingService layerCachingService) {
+		this.layerCachingService = layerCachingService;
     }
     
-    /**
-     * Singleton accessor
-     *
-     * @return RESTService instance
-     */
-	public static RESTService getInstance() {
-        return INSTANCE;
-    }
-	
 	public ModelAndView checkCacheStatus(String site) {
 		ModelAndView mv = new ModelAndView();
 		// Depending on the value of the site we will call the correct service.
 		if (ProxyDataSourceParameter.getTypeFromString(site) == ProxyDataSourceParameter.WQP_SITES) {
-			LOG.info("RESTService.checkCacheStatus() Info: Checking cache status for site [" + site + "]");
+			LOG.trace("Checking cache status for site [" + site + "]");
 			mv.setViewName("wqp_cache_status.jsp");
 			mv.addObject("site", "WQP Layer Building Service");
 			mv.addObject("cache", layerCachingService.getCacheStore().values());
@@ -52,7 +40,7 @@ public class RESTService {
 		ModelAndView mv = new ModelAndView();
 		// Depending on the value of the site we will call the correct service.
 		if (ProxyDataSourceParameter.getTypeFromString(site) == ProxyDataSourceParameter.WQP_SITES) {
-			LOG.info("RESTService.clearCacheBySite() Info: Clearing cache for site [" + site + "]");
+			LOG.trace("Clearing cache for site [" + site + "]");
 			mv.setViewName("wqp_cache_cleared.jsp");
 			mv.addObject("site", "WQP Layer Building Service");
 			mv.addObject("count", layerCachingService.clearCache());

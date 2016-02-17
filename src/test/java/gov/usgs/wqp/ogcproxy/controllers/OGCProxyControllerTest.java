@@ -1,46 +1,36 @@
 package gov.usgs.wqp.ogcproxy.controllers;
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.anyMap;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.ModelAndView;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.MockitoAnnotations;
-import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
 import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
@@ -69,22 +59,30 @@ public class OGCProxyControllerTest {
     
 	@Test
 	public void wmsProxyGetTest() throws Exception {
-		//TODO
+		mockMvc.perform(get("/wms")).andExpect(status().isOk());
+
+		verify(proxyService).performRequest(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(OGCServices.WMS));
 	}
 
 	@Test
 	public void wfsProxyGetTest() throws Exception {
-		//TODO
+		mockMvc.perform(get("/wfs")).andExpect(status().isOk());
+
+		verify(proxyService).performRequest(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(OGCServices.WFS));
 	}
 
 	@Test
 	public void wmsProxyPostTest() throws Exception {
-		//TODO
+		mockMvc.perform(post("/wms")).andExpect(status().isOk());
+
+		verify(proxyService).performRequest(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(OGCServices.WMS));
 	}
 
 	@Test
 	public void wfsProxyPostTest() throws Exception {
-		//TODO
+		mockMvc.perform(post("/wfs")).andExpect(status().isOk());
+
+		verify(proxyService).performRequest(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(OGCServices.WFS));
 	}
 
 	@Test
@@ -137,7 +135,37 @@ public class OGCProxyControllerTest {
 
 	@Test
 	public void restClearCacheTest() throws Exception {
-		//TODO
+		Map<String, DynamicLayerCache> cache = new HashMap<>();
+		cache.put("abc", new DynamicLayerCache(new OGCRequest(OGCServices.WMS), "abcWorkspace"));
+		when(restService.clearCacheBySite(anyString())).thenReturn(getBadClear(), getOkClear());
+
+		MvcResult mvcResult = mockMvc.perform(delete("/rest/clearcache/no_sites_here"))
+				.andExpect(status().isOk())
+				.andExpect(request().asyncStarted())
+				.andExpect(request().asyncResult(instanceOf(ModelAndView.class)))
+				.andReturn();
+
+		this.mockMvc.perform(asyncDispatch(mvcResult))
+				.andExpect(status().isOk())
+				.andExpect(forwardedUrl("invalid_site.jsp"))
+				.andExpect(model().attributeExists("site"))
+				.andExpect(model().attribute("site", "no_sites_here"));
+
+		
+
+		mvcResult = mockMvc.perform(delete("/rest/clearcache/wqp_sites"))
+				.andExpect(status().isOk())
+				.andExpect(request().asyncStarted())
+				.andExpect(request().asyncResult(instanceOf(ModelAndView.class)))
+				.andReturn();
+
+		this.mockMvc.perform(asyncDispatch(mvcResult))
+				.andExpect(status().isOk())
+				.andExpect(forwardedUrl("wqp_cache_cleared.jsp"))
+				.andExpect(model().attributeExists("site"))
+				.andExpect(model().attribute("site", "WQP Layer Building Service"))
+				.andExpect(model().attributeExists("count"))
+				.andExpect(model().attribute("count", 5));
 	}
 
 	protected ModelAndView getOkCacheStatus(Map<String, DynamicLayerCache> cache) {
@@ -150,6 +178,19 @@ public class OGCProxyControllerTest {
 	protected ModelAndView getBadCacheStatus() {
 		ModelAndView mv = new ModelAndView("invalid_site.jsp");
 		mv.addObject("site", "BadSite");
+		return mv;
+	}
+
+	protected ModelAndView getOkClear() {
+		ModelAndView mv = new ModelAndView("wqp_cache_cleared.jsp");
+		mv.addObject("site", "WQP Layer Building Service");
+		mv.addObject("count", 5);
+		return mv;
+	}
+
+	protected ModelAndView getBadClear() {
+		ModelAndView mv = new ModelAndView("invalid_site.jsp");
+		mv.addObject("site", "no_sites_here");
 		return mv;
 	}
 }

@@ -83,7 +83,7 @@ public class WQPDynamicLayerCachingServiceTest {
 		when(HttpClients.custom()).thenReturn(httpClientBuilder);
 		when(httpClientBuilder.build()).thenReturn(httpClient);
 		
-		//reset those potentially mucked up in setCredentialsProviderTest() - (fun with statics - not)
+		//reset those potentially mucked up in any tests - (fun with statics - not)
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "threadSleep", 500);
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverProtocol", "http");
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverHost", "localhost");
@@ -95,6 +95,130 @@ public class WQPDynamicLayerCachingServiceTest {
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverPass", "");
 		
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "requestToLayerCache", new ConcurrentHashMap<String, DynamicLayerCache>());
+	}
+	
+	@Test
+	public void clearCacheTest() {
+		int cnt = service.clearCache();
+		verify(service).clearGeoserverWorkspace();
+		verify(service).clearInMemoryCache();
+
+		//Do it a second time to verify it really cleared the cache.
+		cnt = service.clearCache();
+		verify(service, times(2)).clearGeoserverWorkspace();
+		verify(service, times(2)).clearInMemoryCache();
+		
+		assertEquals(0, cnt);
+	}
+
+	@Test
+	public void clearGeoserverWorkspaceTest() {
+		try {
+			when(httpClient.execute(any(HttpDelete.class))).thenThrow(new IOException("Hi")).thenReturn(response);
+			when(response.getStatusLine()).thenReturn(statusLine);
+			when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_OK);
+
+			service.clearGeoserverWorkspace();
+			verify(httpClient, times(1)).execute(any(HttpDelete.class));
+			
+			service.clearGeoserverWorkspace();
+			verify(httpClient, times(2)).execute(any(HttpDelete.class));
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("shouldn't get here at this time");
+		}
+	}
+
+	@Test
+	public void clearInMemoryCachetest() {
+		Map<String, DynamicLayerCache> cache = new ConcurrentHashMap<>();
+		cache.put("123456", new DynamicLayerCache("dynamicSites_123456", "qw_portal_map"));
+		SearchParameters<String, List<String>> searchParams = new SearchParameters<>();
+		searchParams.put("key", Arrays.asList("a", "b"));
+		OGCRequest ogcRequest = new OGCRequest(OGCServices.WFS, null, searchParams, null);
+		DynamicLayerCache c2 = new DynamicLayerCache(ogcRequest, "qw_portal_map");
+		c2.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
+		cache.put(c2.getKey(), c2);
+		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "requestToLayerCache", cache);
+		
+		int cnt = service.clearInMemoryCache();
+		assertEquals(2, cnt);
+		Map<String, DynamicLayerCache> afterCache = Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "requestToLayerCache");
+		assertTrue(afterCache.isEmpty());
+	}
+
+	@Test
+	public void getCacheStoreTest() {
+		//TODO
+	}
+	
+
+	@Test
+	public void getCredentialsProviderTest() {
+		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverHost", "test");
+		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverPort", "8081");
+		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverUser", "me");
+		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverPass", "pass");
+		CredentialsProvider credentialsProvider = service.getCredentialsProvider();
+		assertNotNull(credentialsProvider);
+		assertEquals("{<any realm>@test:8081=[principal: me]}", credentialsProvider.toString());
+		Credentials credentials = credentialsProvider.getCredentials(new AuthScope("test", 8081));
+		assertEquals("pass", credentials.getPassword());
+		assertEquals("me", credentials.getUserPrincipal().getName());
+	}
+	
+	@Test
+	public void getDynamicLayerTest() {
+		//TODO
+	}
+	
+	@Test
+	public void getLayerCacheTest() {
+		DynamicLayerCache existingCache = new DynamicLayerCache("dynamicSites_123456", "qw_portal_map");
+		Map<String, DynamicLayerCache> cache = new ConcurrentHashMap<>();
+		cache.put("123456", existingCache);
+		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "requestToLayerCache", cache);
+		DynamicLayerCache defaultCache = new DynamicLayerCache("12345678", "testWorkspace");
+		try {
+			assertEquals(defaultCache, service.getLayerCache(defaultCache));
+		} catch (Exception e) {
+			fail("Didn't expect to get exception: " + e.getLocalizedMessage());
+		}
+		
+		defaultCache = new DynamicLayerCache("123456", "qw_portal_map");
+		try {
+			assertEquals(existingCache, service.getLayerCache(defaultCache));
+			verify(service).waitForFinalStatus(any(DynamicLayerCache.class));
+		} catch (Exception e) {
+			fail("Didn't expect to get exception: " + e.getLocalizedMessage());
+		}
+	}
+
+	@Test
+	public void getResponseIteratorTest() {
+		Iterator<JsonElement> i = service.getResponseIterator(buildCompleteTestDataSourceResponse());
+		assertNotNull(i);
+		assertTrue(i.hasNext());
+
+		i = service.getResponseIterator(buildEmptyDataStoresTestDataStoreResponse());
+		assertNotNull(i);
+		assertFalse(i.hasNext());
+
+		i = service.getResponseIterator(buildDataStoreNotArrayTestDataStoreResponse());
+		assertNotNull(i);
+		assertFalse(i.hasNext());
+
+		i = service.getResponseIterator(buildDataStoresNotObjectTestDataStoreResponse());
+		assertNotNull(i);
+		assertFalse(i.hasNext());
+
+		i = service.getResponseIterator(null);
+		assertNotNull(i);
+		assertFalse(i.hasNext());
+		
+		i = service.getResponseIterator(buildNoDataStoreTestDataStoreResponse());
+		assertNotNull(i);
+		assertFalse(i.hasNext());
 	}
 	
 	@Test
@@ -177,118 +301,10 @@ public class WQPDynamicLayerCachingServiceTest {
 	}
 
 	@Test
-	public void getResponseIteratorTest() {
-		Iterator<JsonElement> i = service.getResponseIterator(buildCompleteTestDataSourceResponse());
-		assertNotNull(i);
-		assertTrue(i.hasNext());
-
-		i = service.getResponseIterator(buildEmptyDataStoresTestDataStoreResponse());
-		assertNotNull(i);
-		assertFalse(i.hasNext());
-
-		i = service.getResponseIterator(buildDataStoreNotArrayTestDataStoreResponse());
-		assertNotNull(i);
-		assertFalse(i.hasNext());
-
-		i = service.getResponseIterator(buildDataStoresNotObjectTestDataStoreResponse());
-		assertNotNull(i);
-		assertFalse(i.hasNext());
-
-		i = service.getResponseIterator(null);
-		assertNotNull(i);
-		assertFalse(i.hasNext());
-		
-		i = service.getResponseIterator(buildNoDataStoreTestDataStoreResponse());
-		assertNotNull(i);
-		assertFalse(i.hasNext());
-	}
-
-	@Test
-	public void clearGeoserverWorkspaceTest() {
-		try {
-			when(httpClient.execute(any(HttpDelete.class))).thenThrow(new IOException("Hi")).thenReturn(response);
-			when(response.getStatusLine()).thenReturn(statusLine);
-			when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_OK);
-
-			service.clearGeoserverWorkspace();
-			verify(httpClient, times(1)).execute(any(HttpDelete.class));
-			
-			service.clearGeoserverWorkspace();
-			verify(httpClient, times(2)).execute(any(HttpDelete.class));
-		} catch (Exception e) {
-			e.printStackTrace();
-			fail("shouldn't get here at this time");
-		}
-	}
-
-	@Test
-	public void clearInMemoryCachetest() {
-		Map<String, DynamicLayerCache> cache = new ConcurrentHashMap<>();
-		cache.put("123456", new DynamicLayerCache("dynamicSites_123456", "qw_portal_map"));
-		SearchParameters<String, List<String>> searchParams = new SearchParameters<>();
-		searchParams.put("key", Arrays.asList("a", "b"));
-		OGCRequest ogcRequest = new OGCRequest(OGCServices.WFS, null, searchParams, null);
-		DynamicLayerCache c2 = new DynamicLayerCache(ogcRequest, "qw_portal_map");
-		c2.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
-		cache.put(c2.getKey(), c2);
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "requestToLayerCache", cache);
-		
-		int cnt = service.clearInMemoryCache();
-		assertEquals(2, cnt);
-		Map<String, DynamicLayerCache> afterCache = Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "requestToLayerCache");
-		assertTrue(afterCache.isEmpty());
-	}
-
-	@Test
-	public void clearCacheTest() {
-		int cnt = service.clearCache();
-		verify(service).clearGeoserverWorkspace();
-		verify(service).clearInMemoryCache();
-
-		//Do it a second time to verify it really cleared the cache.
-		cnt = service.clearCache();
-		verify(service, times(2)).clearGeoserverWorkspace();
-		verify(service, times(2)).clearInMemoryCache();
-		
-		assertEquals(0, cnt);
-	}
-
-	@Test
-	public void getCredentialsProviderTest() {
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverHost", "test");
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverPort", "8081");
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverUser", "me");
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverPass", "pass");
-		CredentialsProvider credentialsProvider = service.getCredentialsProvider();
-		assertNotNull(credentialsProvider);
-		assertEquals("{<any realm>@test:8081=[principal: me]}", credentialsProvider.toString());
-		Credentials credentials = credentialsProvider.getCredentials(new AuthScope("test", 8081));
-		assertEquals("pass", credentials.getPassword());
-		assertEquals("me", credentials.getUserPrincipal().getName());
+	public void removeLayerCacheTest() {
+		//TODO
 	}
 	
-	@Test
-	public void getLayerCacheTest() {
-		DynamicLayerCache existingCache = new DynamicLayerCache("dynamicSites_123456", "qw_portal_map");
-		Map<String, DynamicLayerCache> cache = new ConcurrentHashMap<>();
-		cache.put("123456", existingCache);
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "requestToLayerCache", cache);
-		DynamicLayerCache defaultCache = new DynamicLayerCache("12345678", "testWorkspace");
-		try {
-			assertEquals(defaultCache, service.getLayerCache(defaultCache));
-		} catch (Exception e) {
-			fail("Didn't expect to get exception: " + e.getLocalizedMessage());
-		}
-		
-		defaultCache = new DynamicLayerCache("123456", "qw_portal_map");
-		try {
-			assertEquals(existingCache, service.getLayerCache(defaultCache));
-			verify(service).waitForFinalStatus(any(DynamicLayerCache.class));
-		} catch (Exception e) {
-			fail("Didn't expect to get exception: " + e.getLocalizedMessage());
-		}
-	}
-
 	@Test
 	public void waitForFinalStatusTest() {
 		DynamicLayerCache currentCache = new DynamicLayerCache("12345678", "testWorkspace");

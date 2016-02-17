@@ -10,8 +10,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Arrays;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
@@ -44,14 +42,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
-import org.springframework.web.context.request.async.DeferredResult;
 
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
+import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
-import gov.usgs.wqp.ogcproxy.utils.ProxyServiceResult;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
 
@@ -64,6 +61,7 @@ public class ProxyService {
 	private WQPDynamicLayerCachingService layerCachingService;
 	
 	private static final Logger LOG = LoggerFactory.getLogger(ProxyService.class);
+	private static final String CLASSNAME = ProxyService.class.getName();
 	
 	private static boolean initialized;
 	
@@ -82,10 +80,6 @@ public class ProxyService {
 	// 15 seconds, default is infinite
 	private static int client_connection_timeout = 15 * 1000;
 
-	private static Set<String> ignoredClientRequestHeaderSet  = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
-	private static Set<String> ignoredServerResponseHeaderSet = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
-	
-	
 	public static final String WMS_GET_CAPABILITIES_CONTENT = "<Layer queryable=\"1\">" +
 			"<Name>wqp_sites</Name>" +
 			"<Title>wqp_sites</Title>" +
@@ -195,30 +189,6 @@ public class ProxyService {
 			//logic still works - otherwise it tries to decompress it causing issues in the scrubbing process.
 			serverClient = HttpClients.custom().setConnectionManager(clientConnectionManager)
 					.disableContentCompression().setDefaultRequestConfig(config).build();
-
-			// Ignored headers relating to proxing requests
-			// don't parameterize, need to switch host from proxy to server
-			ignoredClientRequestHeaderSet.add("host");
-			// don't parameterize, let proxy to server call do it's own handling
-			ignoredClientRequestHeaderSet.add("connection");
-			// parameterize (cookies passthru?)
-			ignoredClientRequestHeaderSet.add("cookie");
-			// parameterize (authorization passthru?)
-			ignoredClientRequestHeaderSet.add("authorization");
-			// ignore header in request, this is set in client call.
-			ignoredClientRequestHeaderSet.add("content-length");
-
-			// Ignored headers relating to proxing responses.
-			// don't parameterize
-			ignoredServerResponseHeaderSet.add("transfer-encoding");
-			// don't parameterize
-			ignoredServerResponseHeaderSet.add("keep-alive");
-			// parameterize (cookies passthru?)
-			ignoredServerResponseHeaderSet.add("set-cookie");
-			// parameterize (authorization passthru?)
-			ignoredServerResponseHeaderSet.add("authorization");
-			// ignoredServerResponseHeaderSet.add("content-length");
-			// allow for now, NOTE: are you doing response body content rewrite?
 		}
 	}
 
@@ -227,15 +197,11 @@ public class ProxyService {
 	 * WMS/WFS requests and providing additional functionality based on the
 	 * filters found in the request parameters.
 	 *
-	 * @param request
-	 * @param response
-	 * @param finalResult
+	 * @param request from the client
+	 * @param response to the client
+	 * @param ogcService specified service, may be overridden in the actual request parameters
 	 */
-	public DeferredResult<String> performRequest(HttpServletRequest request, HttpServletResponse response, 
-			OGCServices ogcService) {
-		
-		DeferredResult<String> deferredResult = new DeferredResult<String>();
-		
+	public void performRequest(HttpServletRequest request, HttpServletResponse response, OGCServices ogcService) {
 		//Interrogate the request, converting our vendor parameter values into the appropriate ogc values.
 		//This may include building the dynamic layer associated with out "searchParams".
 		OGCRequest ogcRequest = convertVendorParms(request, ogcService);
@@ -244,13 +210,10 @@ public class ProxyService {
 		boolean proxySuccess = proxyRequest(request, response, ogcRequest);
 		
 		if (proxySuccess) {
-			LOG.debug("ProxyService.performRequest() INFO: Proxy request is completed successfully.");
-			deferredResult.setResult(ProxyServiceResult.SUCCESS.toString());
+			LOG.trace("Proxy request is completed successfully.");
 		} else {
-			LOG.error("ProxyService.performRequest() Error:  Unable to proxy client request.");
-			deferredResult.setResult(ProxyServiceResult.ERROR.toString());
+			LOG.error("Unable to proxy client request.");
 		}
-		return deferredResult;
 	}
 
 	protected OGCRequest convertVendorParms(HttpServletRequest request, OGCServices ogcService) {
@@ -259,9 +222,8 @@ public class ProxyService {
 		if (ogcRequest.isValidVendorRequest()) {
 			// We can now proceed with the request. Depending on the value of
 			// the layer parameter we will call the correct layer building service.
-			LOG.debug("ProxyService.performRequest() Info: Kicking off search parameter logic for data source ["
+			LOG.trace("Kicking off search parameter logic for data source ["
 					+ ogcRequest.getDataSource() + "]");
-				// TODO asdf this must handle the POST
 			String layerName = layerCachingService.getDynamicLayer(ogcRequest);
 				
 			ogcRequest.setLayerFromVendor(layerName);
@@ -286,7 +248,7 @@ public class ProxyService {
 			HttpUriRequest serverRequest = generateServerRequest(clientRequest, ogcRequest);
 			handleServerRequest(clientRequest, clientResponse, serverRequest, ogcRequest);
 		} catch (OGCProxyException e) {
-			LOG.error("ProxyService.proxyRequest() Error: proxying client request: " + e.getMessage(), e);
+			LOG.error("Proxying client request: " + e.getMessage(), e);
 			return false;
 		}
 
@@ -295,7 +257,7 @@ public class ProxyService {
 
 	private HttpUriRequest generateServerRequest(HttpServletRequest clientRequest, final OGCRequest ogcRequest) 
 			throws OGCProxyException {
-		
+		String methodName = "generateServerRequest()";
 		HttpUriRequest serverRequest = null;
 		
 		try {
@@ -303,7 +265,7 @@ public class ProxyService {
 			String serverRequestURIAsString = ProxyUtil.getServerRequestURIAsString(clientRequest, ogcRequest.getOgcParams(),
 							ProxyService.forwardUrl, ProxyService.geoserverContext);
 
-			LOG.debug("ProxyService.generateServerRequest(): request to GeoServer is: [\n" + serverRequestURIAsString + "]");
+			LOG.trace("Request to GeoServer is: [\n" + serverRequestURIAsString + "]");
 
 			// instantiating to URL then calling toURI gives us some error
 			// checking as URI(String) appears too forgiving.
@@ -333,14 +295,14 @@ public class ProxyService {
 				serverRequest = new HttpOptions(serverRequestURI);
                 break;
 			default:
-				String msg = "ProxyService.generateServerRequest() Exception : Unsupported request method [" + serverRequest + "].";
+				String msg = "Unsupported request method [" + serverRequest + "].";
 				LOG.error(msg);
 				OGCProxyExceptionID id = OGCProxyExceptionID.UNSUPPORTED_REQUEST_METHOD;
-				throw new OGCProxyException(id, "ProxyService", "generateServerRequest()", msg);
+				throw new OGCProxyException(id, CLASSNAME, methodName, msg);
 			}
 
 			// 3) Map client request headers to server request
-			ProxyUtil.generateServerRequestHeaders(clientRequest, serverRequest, ProxyService.ignoredClientRequestHeaderSet);
+			ProxyUtil.generateServerRequestHeaders(clientRequest, serverRequest);
 
 			// 4) Copy client request body to server request
 			String body = ogcRequest.getRequestBody();
@@ -354,74 +316,68 @@ public class ProxyService {
 				        HttpEntity entity = new ByteArrayEntity(body.getBytes("UTF-8"));
 				        entityRequest.setEntity(entity);
 					} catch (IOException e) {
-						String msg = "ProxyService.generateServerRequest() Exception : Error reading client request body [" + e.getMessage() + "].";
+						String msg = "Error reading client request body [" + e.getMessage() + "].";
 						LOG.error(msg, e);
 
 						OGCProxyExceptionID id = OGCProxyExceptionID.ERROR_READING_CLIENT_REQUEST_BODY;
-						throw new OGCProxyException(id, "ProxyService", "generateServerRequest()", msg);
+						throw new OGCProxyException(id, CLASSNAME, methodName, msg);
 					}
 				} else {
-					String msg = "ProxyService.generateServerRequest() Exception : Content in request body unsupported for client request method [" + serverRequest.getMethod() + "].";
+					String msg = "Content in request body unsupported for client request method [" + serverRequest.getMethod() + "].";
 					LOG.error(msg);
 
 					OGCProxyExceptionID id = OGCProxyExceptionID.UNSUPPORTED_CONTENT_FOR_REQUEST_METHOD;
-					throw new OGCProxyException(id, "ProxyService", "generateServerRequest()", msg);
+					throw new OGCProxyException(id, CLASSNAME, methodName, msg);
 				}
 			}
 
 		} catch (MalformedURLException e) {
-			String msg = "ProxyService.generateServerRequest() Exception : Syntax error parsing server URL ["
+			String msg = "Syntax error parsing server URL ["
 					+ e.getMessage() + "].";
 			LOG.error(msg, e);
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;
-			throw new OGCProxyException(id, "ProxyService",
-					"generateServerRequest()", msg);
+			throw new OGCProxyException(id, CLASSNAME, methodName, msg);
 		} catch (URISyntaxException e) {
-			String msg = "ProxyService.generateServerRequest() Exception : Syntax error parsing server URL ["
-					+ e.getMessage() + "].";
+			String msg = "Syntax error parsing server URL [" + e.getMessage() + "].";
 			LOG.error(msg, e);
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;
-			throw new OGCProxyException(id, "ProxyService",
-					"generateServerRequest()", msg);
+			throw new OGCProxyException(id, CLASSNAME, methodName, msg);
 		}
 
 		return serverRequest;
 	}
 
-	private void handleServerRequest(HttpServletRequest clientRequest,
-			HttpServletResponse clientResponse, HttpUriRequest serverRequest,
-			OGCRequest ogcRequest) throws OGCProxyException {
+	private void handleServerRequest(HttpServletRequest clientRequest, HttpServletResponse clientResponse,
+			HttpUriRequest serverRequest, OGCRequest ogcRequest) throws OGCProxyException {
 		
 		try {
 			HttpContext localContext = new BasicHttpContext();
 			HttpResponse methodReponse = serverClient.execute(serverRequest, localContext);
 			handleServerResponse(clientRequest, clientResponse, methodReponse, ogcRequest);
 		} catch (ClientProtocolException e) {
-			String msg = "ProxyService.handleServerRequest() Exception : Client protocol error ["
+			String msg = "Client protocol error ["
 					+ e.getMessage() + "]";
 			LOG.error(msg, e);
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.CLIENT_PROTOCOL_ERROR;
-			throw new OGCProxyException(id, "ProxyService",
-					"handleServerRequest()", msg);
+			throw new OGCProxyException(id, CLASSNAME, "handleServerRequest()", msg);
 		} catch (IOException e) {
-			String msg = "ProxyService.handleServerRequest() Exception : I/O error on server request ["
-					+ e.getMessage() + "]";
+			String msg = "I/O error on server request [" + e.getMessage() + "]";
 			LOG.error(msg, e);
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_REQUEST_IO_ERROR;
-			throw new OGCProxyException(id, "ProxyService",
-					"handleServerRequest()", msg);
+			throw new OGCProxyException(id, CLASSNAME, "handleServerRequest()", msg);
 		}
 	}
 
 	private void handleServerResponse(HttpServletRequest clientRequest,
 			HttpServletResponse clientResponse, HttpResponse serverResponse,
 			OGCRequest ogcRequest) throws OGCProxyException {
+		String methodName = "handleServerResponse()";
 		
-		String clientRequestURLAsString = ProxyUtil.getClientRequestURIAsString(clientRequest);
+		String clientRequestURLAsString = clientRequest.getRequestURL().toString();
 		String serverRequestURLAsString = ProxyUtil.getServerRequestURIAsString(clientRequest, ogcRequest.getOgcParams(),
 						ProxyService.forwardUrl, ProxyService.geoserverContext);
 
@@ -434,11 +390,10 @@ public class ProxyService {
 		StatusLine serverStatusLine = serverResponse.getStatusLine();
 		int statusCode = serverStatusLine.getStatusCode();
 		clientResponse.setStatus(statusCode);
-		LOG.debug("ProxyService.handleServerResponse() DEBUG: Mapped server status code "
-				+ statusCode);
+		LOG.debug("Mapped server status code " + statusCode);
 
 		// 2) Map server response headers to client response
-		ProxyUtil.generateClientResponseHeaders(clientResponse, serverResponse, ProxyService.ignoredServerResponseHeaderSet);
+		ProxyUtil.generateClientResponseHeaders(clientResponse, serverResponse);
 
 		// 3) Copy server response body to client response
 		HttpEntity methodEntity = serverResponse.getEntity();
@@ -464,38 +419,32 @@ public class ProxyService {
 				try {
 					is = methodEntity.getContent();
 				} catch (IOException e) {
-					String msg = "ProxyService.handleServerResponse() Exception : Error obtaining input stream for server response ["
-							+ e.getMessage() + "]";
+					String msg = "Error obtaining input stream for server response [" + e.getMessage() + "]";
 					LOG.error(msg, e);
 
 					OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_RESPONSE_INPUT_STREAM_ERROR;
-					throw new OGCProxyException(id, "ProxyService",
-							"handleServerResponse()", msg);
+					throw new OGCProxyException(id, CLASSNAME, methodName, msg);
 				}
 
 				try {
 					os = clientResponse.getOutputStream();
 				} catch (IOException e) {
-					String msg = "ProxyService.handleServerResponse() Exception : Error obtaining output stream for client response ["
-							+ e.getMessage() + "]";
+					String msg = "Error obtaining output stream for client response [" + e.getMessage() + "]";
 					LOG.error(msg, e);
 
 					OGCProxyExceptionID id = OGCProxyExceptionID.CLIENT_RESPONSE_OUTPUT_STREAM_ERROR;
-					throw new OGCProxyException(id, "ProxyService",
-							"handleServerResponse()", msg);
+					throw new OGCProxyException(id, CLASSNAME, methodName, msg);
 				}
 
 				byte[] serverContent;
 				try {
 					serverContent = IOUtils.toByteArray(is);
 				} catch (IOException e) {
-					String msg = "ProxyService.handleServerResponse() Exception : Error copying server response to byteArray ["
-							+ e.getMessage() + "]";
+					String msg = "Error copying server response to byteArray [" + e.getMessage() + "]";
 					LOG.error(msg, e);
 
 					OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_TO_CLIENT_RESPONSE_ERROR;
-					throw new OGCProxyException(id, "ProxyService",
-							"handleServerResponse()", msg);
+					throw new OGCProxyException(id, CLASSNAME, methodName, msg);
 				}
 				
 				// Now, if the server response is xml we need to inspect it and
@@ -522,17 +471,15 @@ public class ProxyService {
 				try {
 					IOUtils.write(inspectedBytes, os);
 				} catch (IOException e) {
-					String msg = "ProxyService.handleServerResponse() Exception : Error copying server response to client ["
-							+ e.getMessage() + "]";
+					String msg = "Error copying server response to client [" + e.getMessage() + "]";
 					LOG.error(msg, e);
 
 					OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_TO_CLIENT_RESPONSE_ERROR;
-					throw new OGCProxyException(id, "ProxyService",
-							"handleServerResponse()", msg);
+					throw new OGCProxyException(id, CLASSNAME, methodName, msg);
 				}
 
 			} finally {
-				LOG.debug("ProxyService.handleServerResponse() DEBUG: Copied "
+				LOG.debug("Copied "
 						+ responseBytes
 						+ " bytes from server response for proxy from "
 						+ clientRequestURLAsString + " to "
@@ -543,7 +490,7 @@ public class ProxyService {
 					// connection pool for future reuse!
 					EntityUtils.consume(methodEntity);
 				} catch (IOException e) {
-					LOG.error("ProxyService.handleServerResponse() Error: consuming remaining bytes in server response entity for proxy reponse from "
+					LOG.error("Consuming remaining bytes in server response entity for proxy reponse from "
 							+ clientRequestURLAsString
 							+ " to "
 							+ serverRequestURLAsString, e);
@@ -552,7 +499,7 @@ public class ProxyService {
 				IOUtils.closeQuietly(os);
 			}
 		} else {
-			LOG.warn("ProxyService.handleServerResponse() WARN: Server response was empty for proxy response from "
+			LOG.warn("Server response was empty for proxy response from "
 					+ clientRequestURLAsString
 					+ " to "
 					+ serverRequestURLAsString);
@@ -570,28 +517,22 @@ public class ProxyService {
 		// We now need to do some inspection on the data.  If the original OGC
 		// request is a GetCapabilities, we need to insert the service's specific
 		// information into the response.
-		//TODO - should this constant be in ProxyUtil?
 		if (ProxyUtil.OGC_GET_CAPABILITIES.equalsIgnoreCase(ogcRequest.getRequestType())) {
 			// This is a GetCapabilities call.  We need to include the service
 			// specific GetCapabilities information in the result so we conform
 			// to the OGC spec
-			switch (ogcRequest.getDataSource()) {
-				case WQP_SITES: 
-					stringContent = addGetCapabilitiesInfo(ogcRequest.getOgcService(), stringContent);
-					break;
-				default:
-					break;
+			if (ProxyDataSourceParameter.WQP_SITES == ogcRequest.getDataSource()) {
+				stringContent = addGetCapabilitiesInfo(ogcRequest.getOgcService(), stringContent);
 			}
 		}
 		
 		// We also need to scrub the response for any mention of the actual
 		// GeoServer's location and replace it with this proxy's location.
 		if (stringContent.contains(geoserverHost)) {
-			LOG.debug("ProxyService.inspectServerContent() INFO : Server response contains references to its hostname.  Redirecting entries to the proxy...");
+			LOG.trace("Server response contains references to its hostname.  Redirecting entries to the proxy...");
 
 			String proxyServerName = clientRequest.getServerName();
-			String proxyContextPath = clientRequest
-					.getContextPath();
+			String proxyContextPath = clientRequest.getContextPath().replaceFirst("^/", "");
 			String proxyPort = clientRequest.getLocalPort() + "";
 			String proxyProtocol = clientRequest.getScheme();
 
@@ -601,7 +542,7 @@ public class ProxyService {
 					geoserverPort, proxyPort, geoserverContext,
 					proxyContextPath);
 		} else {
-			LOG.debug("\n\nProxyService.handleServerResponse() DEBUG : Server response does not contain references to its hostname.  Continuing...\n\n");
+			LOG.debug("Server response does not contain references to its hostname.  Continuing...");
 		}
 		
 		if (contentCompressed) {
@@ -637,7 +578,7 @@ public class ProxyService {
 				 */
 				int closingParentTag = serverContent.lastIndexOf("</Layer>");
 				if (closingParentTag == -1) {
-					LOG.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WMS GetCapabilities response from mapping service does not contain a closing </Layer> element.  Returning silently...");
+					LOG.warn("WMS GetCapabilities response from mapping service does not contain a closing </Layer> element.  Returning silently...");
 					return serverContent;
 				}
 				
@@ -663,17 +604,17 @@ public class ProxyService {
 				 */
 				int getFeatureTag = serverContent.lastIndexOf("<ows:Operation name=\"GetFeature\">");
 				if (getFeatureTag == -1) {
-					LOG.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WFS GetCapabilities response from mapping service does not contain a <ows:Operation name=\"GetFeature\"> element.  Returning silently...");
+					LOG.warn("WFS GetCapabilities response from mapping service does not contain a <ows:Operation name=\"GetFeature\"> element.  Returning silently...");
 					return serverContent;
 				}
 				
 				int insertTag = serverContent.indexOf("</ows:DCP>", getFeatureTag);
 				if (insertTag == -1) {
-					LOG.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WFS GetCapabilities response from mapping service does not contain a closing </ows:DCP> element from the location of the <ows:Operation name=\"GetFeature\"> tag.  Looking for closing Operation tag.");
+					LOG.warn("WFS GetCapabilities response from mapping service does not contain a closing </ows:DCP> element from the location of the <ows:Operation name=\"GetFeature\"> tag.  Looking for closing Operation tag.");
 					
 					insertTag = serverContent.indexOf("</ows:Operation>", getFeatureTag);
 					if (insertTag == -1) {
-						LOG.warn("WQPLayerBuildingService.addGetCapabilitiesInfo() Warning: WFS GetCapabilities response from mapping service does not contain a closing </ows:Operation> element from the location of the <ows:Operation name=\"GetFeature\"> tag.  Returning silently...");
+						LOG.warn("WFS GetCapabilities response from mapping service does not contain a closing </ows:Operation> element from the location of the <ows:Operation name=\"GetFeature\"> tag.  Returning silently...");
 						return serverContent;
 					}
 				} else {
@@ -690,6 +631,22 @@ public class ProxyService {
 		}
 
 		return newContent.toString();
+	}
+
+	/**
+	 * Really only meant to be used by automated tests - Spring will normally handle it with the @Autowired annotation.
+	 * @param environment
+	 */
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
+	}
+
+	/**
+	 * Really only meant to be used by automated tests - Spring will normally handle it with the @Autowired annotation.
+	 * @param layerCachingService
+	 */
+	public void setWQPDynamicLayerCachingService(WQPDynamicLayerCachingService layerCachingService) {
+		this.layerCachingService = layerCachingService;
 	}
 
 }

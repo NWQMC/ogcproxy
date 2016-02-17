@@ -54,13 +54,11 @@ public class OGCProxyController {
 	 * 
 	 * @param request
 	 * @param response
-	 * @param requestParams
-	 * @return
 	 */
-	@RequestMapping(value="**/wms", method={RequestMethod.GET})
-    public DeferredResult<String>  wmsProxyGet(HttpServletRequest request, HttpServletResponse response) {
+	@RequestMapping(value="/wms", method={RequestMethod.GET})
+    public void wmsProxyGet(HttpServletRequest request, HttpServletResponse response) {
 		LOG.debug("OGCProxyController.wmsProxy() INFO - Performing request.");
-		return proxyService.performRequest(request, response, OGCServices.WMS);
+		proxyService.performRequest(request, response, OGCServices.WMS);
 	}
 	
 	/** 
@@ -69,13 +67,11 @@ public class OGCProxyController {
 	 * 
 	 * @param request
 	 * @param response
-	 * @param requestParams
-	 * @return
 	 */
-	@RequestMapping(value="**/wfs", method=RequestMethod.GET)
-    public DeferredResult<String> wfsProxyGet(HttpServletRequest request, HttpServletResponse response) {
+	@RequestMapping(value="/wfs", method=RequestMethod.GET)
+    public void wfsProxyGet(HttpServletRequest request, HttpServletResponse response) {
 		LOG.debug("OGCProxyController.wfsProxy() INFO - Performing request.");
-		return proxyService.performRequest(request, response, OGCServices.WFS);
+		proxyService.performRequest(request, response, OGCServices.WFS);
 	}
 
 	/** 
@@ -86,7 +82,7 @@ public class OGCProxyController {
 	 * @param response
 	 */
 	@Async
-	@RequestMapping(value="**/wms", method=RequestMethod.POST)
+	@RequestMapping(value="/wms", method=RequestMethod.POST)
     public void wmsProxyPost(HttpServletRequest request, HttpServletResponse response) {
 		LOG.debug("OGCProxyController.wmsProxyPost() INFO - Performing request.");
 		proxyService.performRequest(request, response, OGCServices.WMS);
@@ -100,7 +96,7 @@ public class OGCProxyController {
 	 * @param response
 	 */
 	@Async
-	@RequestMapping(value="**/wfs", method=RequestMethod.POST)
+	@RequestMapping(value="/wfs", method=RequestMethod.POST)
     public void wfsProxyPost(HttpServletRequest request, HttpServletResponse response) {
 		LOG.debug("OGCProxyController.wfsProxyPost() INFO - Performing request.");
 		proxyService.performRequest(request, response, OGCServices.WFS);
@@ -126,8 +122,7 @@ public class OGCProxyController {
 	 * @param site The cache DataSource to clear.
 	 * @return The cache clear report.
 	 */
-	//TODO this should really be a DELETE
-	@RequestMapping(value="/rest/clearcache/{site}", method=RequestMethod.GET)
+	@RequestMapping(value="/rest/clearcache/{site}", method=RequestMethod.DELETE)
     public DeferredResult<ModelAndView> restClearCache(@PathVariable String site) {
 		DeferredResult<ModelAndView> finalResult = new DeferredResult<ModelAndView>();
 		

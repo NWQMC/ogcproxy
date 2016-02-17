@@ -51,7 +51,7 @@ public class OGCRequest {
 	protected void setRequestType(Map<String, String> ogcParams) {
 		requestType = "";
 		if (null != ogcParams && !ogcParams.isEmpty()) {
-			requestType = ogcParams.get(ProxyUtil.getCaseSensitiveParameter("request", ogcParams));
+			requestType = ogcParams.get(ProxyUtil.getCaseSensitiveParameter("request", ogcParams.keySet()));
 		}
 		if (null == requestType) {
 			requestType = "";
@@ -113,7 +113,7 @@ public class OGCRequest {
 	protected String checkIfApplicable(Map<String, String> ogcParams, String parameterName) {
 		String rtn = "";
 		if (null != ogcParams && !ogcParams.isEmpty()) {
-			String key = ProxyUtil.getCaseSensitiveParameter(parameterName, ogcParams);
+			String key = ProxyUtil.getCaseSensitiveParameter(parameterName, ogcParams.keySet());
 			String value = ogcParams.get(key);
 			if (!isEmpty(value)) {
 				for (String i : value.split(",")) {

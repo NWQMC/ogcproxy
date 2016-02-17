@@ -1,11 +1,6 @@
 package gov.usgs.wqp.ogcproxy.model;
 
 
-import gov.usgs.wqp.ogcproxy.model.attributes.BaseAttributeType;
-import gov.usgs.wqp.ogcproxy.model.attributes.FeatureAttributeType;
-
-import java.util.List;
-
 import org.opengis.feature.simple.SimpleFeature;
 
 /**
@@ -18,11 +13,5 @@ import org.opengis.feature.simple.SimpleFeature;
  *	set can be used to map to another System's Base attribute set.
  */
 public interface FeatureDAO {
-	public List<BaseAttributeType> listBaseAttributes();
-	public String getBaseAttribute(BaseAttributeType baseType);
-	
-	public List<FeatureAttributeType> listFeatureAttributes();
-	public Object getFeatureAttribute(FeatureAttributeType featureType);
-	
 	public SimpleFeature getSimpleFeature();
 }

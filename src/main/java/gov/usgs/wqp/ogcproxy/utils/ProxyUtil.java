@@ -8,14 +8,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.http.Header;
+import org.apache.http.HttpHeaders;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.protocol.HTTP;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,7 +26,7 @@ import gov.usgs.wqp.ogcproxy.model.OGCRequest;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.parameters.WQPParameters;
-import gov.usgs.wqp.ogcproxy.model.parser.xml.ogc.OgcParser;
+import gov.usgs.wqp.ogcproxy.model.parser.OgcParser;
 
 /**
  * ProxyUtil
@@ -41,10 +44,40 @@ public class ProxyUtil {
 	
 	public static final String OGC_SERVICE_PARAMETER = "service";
 	
-	public static final String searchParamKey        = WQPParameters.searchParams.toString();
-	
 	public static final String PROXY_LAYER_ERROR     = "no_layer_error.xml";
 	
+	public static final Set<String> ignoredClientRequestHeaderSet;
+	static {
+		ignoredClientRequestHeaderSet = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+		// Ignored headers relating to proxing requests
+		// don't parameterize, need to switch host from proxy to server
+		ignoredClientRequestHeaderSet.add(HttpHeaders.HOST);
+		// don't parameterize, let proxy to server call do it's own handling
+		ignoredClientRequestHeaderSet.add(HttpHeaders.CONNECTION);
+		// parameterize (cookies passthru?)
+		ignoredClientRequestHeaderSet.add("cookie");
+		// parameterize (authorization passthru?)
+		ignoredClientRequestHeaderSet.add(HttpHeaders.AUTHORIZATION);
+		// ignore header in request, this is set in client call.
+		ignoredClientRequestHeaderSet.add(HttpHeaders.CONTENT_LENGTH);
+	}
+	
+	public static final Set<String> ignoredServerResponseHeaderSet;
+	static {
+		ignoredServerResponseHeaderSet = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+		// Ignored headers relating to proxing responses.
+		// don't parameterize
+		ignoredServerResponseHeaderSet.add(HttpHeaders.TRANSFER_ENCODING);
+		// don't parameterize
+		ignoredServerResponseHeaderSet.add(HTTP.CONN_KEEP_ALIVE);
+		// parameterize (cookies passthru?)
+		ignoredServerResponseHeaderSet.add("set-cookie");
+		// parameterize (authorization passthru?)
+		ignoredServerResponseHeaderSet.add(HttpHeaders.AUTHORIZATION);
+	}
+
+	private ProxyUtil() {
+	}
 	
 	/**
 	 * separateParameters()
@@ -80,7 +113,7 @@ public class ProxyUtil {
 		Map<String, String> ogcParams = new HashMap<>();
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<>();
 		
-		LOG.debug("ProxyUtil.separateParameters() REQUEST PARAMS:\n" + requestParams);
+		LOG.trace("REQUEST PARAMS:\n" + requestParams);
 		
 		/*
 		 * We need to capture the pure servlet parameter key for our searchParams parameter.
@@ -88,7 +121,7 @@ public class ProxyUtil {
 		 * Since this can be case INSENSITIVE but we use its value as a key in a map, we need
 		 * to know what the exact character sequence is going forward.
 		 */
-		String servletSearchParamName = ProxyUtil.searchParamKey;
+		String servletSearchParamName = WQPParameters.searchParams.toString();
 		
 		boolean containsSearchQuery = false;
 	    for (Map.Entry<String, String[]> pairs : requestParams.entrySet()) {
@@ -104,7 +137,7 @@ public class ProxyUtil {
 	         * upper cases all of its parameters including this specific parameter.  We
 	         * will make the "searchParams" case insensitive
 	         */
-	        if (ProxyUtil.searchParamKey.equalsIgnoreCase(key)) {
+	        if (WQPParameters.searchParams.toString().equalsIgnoreCase(key)) {
 	        	containsSearchQuery = true;
 	        	servletSearchParamName = key;
 	        	continue;
@@ -112,12 +145,12 @@ public class ProxyUtil {
 	        
 	        ogcParams.put(key, String.join(",", pairs.getValue()));
 	    }
-	    LOG.debug("ProxyUtil.separateParameters() OGC PARAMETER MAP:\n[" + ogcParams + "]");
+	    LOG.trace("OGC PARAMETER MAP:\n[" + ogcParams + "]");
 		
-		if (containsSearchQuery) {
+		if (containsSearchQuery && null != requestParams.get(servletSearchParamName)) {
 			String searchParamString = String.join(";", requestParams.get(servletSearchParamName));
 			searchParams = WQPUtils.parseSearchParams(searchParamString);
-			LOG.debug("ProxyUtil.separateParameters() SEARCH PARAMETER MAP:\n[" + searchParams + "]");
+			LOG.trace("SEARCH PARAMETER MAP:\n[" + searchParams + "]");
 		}
 		
 		return new OGCRequest(realOgcService, ogcParams, searchParams, requestBody);
@@ -147,7 +180,7 @@ public class ProxyUtil {
 			try {
 				encodedValue = URLEncoder.encode(value, "UTF-8");
 			} catch (UnsupportedEncodingException e) {
-				LOG.error("ProxyUtil.getServerRequestURIAsString() Encoding parameter value exception:\n[" + e.getMessage() + "].  Using un-encoded value instead [" + value + "]");
+				LOG.error("Encoding parameter value exception:\n[" + e.getMessage() + "].  Using un-encoded value instead [" + value + "]", e);
 				encodedValue = value;
 			}
             requestBuffer.append(encodedValue);
@@ -157,12 +190,7 @@ public class ProxyUtil {
     }
     
 	
-    public static String getClientRequestURIAsString(HttpServletRequest clientRequest) {
-        return clientRequest.getRequestURL().toString();
-    }
-    
-    
-    public static void generateServerRequestHeaders(HttpServletRequest clientRequest, HttpUriRequest serverRequest, final Set<String> ignoredClientRequestHeaderSet) {
+    public static void generateServerRequestHeaders(HttpServletRequest clientRequest, HttpUriRequest serverRequest) {
     	Enumeration<String> headerNameEnumeration = clientRequest.getHeaderNames();
         while (headerNameEnumeration.hasMoreElements()) {
             String requestHeaderName = headerNameEnumeration.nextElement();
@@ -174,10 +202,10 @@ public class ProxyUtil {
                 
                 String logMsg = " client request header \"" +requestHeaderName + ": " + requestHeaderValue + "\"";
                 if ( ignoredClientRequestHeaderSet.contains(requestHeaderName) ) {
-                    LOG.debug("Ignored" +logMsg);
+                    LOG.trace("Ignored" +logMsg);
                 } else {
                     serverRequest.addHeader(requestHeaderName, requestHeaderValue);
-                    LOG.debug("Mapped" +logMsg);
+                    LOG.trace("Mapped" +logMsg);
                 }
             }
 
@@ -190,31 +218,35 @@ public class ProxyUtil {
         }
         String requestHost = serverHostBuilder.toString();
         serverRequest.addHeader("Host", serverHostBuilder.toString());
-        LOG.debug("Added server request header \"Host: " + requestHost + "\"");
+        LOG.trace("Added server request header \"Host: " + requestHost + "\"");
     }
     
-    public static void generateClientResponseHeaders(HttpServletResponse clientResponse, HttpResponse serverResponse, Set<String> ignoredServerResponseHeaderSet) {
-        
+    public static void generateClientResponseHeaders(HttpServletResponse clientResponse, HttpResponse serverResponse) {
         for (Header header : serverResponse.getAllHeaders()) {
             String name  = header.getName();
             String value = header.getValue();
             
             String logMsg = " server response header \"" + name + ": " + value + "\"";
             if ( ignoredServerResponseHeaderSet.contains(name) ) {
-                LOG.debug("Ignored" +logMsg);
+                LOG.trace("Ignored" +logMsg);
             } else {
                 clientResponse.addHeader(name, value);
-                LOG.debug("Mapped" +logMsg );
+                LOG.trace("Mapped" +logMsg );
             }
         }
     }
     
     public static String redirectContentToProxy(String content, String serverProtocol, String proxyProtocol, String serverHost, String proxyHost, String serverPort, String proxyPort, String serverContext, String proxyContext) {
-    	String newContent = content.replaceAll(serverProtocol, proxyProtocol);
-    	newContent = newContent.replaceAll(serverHost, proxyHost);
-    	newContent = newContent.replaceAll(serverPort, proxyPort);
-    	newContent = newContent.replaceAll(serverContext, proxyContext);
-    	return newContent;
+    	if (null != content && null != serverProtocol && null != serverHost && null != serverPort && null != serverContext
+    			&& null != proxyProtocol && null != proxyHost && null != proxyPort && null != proxyContext) {
+	    	String newContent = content.replaceAll(serverProtocol, proxyProtocol);
+	    	newContent = newContent.replaceAll(serverHost, proxyHost);
+	    	newContent = newContent.replaceAll(serverPort, proxyPort);
+	    	newContent = newContent.replaceAll(serverContext, proxyContext);
+	    	return newContent;
+    	} else {
+    		return "";
+    	}
     }
     
     /**
@@ -233,9 +265,10 @@ public class ProxyUtil {
     public static OGCServices getRequestedService(OGCServices calledService, Map<String, String[]> ogcParams) {
 		try {
 			//We only expect one service value and any Exceptions will be eaten and the original called service returned. 
-	    	String serviceValue = ogcParams.get(getCaseSensitiveParameter(OGC_SERVICE_PARAMETER, ogcParams))[0].toUpperCase();
+	    	String serviceValue = ogcParams.get(getCaseSensitiveParameter(OGC_SERVICE_PARAMETER, ogcParams.keySet()))[0].toUpperCase();
 	    	return OGCServices.valueOf(serviceValue);
 		} catch (Exception e) {
+			LOG.trace("returning default service", e);
 			return calledService;
 		}
     }
@@ -251,12 +284,12 @@ public class ProxyUtil {
      * This method returns the servlet case-sensitive version of a parameter that
      * is inherently case-insensitive.
      * @param ourParam
-     * @param requestParams
+     * @param requestParamKeys
      * @return
      */
-    public static String getCaseSensitiveParameter(String ourParam, Map<String, ?> requestParams) {
-    	if (null != requestParams) {
-	    	for (String key : requestParams.keySet()) {
+    public static String getCaseSensitiveParameter(String ourParam, Set<String> requestParamKeys) {
+    	if (null != requestParamKeys) {
+	    	for (String key : requestParamKeys) {
 	    		if ( key.equalsIgnoreCase(ourParam) ) {
 		        	return key;
 		        }

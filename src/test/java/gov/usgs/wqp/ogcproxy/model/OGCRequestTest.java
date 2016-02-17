@@ -55,7 +55,7 @@ public class OGCRequestTest {
 		assertTrue(ogcRequest.getReplaceableLayers().isEmpty());
 		assertEquals(ProxyDataSourceParameter.UNKNOWN, ogcRequest.getDataSource());
 
-		ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, searchParams, null);
+		ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, searchParams, "abc");
 		assertEquals(OGCServices.WMS, ogcRequest.getOgcService());
 		assertTrue(ogcRequest.getOgcParams().equals(ogcParams));
 		assertTrue(ogcRequest.getSearchParams().equals(searchParams));
@@ -63,6 +63,7 @@ public class OGCRequestTest {
 		assertEquals(1, ogcRequest.getReplaceableLayers().size());
 		assertTrue(ogcRequest.getReplaceableLayers().contains(WMSParameters.layer.toString()));
 		assertEquals(ProxyDataSourceParameter.WQP_SITES, ogcRequest.getDataSource());
+		assertEquals("abc", ogcRequest.getRequestBody());
 	}
 
 	@Test
