@@ -20,7 +20,7 @@
     </appender>
     
     <category name="gov.usgs.wqp">
-        <level value="debug"/>
+        <level value="info"/>
     </category>
 
     <root>
