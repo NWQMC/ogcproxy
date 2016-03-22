@@ -36,20 +36,15 @@ public class RESTService {
 		return mv;
 	}
 
-	public ModelAndView clearCacheBySite(String site) {
-		ModelAndView mv = new ModelAndView();
+	public boolean clearCacheBySite(String site) {
 		// Depending on the value of the site we will call the correct service.
 		if (ProxyDataSourceParameter.getTypeFromString(site) == ProxyDataSourceParameter.WQP_SITES) {
 			LOG.trace("Clearing cache for site [" + site + "]");
-			mv.setViewName("wqp_cache_cleared.jsp");
-			mv.addObject("site", "WQP Layer Building Service");
-			mv.addObject("count", layerCachingService.clearCache());
+			LOG.info("Clearing cache for site [" + site + "] count:", layerCachingService.clearCache());
+			return true;
 		} else {
-			// Or return an error
-			mv.setViewName("invalid_site.jsp");
-			mv.addObject("site", site);
+			return false;
 		}
-		return mv;
 	}
 
 }
