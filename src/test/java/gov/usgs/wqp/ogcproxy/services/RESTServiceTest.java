@@ -1,6 +1,7 @@
 package gov.usgs.wqp.ogcproxy.services;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -58,20 +59,12 @@ public class RESTServiceTest {
     public void clearCacheBySiteOkTest() {
 		when(layerCachingService.clearCache()).thenReturn(5);
 
-		ModelAndView mv = service.clearCacheBySite(ProxyDataSourceParameter.WQP_SITES.toString());
-		assertEquals("wqp_cache_cleared.jsp", mv.getViewName());
-		assertTrue(mv.getModelMap().containsKey("site"));
-		assertEquals("WQP Layer Building Service", mv.getModelMap().get("site"));
-		assertTrue(mv.getModelMap().containsKey("count"));
-		assertEquals(5, mv.getModelMap().get("count"));
+		assertTrue(service.clearCacheBySite(ProxyDataSourceParameter.WQP_SITES.toString()));
     }
 	
     @Test
     public void clearCacheBySiteBadTest() {
-		ModelAndView mv = service.clearCacheBySite("no_sites_here");
-		assertEquals("invalid_site.jsp", mv.getViewName());
-		assertTrue(mv.getModelMap().containsKey("site"));
-		assertEquals("no_sites_here", mv.getModelMap().get("site"));
+		assertFalse(service.clearCacheBySite("no_sites_here"));
     }
 
 }

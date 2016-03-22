@@ -3,14 +3,15 @@ package gov.usgs.wqp.ogcproxy.controllers;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -19,7 +20,7 @@ import gov.usgs.wqp.ogcproxy.services.ProxyService;
 import gov.usgs.wqp.ogcproxy.services.RESTService;
 import gov.usgs.wqp.ogcproxy.utils.ApplicationVersion;
 
-@Controller
+@RestController
 public class OGCProxyController {
 	private static final Logger LOG = LoggerFactory.getLogger(OGCProxyController.class);
 	
@@ -123,12 +124,12 @@ public class OGCProxyController {
 	 * @return The cache clear report.
 	 */
 	@RequestMapping(value="/rest/clearcache/{site}", method=RequestMethod.DELETE)
-    public DeferredResult<ModelAndView> restClearCache(@PathVariable String site) {
-		DeferredResult<ModelAndView> finalResult = new DeferredResult<ModelAndView>();
-		
-		finalResult.setResult(restService.clearCacheBySite(site));
-		
-		return finalResult;
+    public void restClearCache(@PathVariable String site, HttpServletResponse response) {
+		if (restService.clearCacheBySite(site)) {
+			response.setStatus(HttpStatus.SC_OK);
+		} else {
+			response.setStatus(HttpStatus.SC_BAD_REQUEST);
+		}
 	}
 
 }

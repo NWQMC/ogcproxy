@@ -137,35 +137,14 @@ public class OGCProxyControllerTest {
 	public void restClearCacheTest() throws Exception {
 		Map<String, DynamicLayerCache> cache = new HashMap<>();
 		cache.put("abc", new DynamicLayerCache(new OGCRequest(OGCServices.WMS), "abcWorkspace"));
-		when(restService.clearCacheBySite(anyString())).thenReturn(getBadClear(), getOkClear());
+		when(restService.clearCacheBySite(anyString())).thenReturn(false, true);
 
-		MvcResult mvcResult = mockMvc.perform(delete("/rest/clearcache/no_sites_here"))
-				.andExpect(status().isOk())
-				.andExpect(request().asyncStarted())
-				.andExpect(request().asyncResult(instanceOf(ModelAndView.class)))
-				.andReturn();
+		mockMvc.perform(delete("/rest/clearcache/no_sites_here"))
+				.andExpect(status().isBadRequest());
 
-		this.mockMvc.perform(asyncDispatch(mvcResult))
-				.andExpect(status().isOk())
-				.andExpect(forwardedUrl("invalid_site.jsp"))
-				.andExpect(model().attributeExists("site"))
-				.andExpect(model().attribute("site", "no_sites_here"));
 
-		
-
-		mvcResult = mockMvc.perform(delete("/rest/clearcache/wqp_sites"))
-				.andExpect(status().isOk())
-				.andExpect(request().asyncStarted())
-				.andExpect(request().asyncResult(instanceOf(ModelAndView.class)))
-				.andReturn();
-
-		this.mockMvc.perform(asyncDispatch(mvcResult))
-				.andExpect(status().isOk())
-				.andExpect(forwardedUrl("wqp_cache_cleared.jsp"))
-				.andExpect(model().attributeExists("site"))
-				.andExpect(model().attribute("site", "WQP Layer Building Service"))
-				.andExpect(model().attributeExists("count"))
-				.andExpect(model().attribute("count", 5));
+		mockMvc.perform(delete("/rest/clearcache/wqp_sites"))
+				.andExpect(status().isOk());
 	}
 
 	protected ModelAndView getOkCacheStatus(Map<String, DynamicLayerCache> cache) {
@@ -181,16 +160,4 @@ public class OGCProxyControllerTest {
 		return mv;
 	}
 
-	protected ModelAndView getOkClear() {
-		ModelAndView mv = new ModelAndView("wqp_cache_cleared.jsp");
-		mv.addObject("site", "WQP Layer Building Service");
-		mv.addObject("count", 5);
-		return mv;
-	}
-
-	protected ModelAndView getBadClear() {
-		ModelAndView mv = new ModelAndView("invalid_site.jsp");
-		mv.addObject("site", "no_sites_here");
-		return mv;
-	}
 }
