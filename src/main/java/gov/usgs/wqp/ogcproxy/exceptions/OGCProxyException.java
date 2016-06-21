@@ -5,29 +5,29 @@ public class OGCProxyException extends Exception {
 	
 	private final OGCProxyExceptionID exceptionid;		// uniquely generated id for this exception
 	private final String classname; 					// the name of the class that threw the exception
-	private final String method; 						// the name of the method that threw the exception
-	private final String message; 						// a detailed message
+	private final String method;						// the name of the method that threw the exception
+	private final String message;						// a detailed message
 	private final OGCProxyException previous; 			// the exception which was caught
-	private String delimeter = "\n"; 					// line separator
-	
+	private String delimeter = "\n";					// line separator
+
 	public OGCProxyException(final OGCProxyExceptionID id, final String classname, final String method, final String message) {
 		this(id, classname, method, message, null);
 	}
 	public OGCProxyException(final OGCProxyExceptionID id, final String classname, final String method, final String message, Exception cause) {
 		super(message, cause);
 		this.exceptionid	= id;
-		this.classname  	= classname;
-		this.method    		= method;
-		this.message   		= message;
-		this.previous  		= null;
+		this.classname		= classname;
+		this.method			= method;
+		this.message		= message;
+		this.previous		= null;
 	}
 
 	public OGCProxyException(final OGCProxyExceptionID id, final String classname, final String method, final String message, final OGCProxyException previous) {
 		this.exceptionid	= id;
-		this.classname  	= classname;
-		this.method    		= method;
-		this.message   		= message;
-		this.previous  		= previous;
+		this.classname		= classname;
+		this.method			= method;
+		this.message		= message;
+		this.previous		= previous;
 	}
 
 	public String traceBack() {
@@ -43,9 +43,9 @@ public class OGCProxyException extends Exception {
 			level++;
 			text.append(this.delimeter);
 			text.append(line("--level " + level + "--------------------------------------"));
-			text.append(line("Class/Method: " + e.classname + "/" + e.method));
-			text.append(line("Id          : " + e.exceptionid));
-			text.append(line("Message     : " + e.message));
+			text.append(line("Class/Method	: " + e.classname + "/" + e.method));
+			text.append(line("Id			: " + e.exceptionid));
+			text.append(line("Message		: " + e.message));
 			e = e.previous;
 		}
 		return text.toString();
@@ -54,12 +54,12 @@ public class OGCProxyException extends Exception {
 	private String line(final String s) {
 		return s + this.delimeter;
 	}
-	
+
 	@Override
 	public String getMessage() {
 		return this.traceBack();
 	}
-	
+
 	@Override
 	public String toString() {
 		return this.traceBack();

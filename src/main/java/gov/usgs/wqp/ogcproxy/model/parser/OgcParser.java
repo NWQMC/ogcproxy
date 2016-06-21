@@ -44,7 +44,7 @@ public class OgcParser {
 		this.request = request;
 		this.requestParams = new HashMap<>();
 	}
-	
+
 	public Map<String, String[]> getRequestParamsAsMap() {
 		return requestParams;
 	}
@@ -57,18 +57,18 @@ public class OgcParser {
 		try {
 			Document doc = getDocument();
 			Node root = doc.getDocumentElement();
-			
+
 			requestParams.put("request", new String[] {root.getLocalName()});
 			requestParams.put("version", new String[] {getAttributeText(root.getAttributes(), "version")});
 			String service = getAttributeText(root.getAttributes(), "service");
 			requestParams.put("service", new String[] {service});
-			
+
 			if (OGCServices.WFS.toString().contentEquals(service)) {
 				parseWfs(doc);
 			} else {
 				parseWms(doc);
 			}
-			
+
 			bodyMinusVendorParams = domToString(doc);
 		} catch (Exception e) {
 			String msg = "Error parsing request body [" + e.getMessage() + "].";
@@ -94,7 +94,7 @@ public class OgcParser {
 				new String[] {getAttributeText(nodes.item(0).getAttributes(), WFSParameters.typeName.toString())});
 		requestParams.put(WFSParameters.typeNames.toString(),
 				new String[] {getAttributeText(nodes.item(0).getAttributes(), WFSParameters.typeNames.toString())});
-		
+
 		getVendorParams(doc.getElementsByTagNameNS("*", "PropertyIsEqualTo"));
 	}
 
@@ -103,19 +103,19 @@ public class OgcParser {
 		//Only expect one NamedLayer node
 		requestParams.put(WMSParameters.layers.toString(),
 				new String[] {getNodeText((Element) nodes.item(0), "Name")});
-		
+
 		getVendorParams(doc.getElementsByTagNameNS("*", "Vendor"));
 	}
 
 	protected void getVendorParams(NodeList vendorParams) throws UnsupportedEncodingException {
 		for (int i = 0; i < vendorParams.getLength(); i++) {
 			Node param = vendorParams.item(i);
-		
+
 			if (Node.ELEMENT_NODE == param.getNodeType() && isSearchParams((Element) param)) {
 				requestParams.put(WQPParameters.searchParams.toString(), new String[] {getSearchParams((Element) param)});
 				//Geoserver might not like our vendor param in the xml document, so just remove it all the time.
 				param.getParentNode().removeChild(param);
-					
+
 				break;
 			}
 		}
@@ -124,7 +124,7 @@ public class OgcParser {
 	protected boolean isSearchParams(Element element) {
 		return WQPParameters.searchParams.toString().equalsIgnoreCase(getNodeText(element, "PropertyName"));
 	}
-	
+
 	protected String getSearchParams(Element element) throws UnsupportedEncodingException {
 		return UriUtils.decode(getNodeText(element, "Literal"), "UTF-8");
 	}
@@ -141,7 +141,7 @@ public class OgcParser {
 
 	protected Document getDocument() throws SAXException, IOException, ParserConfigurationException {
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-	    dbf.setNamespaceAware(true);
+		dbf.setNamespaceAware(true);
 		DocumentBuilder db = dbf.newDocumentBuilder();
 		return db.parse(request.getInputStream());
 	}

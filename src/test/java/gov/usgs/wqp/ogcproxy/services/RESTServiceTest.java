@@ -24,16 +24,16 @@ public class RESTServiceTest {
 
 	@Mock
 	private WQPDynamicLayerCachingService layerCachingService;
-	
+
 	private RESTService service;
 
-    @Before
-    public void setup() {
-    	MockitoAnnotations.initMocks(this);
-    	service = new RESTService(layerCachingService);
-    }
+	@Before
+	public void setup() {
+		MockitoAnnotations.initMocks(this);
+		service = new RESTService(layerCachingService);
+	}
 
-    @Test
+	@Test
 	public void checkCacheStatusOkTest() {
 		Map<String, DynamicLayerCache> cache = new HashMap<>();
 		cache.put("abc", new DynamicLayerCache(new OGCRequest(OGCServices.WMS), "abcWorkspace"));
@@ -45,26 +45,26 @@ public class RESTServiceTest {
 		assertEquals("WQP Layer Building Service", mv.getModelMap().get("site"));
 		assertTrue(mv.getModelMap().containsKey("cache"));
 		assertEquals(cache.values(), mv.getModelMap().get("cache"));
-    }
+	}
 
-    @Test
+	@Test
 	public void checkCacheStatusBadTest() {
 		ModelAndView mv = service.checkCacheStatus("no_sites_here");
 		assertEquals("invalid_site.jsp", mv.getViewName());
 		assertTrue(mv.getModelMap().containsKey("site"));
 		assertEquals("no_sites_here", mv.getModelMap().get("site"));
-    }
-	
-    @Test
-    public void clearCacheBySiteOkTest() {
+	}
+
+	@Test
+	public void clearCacheBySiteOkTest() {
 		when(layerCachingService.clearCache()).thenReturn(5);
 
 		assertTrue(service.clearCacheBySite(ProxyDataSourceParameter.WQP_SITES.toString()));
-    }
-	
-    @Test
-    public void clearCacheBySiteBadTest() {
+	}
+
+	@Test
+	public void clearCacheBySiteBadTest() {
 		assertFalse(service.clearCacheBySite("no_sites_here"));
-    }
+	}
 
 }

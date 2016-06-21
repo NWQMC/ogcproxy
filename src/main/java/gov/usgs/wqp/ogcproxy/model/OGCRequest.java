@@ -26,7 +26,7 @@ public class OGCRequest {
 	private Set<String> replaceableLayers;
 	private ProxyDataSourceParameter dataSource;
 	private String requestBody;
-	
+
 	public OGCRequest(OGCServices ogcService) {
 		this.ogcService = ogcService;
 		this.ogcParams = new HashMap<>();
@@ -47,7 +47,7 @@ public class OGCRequest {
 		setRequestType(this.ogcParams);
 		setReplaceableLayersAndDataSource(this.ogcService, this.ogcParams, this.requestType);
 	}
-	
+
 	protected void setRequestType(Map<String, String> ogcParams) {
 		requestType = "";
 		if (null != ogcParams && !ogcParams.isEmpty()) {
@@ -57,7 +57,7 @@ public class OGCRequest {
 			requestType = "";
 		}
 	}
-	
+
 	protected void setReplaceableLayersAndDataSource(OGCServices ogcService, Map<String, String> ogcParams, String ogcRequestType) {
 		// Lets see if the typeName, layers and/or query_layers parameter is what
 		// we are expecting and decide what to do depending on its value.
@@ -67,39 +67,39 @@ public class OGCRequest {
 		replaceableLayers = new HashSet<>();
 		dataSource = ProxyDataSourceParameter.UNKNOWN;
 		String replaceableLayer = "";
-		
+
 		if (null != ogcService) {
 			switch (ogcService) {
-	        case WFS:
-	        	//WFS 1.1.0 and earlier
-	        	replaceableLayer = checkIfApplicable(ogcParams, WFSParameters.typeName.toString());
-	        	//After WFS 1.1.0
-	        	if (isEmpty(replaceableLayer)) {
-	        		replaceableLayer = checkIfApplicable(ogcParams, WFSParameters.typeNames.toString());
-	        	}
-	    		break;
-	        case WMS:
-	        	if (GET_LEGEND_GRAPHIC.equalsIgnoreCase(ogcRequestType)) {
-	        		replaceableLayer = checkIfApplicable(ogcParams, WMSParameters.layer.toString());
-	        	} else {
-	        		replaceableLayer = checkIfApplicable(ogcParams, WMSParameters.layers.toString());
-	        		//Several WMS calls contain an additional query_layer parameter. We expect this to match the layers parameter
-	        		//when present.
-	        		String queryLayer = checkIfApplicable(ogcParams, WMSParameters.query_layers.toString());
-	            	if (!isEmpty(queryLayer)) {
-	            		replaceableLayers.add(queryLayer);
-	            	}
-	       	}
-	            break;
-	        default:
-	        	break;
+			case WFS:
+				//WFS 1.1.0 and earlier
+				replaceableLayer = checkIfApplicable(ogcParams, WFSParameters.typeName.toString());
+				//After WFS 1.1.0
+				if (isEmpty(replaceableLayer)) {
+					replaceableLayer = checkIfApplicable(ogcParams, WFSParameters.typeNames.toString());
+				}
+				break;
+			case WMS:
+				if (GET_LEGEND_GRAPHIC.equalsIgnoreCase(ogcRequestType)) {
+					replaceableLayer = checkIfApplicable(ogcParams, WMSParameters.layer.toString());
+				} else {
+					replaceableLayer = checkIfApplicable(ogcParams, WMSParameters.layers.toString());
+					//Several WMS calls contain an additional query_layer parameter. We expect this to match the layers parameter
+					//when present.
+					String queryLayer = checkIfApplicable(ogcParams, WMSParameters.query_layers.toString());
+					if (!isEmpty(queryLayer)) {
+						replaceableLayers.add(queryLayer);
+					}
+			}
+				break;
+			default:
+				break;
 			}
 		}
 
-    	if (!isEmpty(replaceableLayer)) {
-    		//We found either a typeName, typeNames, layer, or layers parameter - add it to our list if we recognize the value.
-    		replaceableLayers.add(replaceableLayer);
-    	}
+		if (!isEmpty(replaceableLayer)) {
+			//We found either a typeName, typeNames, layer, or layers parameter - add it to our list if we recognize the value.
+			replaceableLayers.add(replaceableLayer);
+		}
 	}
 
 	/** 

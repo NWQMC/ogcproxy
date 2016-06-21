@@ -18,8 +18,8 @@ public class RESTService {
 	@Autowired
 	public RESTService(WQPDynamicLayerCachingService layerCachingService) {
 		this.layerCachingService = layerCachingService;
-    }
-    
+	}
+
 	public ModelAndView checkCacheStatus(String site) {
 		ModelAndView mv = new ModelAndView();
 		// Depending on the value of the site we will call the correct service.

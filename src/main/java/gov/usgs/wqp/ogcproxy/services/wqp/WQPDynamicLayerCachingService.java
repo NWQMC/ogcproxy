@@ -49,18 +49,18 @@ public class WQPDynamicLayerCachingService {
 	
 	private static Map<String, DynamicLayerCache> requestToLayerCache;
 	
-	private static long threadSleep  = 500;
-	private static String geoserverProtocol   = "http";
-	private static String geoserverHost       = "localhost";
-	private static String geoserverPort       = "8080";
-	private static String geoserverContext    = "geoserver";
-	private static String geoserverWorkspace  = "qw_portal_map";
-	private static String geoserverBaseUri    = "";
-	private static String geoserverDatastores = "datastores.json";
-	private static String geoserverRest       = "rest";
-	private static String geoserverWorkspaces = "workspaces";
-	private static String geoserverUser = "";
-	private static String geoserverPass = "";
+	private static long threadSleep				= 500;
+	private static String geoserverProtocol		= "http";
+	private static String geoserverHost			= "localhost";
+	private static String geoserverPort			= "8080";
+	private static String geoserverContext		= "geoserver";
+	private static String geoserverWorkspace	= "qw_portal_map";
+	private static String geoserverBaseUri		= "";
+	private static String geoserverDatastores	= "datastores.json";
+	private static String geoserverRest			= "rest";
+	private static String geoserverWorkspaces	= "workspaces";
+	private static String geoserverUser			= "";
+	private static String geoserverPass			= "";
 	/* ====================================================================== */
 		
 	/*
@@ -70,7 +70,7 @@ public class WQPDynamicLayerCachingService {
 	/* ====================================================================== */
 	private static final WQPDynamicLayerCachingService INSTANCE = new WQPDynamicLayerCachingService();
 	/* ====================================================================== */
-	
+
 	/**
 	 * Private Constructor for Singleton Pattern
 	 */
@@ -78,7 +78,7 @@ public class WQPDynamicLayerCachingService {
 		requestToLayerCache = new ConcurrentHashMap<String, DynamicLayerCache>();
 		initialized = false;
 	}
-	
+
 	/**
 	 * Singleton accessor
 	 *
@@ -87,11 +87,11 @@ public class WQPDynamicLayerCachingService {
 	public static WQPDynamicLayerCachingService getInstance() {
 		return INSTANCE;
 	}
-	
+
 	@PostConstruct
 	public void initialize() {
 		LOG.trace("WQPDynamicLayerCachingService.initialize() called");
-		
+
 		/*
 		 * Since we are using Spring DI we cannot access the environment bean
 		 * in the constructor.  We'll just use a locked initialized variable
@@ -106,14 +106,14 @@ public class WQPDynamicLayerCachingService {
 				return;
 			}
 			initialized = true;
-			
+
 			try {
 				threadSleep = Long.parseLong(environment.getProperty("proxy.thread.sleep"));
 			} catch (Exception e) {
 				LOG.error("Failed to parse property [proxy.thread.sleep] " +
 						  "- Keeping thread sleep default to [" + threadSleep + "].\n" + e.getMessage() + "\n");
 			}
-			
+
 			String tmp = environment.getProperty("wqp.geoserver.proto");
 			if (!isEmpty(tmp)) {
 				geoserverProtocol = tmp;
@@ -146,7 +146,7 @@ public class WQPDynamicLayerCachingService {
 			populateCache();
 		}
 	}
-	
+
 	/** 
 	 * Entry point for our vendor-specific searchParams layer building. If all goes well, there will be a layer created based 
 	 * on the searchParams and uploaded to geoserver for use in completing this call and others with the same base parameters. 
@@ -155,11 +155,11 @@ public class WQPDynamicLayerCachingService {
 	 */
 	public String getDynamicLayer(OGCRequest ogcRequest) {
 		DynamicLayerCache layerCache = null;
-		
+
 		try {
 			DynamicLayerCache defaultLayerCache = new DynamicLayerCache(ogcRequest, geoserverWorkspace);
 			layerCache = getLayerCache(defaultLayerCache);
-			
+
 			/*
 			 * We should be blocked above with the getLayerCache() call and should only
 			 * get a value for layerCache when its finished performing an action.  The
@@ -169,14 +169,14 @@ public class WQPDynamicLayerCachingService {
 				case INITIATED:
 					LOG.trace("Created new DynamicLayerCache for key [" +
 							ogcRequest.getSearchParams().unsignedHashCode() +"].  Setting status to BUILDING and creating layer...");
-					
+
 					/*
 					 * We just created a new cache object.  This means there is no
 					 * layer currently for this request in our GeoServer.  We now
 					 * need to make this layer through the WMSLayerService.
 					 */
 					layerCache.setCurrentStatus(DynamicLayerStatus.BUILDING);
-					
+
 					/*
 					 * We now call the simplestation url with our search params
 					 * (along with a mimeType=xml) in order to retrieve the data
@@ -190,25 +190,25 @@ public class WQPDynamicLayerCachingService {
 					//TODO - rather than giving string, maybe just throw exception if problems in buildDynamicLayer
 					if (isEmpty(wqpLayerBuildingService.buildDynamicLayer(ogcRequest.getSearchParams()))) {
 						layerCache.setCurrentStatus(DynamicLayerStatus.EMPTY);
-						
+
 						LOG.error("Unable to create layer [" + layerCache.getLayerName() +
 								"] for key ["+ ogcRequest.getSearchParams().unsignedHashCode() +
 								"].  Its status is [" + layerCache.getCurrentStatus().toString() +
 								"].  Since it is an empty request this means the search parameters did not " +
 								"result in any matching criteria.");
 					} else {
-					
+
 						//TODO Also check to see if the layer is enabled in GeoServer...
-						
+
 						layerCache.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
-						
+
 						LOG.trace("Finished building layer for key ["+
 								ogcRequest.getSearchParams().unsignedHashCode() +
 								"].  Layer name is [" + layerCache.getLayerName() + "].  Setting status to " +
 								"AVAILABLE and continuing on to GeoServer WMS request...");
 					}
 					break;
-				
+
 				case EMPTY:
 					LOG.error("Retrieved layer name [" + layerCache.getLayerName() +
 							"] for key ["+ ogcRequest.getSearchParams().unsignedHashCode() +
@@ -216,11 +216,11 @@ public class WQPDynamicLayerCachingService {
 							"].  Since it is an empty request this means the search parameters did not " +
 							"result in any matching criteria.");
 					break;
-				
+
 				case ERROR:
 					LOG.error("Layer cache is in an ERROR state and cannot continue request.");
 					break;
-				
+
 				default:
 					LOG.trace("Retrieved layer name [" + layerCache.getLayerName() +
 							"] for key ["+ ogcRequest.getSearchParams().unsignedHashCode() +
@@ -233,10 +233,10 @@ public class WQPDynamicLayerCachingService {
 				layerCache.setCurrentStatus(DynamicLayerStatus.ERROR);
 				removeLayerCache(layerCache.getKey());
 			}
-			
+
 			LOG.error("Layer was not created for search parameters.", e);
 		}
-		
+
 		return null == layerCache ? "" : layerCache.getQualifiedLayerName();
 	}
 
@@ -262,7 +262,7 @@ public class WQPDynamicLayerCachingService {
 	public DynamicLayerCache getLayerCache(DynamicLayerCache defaultLayerCache) throws OGCProxyException {
 		String key = defaultLayerCache.getKey();
 		DynamicLayerCache currentCache = WQPDynamicLayerCachingService.requestToLayerCache.get(key);
-		
+
 		if (currentCache == null) {
 			/*
 			 * This next block is synchronized so that only one thread can enter
@@ -272,24 +272,24 @@ public class WQPDynamicLayerCachingService {
 			 */
 			synchronized (WQPDynamicLayerCachingService.class) {
 				currentCache = WQPDynamicLayerCachingService.requestToLayerCache.get(key);
-				
+
 				if (currentCache == null) {
 					currentCache = defaultLayerCache;
 					WQPDynamicLayerCachingService.requestToLayerCache.put(key, currentCache);
-					
+
 					String msg = "DynamicLayerCache object does not exist for key " + key
 							+  ". Creating new Cache Object and setting status to [" +
 							currentCache.getCurrentStatus().toString() + "]";
 					LOG.trace(msg);
-					
+
 					return currentCache;
 				}
 			}
 		}
-		
+
 		return waitForFinalStatus(currentCache);
 	}
-	
+
 	protected DynamicLayerCache waitForFinalStatus(DynamicLayerCache currentCache) throws OGCProxyException {
 		/*
 		 * Lets check to see if this cache's status is an error.  If so we need
@@ -300,11 +300,11 @@ public class WQPDynamicLayerCachingService {
 				+ "] status to change.  Its current status is [" +
 				currentCache.getCurrentStatus().toString() + "].  Throwing Exception...";
 			LOG.error(msg);
-			
+
 			OGCProxyExceptionID id = OGCProxyExceptionID.LAYER_CREATION_FAILED;
 			throw new OGCProxyException(id, "WQPDynamicLayerCachingService", "getLayerCache()", msg);
 		}
-		
+
 		/*
 		 * There is a legit Cache object in the internal data store.  Now we need to
 		 * check its status to see if its being worked on or if its fully available
@@ -320,14 +320,14 @@ public class WQPDynamicLayerCachingService {
 		 */
 		while ((currentCache.getCurrentStatus() == DynamicLayerStatus.BUILDING)
 			|| (currentCache.getCurrentStatus() == DynamicLayerStatus.INITIATED)) {
-			
+
 			try {
 				String msg = "DynamicLayerCache object exists for key [" +
 						currentCache.getKey() + "] but its status is [" +
 							 currentCache.getCurrentStatus().toString() +
 							 "].  Waiting " + WQPDynamicLayerCachingService.threadSleep + "ms";
 				LOG.trace(msg);
-				
+
 				Thread.sleep(WQPDynamicLayerCachingService.threadSleep);
 			} catch (InterruptedException e) {
 				if ((currentCache.getCurrentStatus() != DynamicLayerStatus.AVAILABLE) && (currentCache.getCurrentStatus() != DynamicLayerStatus.EMPTY)) {
@@ -336,24 +336,24 @@ public class WQPDynamicLayerCachingService {
 							  currentCache.getCurrentStatus().toString() +
 							  "].  Throwing Exception...";
 					LOG.error(msg);
-					
+
 					OGCProxyExceptionID id = OGCProxyExceptionID.LAYER_CREATION_FAILED;
 					throw new OGCProxyException(id, "WQPDynamicLayerCachingService", "getLayerCache()", msg);
 				}
 			}
 		}
-		
+
 		String msg = "DynamicLayerCache object exists for key " + currentCache.getKey() +  ". Returning object with status [" +
 				currentCache.getCurrentStatus().toString() + "]";
 		LOG.trace(msg);
-		
+
 		return currentCache;
 	}
-	
+
 	public void removeLayerCache(String searchParamKey) {
 		synchronized (requestToLayerCache) {
 			DynamicLayerCache currentCache = WQPDynamicLayerCachingService.requestToLayerCache.remove(searchParamKey);
-			
+
 			/*
 			 * Set the status to ERROR so that anyone currently waiting to use the cache will
 			 * see it as invalid
@@ -367,11 +367,11 @@ public class WQPDynamicLayerCachingService {
 			}
 		}
 	}
-	
+
 	public Map<String, DynamicLayerCache> getCacheStore() {
 		return WQPDynamicLayerCachingService.requestToLayerCache;
 	}
-	
+
 	public int clearCache() {
 		/* 
 		 * First, drop the workspace in geoserver to clear it.
@@ -382,7 +382,7 @@ public class WQPDynamicLayerCachingService {
 		 */
 		return clearInMemoryCache();
 	}
-	
+
 	protected void clearGeoserverWorkspace() {
 		String deleteUri = String.join("/", geoserverBaseUri, geoserverRest, geoserverWorkspaces, geoserverWorkspace) + "?recurse=true";
 		try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(getCredentialsProvider()).build()) {
@@ -393,7 +393,7 @@ public class WQPDynamicLayerCachingService {
 			LOG.error("Problems resetting workspace in geoserver: " + e.getLocalizedMessage(), e);
 		}
 	}
-	
+
 	protected int clearInMemoryCache() {
 		/*
 		 * We need to clear the cache in a thread-safe way.  What we are going to
@@ -402,13 +402,13 @@ public class WQPDynamicLayerCachingService {
 		 */
 		List<String> cacheKeys = new Vector<>(WQPDynamicLayerCachingService.requestToLayerCache.keySet());
 		int originalCount = cacheKeys.size();
-		
+
 		List<String> uncleared = new Vector<>();
-		
+
 		for (String cacheKey : cacheKeys) {
 			DynamicLayerCache cache = WQPDynamicLayerCachingService.requestToLayerCache.get(cacheKey);
 			DynamicLayerCache threadSafeCache = null;
-			
+
 			try {
 				/*
 				 * We'll go through our getLayerCache() method so that if there
@@ -419,7 +419,7 @@ public class WQPDynamicLayerCachingService {
 			} catch (OGCProxyException e) {
 				LOG.error("Issue getting cache key: " + cacheKey, e);
 			}
-			
+
 			if (threadSafeCache != null) {
 				threadSafeCache.setCurrentStatus(DynamicLayerStatus.ERROR);
 				removeLayerCache(threadSafeCache.getKey());
@@ -427,20 +427,20 @@ public class WQPDynamicLayerCachingService {
 				uncleared.add(cacheKey);
 			}
 		}
-		
+
 		int clearedCount = originalCount - uncleared.size();
-		
+
 		if (!uncleared.isEmpty()) {
 			LOG.error("Removed cache count [" + clearedCount +
 					  "] does not equal total cache count [" + originalCount + "].  Potentially introducing " +
 					  "stale layers {" + uncleared + "}");
 		}
-		
+
 		LOG.trace("Removed cache count [" + clearedCount + "] from cache.");
-		
+
 		return clearedCount;
 	}
-	
+
 	protected void populateCache() {
 		/*
 		 * Run out to Geoserver for the list of layers it has and add them to our cache.
@@ -467,7 +467,7 @@ public class WQPDynamicLayerCachingService {
 		}
 		LOG.trace("FINISH");
 	}
-	
+
 	protected Iterator<JsonElement> getResponseIterator(JsonObject jsonObject) {
 		Iterator<JsonElement> rtn = new JsonArray().iterator();
 		//We are expecting {"dataStores": {"dataStore: [{....}, {....}, ...]}}
@@ -481,13 +481,13 @@ public class WQPDynamicLayerCachingService {
 	}
 
 	protected CredentialsProvider getCredentialsProvider() {
-    	//TODO refactor to either WQPDynamicLayerCachingService or WQPLayerBuildingService
-    	CredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(
-                new AuthScope(geoserverHost, Integer.parseInt(geoserverPort)),
-                new UsernamePasswordCredentials(geoserverUser, geoserverPass));
-        return credsProvider;
-    	//TODO end
+		//TODO refactor to either WQPDynamicLayerCachingService or WQPLayerBuildingService
+		CredentialsProvider credsProvider = new BasicCredentialsProvider();
+		credsProvider.setCredentials(
+				new AuthScope(geoserverHost, Integer.parseInt(geoserverPort)),
+				new UsernamePasswordCredentials(geoserverUser, geoserverPass));
+		return credsProvider;
+		//TODO end
 	}
 
 	/**
