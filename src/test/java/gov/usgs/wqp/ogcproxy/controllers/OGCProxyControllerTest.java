@@ -44,19 +44,19 @@ public class OGCProxyControllerTest {
 
 	@Mock
 	private ProxyService proxyService;
-	
+
 	@Mock
 	private RESTService restService;
-	
+
 	private OGCProxyController mvcService;
 
-    @Before
-    public void setup() {
-    	MockitoAnnotations.initMocks(this);
-    	mvcService = new OGCProxyController(proxyService, restService);
-    	mockMvc = MockMvcBuilders.standaloneSetup(mvcService).build();
-    }
-    
+	@Before
+	public void setup() {
+		MockitoAnnotations.initMocks(this);
+		mvcService = new OGCProxyController(proxyService, restService);
+		mockMvc = MockMvcBuilders.standaloneSetup(mvcService).build();
+	}
+	
 	@Test
 	public void wmsProxyGetTest() throws Exception {
 		mockMvc.perform(get("/wms")).andExpect(status().isOk());
@@ -116,8 +116,6 @@ public class OGCProxyControllerTest {
 				.andExpect(model().attributeExists("site"))
 				.andExpect(model().attribute("site", "BadSite"));
 
-		
-
 		mvcResult = mockMvc.perform(get("/rest/cachestatus/wqp_sites"))
 				.andExpect(status().isOk())
 				.andExpect(request().asyncStarted())
@@ -141,7 +139,6 @@ public class OGCProxyControllerTest {
 
 		mockMvc.perform(delete("/rest/clearcache/no_sites_here"))
 				.andExpect(status().isBadRequest());
-
 
 		mockMvc.perform(delete("/rest/clearcache/wqp_sites"))
 				.andExpect(status().isOk());

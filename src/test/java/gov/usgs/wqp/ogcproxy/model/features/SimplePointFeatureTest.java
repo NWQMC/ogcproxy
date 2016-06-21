@@ -17,13 +17,13 @@ import com.vividsolutions.jts.geom.Coordinate;
 import gov.usgs.wqp.ogcproxy.model.attributes.FeatureAttributeType;
 
 public class SimplePointFeatureTest {
-	
+
 	public static final String JSON_FEATURE = 
 			"{\"type\": \"Feature\",\"geometry\": {\"type\": \"Point\",\"coordinates\": [-88.9773314,43.3836014]}," +
-            "\"properties\": {\"ProviderName\": \"UNKNOWN\",\"OrganizationIdentifier\": \"BBGGR\"," +
-            "\"OrganizationFormalName\": \"Berry Berry Good Garden Rentals\",\"MonitoringLocationIdentifier\": \"BBGGR-00000123\"," +
-            "\"MonitoringLocationName\": \"DS1 Well\",\"MonitoringLocationTypeName\": \"Well of mine\"," +
-            "\"ResolvedMonitoringLocationTypeName\": \"Well\",\"HUCEightDigitCode\": \"12345687\"}}";
+			"\"properties\": {\"ProviderName\": \"UNKNOWN\",\"OrganizationIdentifier\": \"BBGGR\"," +
+			"\"OrganizationFormalName\": \"Berry Berry Good Garden Rentals\",\"MonitoringLocationIdentifier\": \"BBGGR-00000123\"," +
+			"\"MonitoringLocationName\": \"DS1 Well\",\"MonitoringLocationTypeName\": \"Well of mine\"," +
+			"\"ResolvedMonitoringLocationTypeName\": \"Well\",\"HUCEightDigitCode\": \"12345687\"}}";
 
 	@Test
 	public void testConstructorAndFeatureOrdering() {
@@ -47,7 +47,7 @@ public class SimplePointFeatureTest {
 		assertEquals(FeatureAttributeType.searchType.toString(), featureType.getAttributeDescriptors().get(6).getName().getLocalPart());
 		assertEquals(FeatureAttributeType.huc8.toString(), featureType.getAttributeDescriptors().get(7).getName().getLocalPart());
 		assertEquals(FeatureAttributeType.provider.toString(), featureType.getAttributeDescriptors().get(8).getName().getLocalPart());
-	
+
 		SimplePointFeature currentPointFeature = new SimplePointFeature((JsonObject) new JsonParser().parse(JSON_FEATURE));
 
 		SimpleFeature generatedFeature = currentPointFeature.getSimpleFeature(new SimpleFeatureBuilder(SimplePointFeature.getFeatureType()));

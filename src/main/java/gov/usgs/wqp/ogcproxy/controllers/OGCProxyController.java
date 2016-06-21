@@ -23,7 +23,7 @@ import gov.usgs.wqp.ogcproxy.utils.ApplicationVersion;
 @RestController
 public class OGCProxyController {
 	private static final Logger LOG = LoggerFactory.getLogger(OGCProxyController.class);
-	
+
 	private ProxyService proxyService;
 	private RESTService restService;
 
@@ -40,15 +40,15 @@ public class OGCProxyController {
 	 * @return The splash page of the application.
 	 */
 	@RequestMapping(value="/", method=RequestMethod.GET)
-    public ModelAndView entry() {
+	public ModelAndView entry() {
 		LOG.debug("OGCProxyController.entry() called");
 		
 		ModelAndView mv = new ModelAndView("index.jsp");
 		mv.addObject("version", ApplicationVersion.getVersion());
 
 		return mv;
-    }
-	
+	}
+
 	/** 
 	 * WMS Get endpoint.
 	 * May actually contain a WMS or WFS call - the "SERVICE" parameter is used to determine the actual service being called.
@@ -57,11 +57,11 @@ public class OGCProxyController {
 	 * @param response
 	 */
 	@RequestMapping(value="/wms", method={RequestMethod.GET})
-    public void wmsProxyGet(HttpServletRequest request, HttpServletResponse response) {
+	public void wmsProxyGet(HttpServletRequest request, HttpServletResponse response) {
 		LOG.debug("OGCProxyController.wmsProxy() INFO - Performing request.");
 		proxyService.performRequest(request, response, OGCServices.WMS);
 	}
-	
+
 	/** 
 	 * WFS Get endpoint.
 	 * May actually contain a WMS or WFS call - the "SERVICE" parameter is used to determine the actual service being called.
@@ -70,7 +70,7 @@ public class OGCProxyController {
 	 * @param response
 	 */
 	@RequestMapping(value="/wfs", method=RequestMethod.GET)
-    public void wfsProxyGet(HttpServletRequest request, HttpServletResponse response) {
+	public void wfsProxyGet(HttpServletRequest request, HttpServletResponse response) {
 		LOG.debug("OGCProxyController.wfsProxy() INFO - Performing request.");
 		proxyService.performRequest(request, response, OGCServices.WFS);
 	}
@@ -84,7 +84,7 @@ public class OGCProxyController {
 	 */
 	@Async
 	@RequestMapping(value="/wms", method=RequestMethod.POST)
-    public void wmsProxyPost(HttpServletRequest request, HttpServletResponse response) {
+	public void wmsProxyPost(HttpServletRequest request, HttpServletResponse response) {
 		LOG.debug("OGCProxyController.wmsProxyPost() INFO - Performing request.");
 		proxyService.performRequest(request, response, OGCServices.WMS);
 	}
@@ -98,11 +98,11 @@ public class OGCProxyController {
 	 */
 	@Async
 	@RequestMapping(value="/wfs", method=RequestMethod.POST)
-    public void wfsProxyPost(HttpServletRequest request, HttpServletResponse response) {
+	public void wfsProxyPost(HttpServletRequest request, HttpServletResponse response) {
 		LOG.debug("OGCProxyController.wfsProxyPost() INFO - Performing request.");
 		proxyService.performRequest(request, response, OGCServices.WFS);
 	}
-	
+
 	/** 
 	 * Get the current status of the OGCProxy cache object.
 	 * 
@@ -110,21 +110,21 @@ public class OGCProxyController {
 	 * @return The cache status report.
 	 */
 	@RequestMapping(value="/rest/cachestatus/{site}", method=RequestMethod.GET)
-    public DeferredResult<ModelAndView> restCacheStatus(@PathVariable String site) {
+	public DeferredResult<ModelAndView> restCacheStatus(@PathVariable String site) {
 		DeferredResult<ModelAndView> finalResult = new DeferredResult<ModelAndView>();
-		
+
 		finalResult.setResult(restService.checkCacheStatus(site));
-		
+
 		return finalResult;
 	}
-	
+
 	/** 
 	 * Clear the specified DataSource's cache.
 	 * @param site The cache DataSource to clear.
 	 * @return The cache clear report.
 	 */
 	@RequestMapping(value="/rest/clearcache/{site}", method=RequestMethod.DELETE)
-    public void restClearCache(@PathVariable String site, HttpServletResponse response) {
+	public void restClearCache(@PathVariable String site, HttpServletResponse response) {
 		if (restService.clearCacheBySite(site)) {
 			response.setStatus(HttpStatus.SC_OK);
 		} else {

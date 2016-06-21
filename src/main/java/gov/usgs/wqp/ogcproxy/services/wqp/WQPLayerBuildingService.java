@@ -67,54 +67,54 @@ public class WQPLayerBuildingService {
 	private Environment environment;
 	private static boolean initialized;
 	
-	private static String geoserverProtocol   = "http";
-	private static String geoserverHost       = "localhost";
-	private static String geoserverPort       = "8080";
-	private static String geoserverContext    = "geoserver";
-	private static String geoserverWorkspace  = "qw_portal_map";
-	private static String geoserverUser       = "";
-	private static String geoserverPass       = "";
-	private static String geoserverBaseURI    = "";
-	private static String geoserverRest       = "rest";
-	private static String geoserverWorkspaces = "workspaces";
-	private static String geoserverNamespaces = "namespaces";
-	private static String geoserverDataStores = "datastores";
+	private static String geoserverProtocol		= "http";
+	private static String geoserverHost			= "localhost";
+	private static String geoserverPort			= "8080";
+	private static String geoserverContext		= "geoserver";
+	private static String geoserverWorkspace	= "qw_portal_map";
+	private static String geoserverUser			= "";
+	private static String geoserverPass			= "";
+	private static String geoserverBaseURI		= "";
+	private static String geoserverRest			= "rest";
+	private static String geoserverWorkspaces	= "workspaces";
+	private static String geoserverNamespaces	= "namespaces";
+	private static String geoserverDataStores	= "datastores";
 	
-	private static String simpleStationProtocol = "http";
-	private static String simpleStationHost     = "cida-eros-wqpdev.er.usgs.gov";
-	private static String simpleStationPort     = "8080";
-	private static String simpleStationContext  = "/qw_portal_core";
-	private static String simpleStationPath     = "/station/search";
-	private static String simpleStationRequest  = "";
+	private static String simpleStationProtocol	= "http";
+	private static String simpleStationHost		= "cida-eros-wqpdev.er.usgs.gov";
+	private static String simpleStationPort		= "8080";
+	private static String simpleStationContext	= "/qw_portal_core";
+	private static String simpleStationPath		= "/station/search";
+	private static String simpleStationRequest	= "";
 	
-	private static String workingDirectory      = "";
-	private static String shapefileDirectory    = "";
+	private static String workingDirectory		= "";
+	private static String shapefileDirectory	= "";
 	
 	// 15 minutes, default is infinite
-	private static int connection_ttl            = 15 * 60 * 1000;
-	private static int connections_max_total     = 256;
-	private static int connections_max_route     = 32;
+	private static int connection_ttl			= 15 * 60 * 1000;
+	private static int connections_max_total	= 256;
+	private static int connections_max_route	= 32;
 	// 5 minutes, default is infinite
-	private static int client_socket_timeout     = 5 * 60 * 1000;
-    // 15 seconds, default is infinite
+	private static int client_socket_timeout	= 5 * 60 * 1000;
+	// 15 seconds, default is infinite
 	private static int client_connection_timeout = 15 * 1000;
-	
-  	// GeoServer has a race condition from when it finished uploading a shapefile to when
+
+	// GeoServer has a race condition from when it finished uploading a shapefile to when
 	// the layer and datasource for that shapefile are available.  This is a wait time before
 	// we mark the layer AVAILABLE
-    // 1000ms or 1s
-	private static long geoserverCatchupTime     = 1000;
-	
+	// 1000ms or 1s
+	private static long geoserverCatchupTime	= 1000;
+
 	private CloseableHttpClient httpClient;
-	
+
 	private static final WQPLayerBuildingService INSTANCE = new WQPLayerBuildingService();
-	
+
 	/**
 	 * Private Constructor for Singleton Pattern
 	 */
 	private WQPLayerBuildingService() {
 	}
-	
+
 	/**
 	 * Singleton accessor
 	 *
@@ -123,11 +123,11 @@ public class WQPLayerBuildingService {
 	public static WQPLayerBuildingService getInstance() {
 		return INSTANCE;
 	}
-	
+
 	@PostConstruct
 	public void initialize() {
 		LOG.debug("WQPLayerBuildingService.initialize() called");
-		
+
 		/*
 		 * Since we are using Spring DI we cannot access the environment bean
 		 * in the constructor.  We'll just use a locked initialized variable
@@ -173,9 +173,9 @@ public class WQPLayerBuildingService {
 			if (!isEmpty(tmp)) {
 				geoserverPass = tmp;
 			}
-			
+
 			geoserverBaseURI = geoserverProtocol + "://" + geoserverHost + ":" + geoserverPort + "/" + geoserverContext;
-			
+
 			/*
 			 * Get all URL properties for calling WQP for data
 			 */
@@ -205,7 +205,7 @@ public class WQPLayerBuildingService {
 			}
 			simpleStationRequest += simpleStationPath;
 			LOG.debug("WQPLayerBuildingService() Constructor Info: Setting SimpleStation Request to [" + simpleStationRequest + "]");
-			
+
 			/*
 			 * Configure working directories
 			 */
@@ -223,7 +223,7 @@ public class WQPLayerBuildingService {
 				LOG.error("WQPLayerBuildingService() Constructor Exception: Failed to parse property [layerbuilder.geoserver.catchup.time] " +
 						  "- Keeping GeoServer Catchup Time default to [" + geoserverCatchupTime + "].\n" + e.getMessage() + "\n");
 			}
-			
+
 			/*
 			 * Build httpclient
 			 */
@@ -260,7 +260,7 @@ public class WQPLayerBuildingService {
 				LOG.error("unable to delete file:" + dataFile.getAbsolutePath());
 			}
 		}
-		
+
 		/*
 		 * Create the shapefile
 		 */
@@ -278,30 +278,30 @@ public class WQPLayerBuildingService {
 		 * Upload the shapefile to geoserver
 		 */
 		uploadShapefile(layerName);
-		
+
 		TimeProfiler.endTimer("WQPLayerBuildingService.buildDynamicLayer() INFO: ShapeFileConverter Overall Time", LOG);
-		
+
 		return layerName;
 	}
-	
+
 	private File getGeoJsonData(SearchParameters<String, List<String>> searchParams, String layerName) throws OGCProxyException {
-		
+
 		String dataFilename = WQPUtils.retrieveSearchParamData(httpClient, searchParams, simpleStationRequest, workingDirectory, layerName);
-		
+
 		if (isEmpty(dataFilename)) {
 			/*
 			 * Did not receive any data from the server for this request.  Cannot create layer.
 			 */
 			String msg = "WQPLayerBuildingService.buildDynamicLayer() INFO: SimpleStation search for search key [" + searchParams.unsignedHashCode() + "] returned no results.";
-            LOG.debug(msg);
-    		
-            OGCProxyExceptionID id = OGCProxyExceptionID.SIMPLESTATION_FILE_ERROR;
-            throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
+			LOG.debug(msg);
+			
+			OGCProxyExceptionID id = OGCProxyExceptionID.SIMPLESTATION_FILE_ERROR;
+			throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
 		}
 
 		return new File(dataFilename);
 	}
-	
+
 	private List<SimpleFeature> processInput(String filename) throws OGCProxyException {
 		List<SimpleFeature> features = new ArrayList<>();
 		try {
@@ -331,7 +331,7 @@ public class WQPLayerBuildingService {
 		}
 		return features;
 	}
-	
+
 	private boolean createShapeFile(String path, String filename, boolean createIndex, List<SimpleFeature> features) {
 		File newFile = new File(path + "/" + filename + ".shp");
 
@@ -367,7 +367,7 @@ public class WQPLayerBuildingService {
 			LOG.error(e.getMessage(), e);
 			return false;
 		}
-		
+
 		/*
 		 * Write the features to the shapefile
 		 */
@@ -378,10 +378,10 @@ public class WQPLayerBuildingService {
 			return false;
 		}
 		TimeProfiler.endTimer("WQPLayerBuildingService.createShapeFile() INFO: OVERALL GeoTools ShapeFile Creation Time", LOG);
-		
+
 		return true;
 	}
-	
+
 	private void uploadShapefile(String layerName) throws OGCProxyException {
 		String geoServerURI = String.join("/", geoserverBaseURI, geoserverRest, geoserverWorkspaces, geoserverWorkspace, geoserverDataStores);
 		/*
@@ -399,25 +399,25 @@ public class WQPLayerBuildingService {
 		String restPut = geoServerURI + "/" + layerName + "/file.shp";
 		LOG.debug("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Uploading Shapefile (" + layerZipFile + ") to GeoServer");
 		File file = new File(layerZipFile);
-	    if (file.exists()) {
-	    	try (CloseableHttpClient httpClient2 = HttpClients.custom().setDefaultCredentialsProvider(getCredentialsProvider()).build()) {
-		    	verifyWorkspaceExists(httpClient2);
-		    	putShapefile(httpClient2, restPut, SystemUtils.MEDIATYPE_APPLICATION_ZIP, file);
-	    	} catch (IOException e) {
-	    		LOG.error(e.getLocalizedMessage(), e);
-		    	OGCProxyExceptionID id = OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR;
-		    	throw new OGCProxyException(id, "WQPLayerBuildingService", "uploadShapefile()", "CloseableHttpClient Close Exception: " + e.getLocalizedMessage());
+		if (file.exists()) {
+			try (CloseableHttpClient httpClient2 = HttpClients.custom().setDefaultCredentialsProvider(getCredentialsProvider()).build()) {
+				verifyWorkspaceExists(httpClient2);
+				putShapefile(httpClient2, restPut, SystemUtils.MEDIATYPE_APPLICATION_ZIP, file);
+			} catch (IOException e) {
+				LOG.error(e.getLocalizedMessage(), e);
+				OGCProxyExceptionID id = OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR;
+				throw new OGCProxyException(id, "WQPLayerBuildingService", "uploadShapefile()", "CloseableHttpClient Close Exception: " + e.getLocalizedMessage());
 			} finally {
 				if (!new File(layerZipFile).delete()) {
 					LOG.debug("troubles deleting " + layerZipFile);
 				}
 			}
-	    } else {
-	    	OGCProxyExceptionID id = OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR;
-	    	throw new OGCProxyException(id, "WQPLayerBuildingService", "uploadShapefile()", "Exception: File [" + layerZipFile + "] DOES NOT EXIST");
-	    }
+		} else {
+			OGCProxyExceptionID id = OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR;
+			throw new OGCProxyException(id, "WQPLayerBuildingService", "uploadShapefile()", "Exception: File [" + layerZipFile + "] DOES NOT EXIST");
+		}
 		LOG.debug("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Uploading Shapefile Complete");
-		
+
 		/*
 		 * Let GeoServer catch up with its dataset ingestion.
 		 * 		GeoServer has a race condition from when
@@ -431,7 +431,7 @@ public class WQPLayerBuildingService {
 		} catch (InterruptedException e) {
 			LOG.warn("WQPLayerBuildingService.buildDynamicLayer() caught InterruptedException when running the GeoServer Catchup Time sleep.  Continuing...", e);
 		}
-		
+
 		/*
 		 * TODO:
 		 *
@@ -440,7 +440,7 @@ public class WQPLayerBuildingService {
 		 * with building the datastore and layer but forget to "Enable" the layer
 		 * in its memory.
 		 */
-		
+
 	}
 
 	protected void verifyWorkspaceExists(CloseableHttpClient httpClient) throws OGCProxyException {
@@ -461,11 +461,11 @@ public class WQPLayerBuildingService {
 	protected void putShapefile(CloseableHttpClient httpClient, String uri, String mediaType, File file) throws OGCProxyException {
 		int statusCode = -1;
 		try {
-	        HttpPut httpPut = new HttpPut(uri);
-	        HttpEntity fileEntity = new FileEntity(file, ContentType.create(mediaType));
-	        httpPut.setEntity(fileEntity);
+			HttpPut httpPut = new HttpPut(uri);
+			HttpEntity fileEntity = new FileEntity(file, ContentType.create(mediaType));
+			httpPut.setEntity(fileEntity);
 	
-	        statusCode = httpClient.execute(httpPut).getStatusLine().getStatusCode();
+			statusCode = httpClient.execute(httpPut).getStatusLine().getStatusCode();
 			LOG.debug("WQPLayerBuildingService.buildDynamicLayer() INFO: \nGeoServer response for request [" + uri + "] is: \n[" + statusCode + "]");
 		} catch (Exception e) {
 			LOG.error(e.getLocalizedMessage(), e);
@@ -508,59 +508,59 @@ public class WQPLayerBuildingService {
 
 	protected boolean writeToShapeFile(ShapefileDataStore newDataStore, List<SimpleFeature> features, String path, String filename) {
 		/*
-         * Write the features to the shapefile
-         */
-        try (Transaction transaction = new DefaultTransaction("create")) {
-        
-        	String typeName = newDataStore.getTypeNames()[0];
-        	SimpleFeatureSource featureSource = newDataStore.getFeatureSource(typeName);
+		 * Write the features to the shapefile
+		 */
+		try (Transaction transaction = new DefaultTransaction("create")) {
 		
-	        if (featureSource instanceof SimpleFeatureStore) {
-	            SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
-	            /*
-	             * SimpleFeatureStore has a method to add features from a
-	             * SimpleFeatureCollection object, so we use the ListFeatureCollection
-	             * class to wrap our list of features.
-	             */
-	            SimpleFeatureCollection collection = new ListFeatureCollection(SimplePointFeature.getFeatureType(), features);
-	    		
-	            featureStore.setTransaction(transaction);
-	            try {
-	            	featureStore.addFeatures(collection);
-	            } catch (IOException e) {
-	            	transaction.rollback();
-	            	throw e;
-	            }
-                transaction.commit();
+			String typeName = newDataStore.getTypeNames()[0];
+			SimpleFeatureSource featureSource = newDataStore.getFeatureSource(typeName);
 
-                /*
-                 * Lets zip up all files created that make up "the shape file"
-                 */
-            	SystemUtils.createZipFromFilematch(path, filename);
-	        } else {
-	            String msg = typeName + " does not support read/write access";
-	            System.out.println(msg);
+			if (featureSource instanceof SimpleFeatureStore) {
+				SimpleFeatureStore featureStore = (SimpleFeatureStore) featureSource;
+				/*
+				 * SimpleFeatureStore has a method to add features from a
+				 * SimpleFeatureCollection object, so we use the ListFeatureCollection
+				 * class to wrap our list of features.
+				 */
+				SimpleFeatureCollection collection = new ListFeatureCollection(SimplePointFeature.getFeatureType(), features);
+				
+				featureStore.setTransaction(transaction);
+				try {
+					featureStore.addFeatures(collection);
+				} catch (IOException e) {
+					transaction.rollback();
+					throw e;
+				}
+				transaction.commit();
+
+				/*
+				 * Lets zip up all files created that make up "the shape file"
+				 */
+				SystemUtils.createZipFromFilematch(path, filename);
+			} else {
+				String msg = typeName + " does not support read/write access";
+				System.out.println(msg);
 				LOG.error(msg);
 				return false;
-	        }
+			}
 
-        } catch (IOException e) {
-        	System.out.println(e.getMessage());
-        	LOG.error(e.getMessage());
-        	return false;
-        }
-        
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+			LOG.error(e.getMessage());
+			return false;
+		}
+
 		return true;
 	}
 
 	protected CredentialsProvider getCredentialsProvider() {
-    	//TODO refactor to either WQPDynamicLayerCachingService or WQPLayerBuildingService
-    	CredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(
-                new AuthScope(geoserverHost, Integer.parseInt(geoserverPort)),
-                new UsernamePasswordCredentials(geoserverUser, geoserverPass));
-        return credsProvider;
-    	//TODO end
+		//TODO refactor to either WQPDynamicLayerCachingService or WQPLayerBuildingService
+		CredentialsProvider credsProvider = new BasicCredentialsProvider();
+		credsProvider.setCredentials(
+				new AuthScope(geoserverHost, Integer.parseInt(geoserverPort)),
+				new UsernamePasswordCredentials(geoserverUser, geoserverPass));
+		return credsProvider;
+		//TODO end
 	}
 
 }

@@ -32,16 +32,16 @@ public class SimplePointFeature {
 	private double longitude;
 	private double latitude;
 	private Point point;
-	
+
 	private String orgName;
 	private String orgId;
-	
+
 	private SimpleFeature simpleFeature;
-	
+
 	private GeometryFactory geometryFactory;
-	
+
 	private static SimpleFeatureType FEATURETYPE;
-	
+
 	public SimplePointFeature(JsonObject jsonFeature) {
 		this.provider = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.PROVIDER).getAsString();
 		this.orgId = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.ORG_ID).getAsString();
@@ -53,7 +53,7 @@ public class SimplePointFeature {
 		this.huc8 = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.HUC8).getAsString();
 		this.longitude = jsonFeature.getAsJsonObject("geometry").getAsJsonArray(GeoJSONAttributes.POINT).get(0).getAsDouble();
 		this.latitude = jsonFeature.getAsJsonObject("geometry").getAsJsonArray(GeoJSONAttributes.POINT).get(1).getAsDouble();
-		
+
 		this.geometryFactory = JTSFactoryFinder.getGeometryFactory();
 		this.point = this.geometryFactory.createPoint(new Coordinate(this.longitude, this.latitude));
 	}
@@ -72,14 +72,14 @@ public class SimplePointFeature {
 		featureBuilder.add(this.huc8);
 		featureBuilder.add(provider.toString());
 		this.simpleFeature = featureBuilder.buildFeature(null);
-			
+
 		return this.simpleFeature;
 	}
-	
+
 	@Override
 	public String toString() {
 		StringBuffer sb = new StringBuffer();
-		
+
 		sb.append("SimplePointFeature Instance:");
 		sb.append("\tProvider:\t" + provider.toString() + "\n");
 		sb.append("\tName:\t\t" + this.name + "\n");
@@ -92,36 +92,36 @@ public class SimplePointFeature {
 		sb.append("\tLongitude:\t" + this.longitude + "\n");
 		sb.append("\tLatitude:\t" + this.latitude + "\n");
 		sb.append("\tPOINT: " + this.point + "\n");
-		
+
 		return sb.toString();
 	}
-	
+
 	public static SimpleFeatureType getFeatureType() {
 		if (SimplePointFeature.FEATURETYPE == null) {
 			synchronized(SimplePointFeature.class) {
 				if (SimplePointFeature.FEATURETYPE == null) {
 					SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
-			        builder.setName("Location");
-			        // Coordinate reference system
-			        builder.setSRS("EPSG:4326");
+					builder.setName("Location");
+					// Coordinate reference system
+					builder.setSRS("EPSG:4326");
 
-			        // add attributes in order
-			        builder.add("the_geom", Point.class);
-			        builder.length(32).add(FeatureAttributeType.orgId.toString(), String.class);
-			        builder.length(128).add(FeatureAttributeType.orgName.toString(), String.class);
-			        builder.length(32).add(FeatureAttributeType.name.toString(), String.class);
-			        builder.length(256).add(FeatureAttributeType.locName.toString(), String.class);
-			        builder.length(32).add(FeatureAttributeType.type.toString(), String.class);
-			        builder.length(32).add(FeatureAttributeType.searchType.toString(), String.class);
-			        builder.length(32).add(FeatureAttributeType.huc8.toString(), String.class);
-			        builder.length(32).add(FeatureAttributeType.provider.toString(), String.class);
-			        
-			        // build the type
-			        SimplePointFeature.FEATURETYPE = builder.buildFeatureType();
+					// add attributes in order
+					builder.add("the_geom", Point.class);
+					builder.length(32).add(FeatureAttributeType.orgId.toString(), String.class);
+					builder.length(128).add(FeatureAttributeType.orgName.toString(), String.class);
+					builder.length(32).add(FeatureAttributeType.name.toString(), String.class);
+					builder.length(256).add(FeatureAttributeType.locName.toString(), String.class);
+					builder.length(32).add(FeatureAttributeType.type.toString(), String.class);
+					builder.length(32).add(FeatureAttributeType.searchType.toString(), String.class);
+					builder.length(32).add(FeatureAttributeType.huc8.toString(), String.class);
+					builder.length(32).add(FeatureAttributeType.provider.toString(), String.class);
+
+					// build the type
+					SimplePointFeature.FEATURETYPE = builder.buildFeatureType();
 				}
 			}
 		}
-		
+
 		return SimplePointFeature.FEATURETYPE;
 	}
 
