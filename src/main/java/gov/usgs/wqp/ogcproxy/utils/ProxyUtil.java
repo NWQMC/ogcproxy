@@ -156,16 +156,8 @@ public class ProxyUtil {
 		return new OGCRequest(realOgcService, ogcParams, searchParams, requestBody);
 	}
 
-	/**
-	 * Builds query string
-	 * @param clientrequest
-	 * @param ogcParams
-	 * @param forwardURL
-	 * @param context
-	 * @return
-	 */
-	public static String getServerRequestURIAsString(HttpServletRequest clientrequest, Map<String,String> ogcParams, String forwardURL, String context) {
-		StringBuilder requestBuffer = new StringBuilder(forwardURL).append("/").append(context).append(clientrequest.getServletPath()).append("?");
+	public static String getServerRequestURIAsString(HttpServletRequest clientrequest, Map<String,String> ogcParams, String geoserverBaseUri) {
+		StringBuilder requestBuffer = new StringBuilder(geoserverBaseUri).append(clientrequest.getServletPath()).append("?");
 
 		String sep = "";
 		for (Map.Entry<String,String> paramEntry : ogcParams.entrySet()) {

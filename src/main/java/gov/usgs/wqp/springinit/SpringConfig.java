@@ -9,7 +9,9 @@ package gov.usgs.wqp.springinit;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -20,6 +22,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import gov.usgs.wqp.ogcproxy.services.ProxyService;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
+import gov.usgs.wqp.ogcproxy.utils.CloseableHttpClientFactory;
 
 /**
  * This class takes the place of the old Spring servlet.xml configuration that
@@ -29,7 +32,13 @@ import gov.usgs.wqp.ogcproxy.services.wqp.WQPLayerBuildingService;
 @Configuration
 @ComponentScan(basePackages= {"gov.usgs.wqp"})
 @EnableWebMvc
-@PropertySource(value = {"file:${catalina.base}/conf/ogcproxy.properties"})		// Unfortunately this is Tomcat specific.  For us its ok
+@Import(GeoServerConfig.class)
+@PropertySources({
+	//This will get the defaults
+	@PropertySource(value = "classpath:ogcproxy.properties"),
+	//This will override with values from the containers file if the file can be found
+	@PropertySource(value="file:${catalina.base}/conf/ogcproxy.properties", ignoreResourceNotFound=true)
+})
 public class SpringConfig extends WebMvcConfigurerAdapter {
 
 	/**
@@ -88,6 +97,11 @@ public class SpringConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public ProxyService proxyService() {
 		return ProxyService.getInstance();
+	}
+
+	@Bean
+	public CloseableHttpClientFactory closeableHttpClientFactory() {
+		return CloseableHttpClientFactory.getInstance();
 	}
 
 }
