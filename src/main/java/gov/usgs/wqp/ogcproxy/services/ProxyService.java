@@ -1,18 +1,16 @@
 package gov.usgs.wqp.ogcproxy.services;
 
-import static org.springframework.util.StringUtils.isEmpty;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -22,7 +20,6 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -33,15 +30,12 @@ import org.apache.http.client.methods.HttpTrace;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
@@ -49,36 +43,26 @@ import gov.usgs.wqp.ogcproxy.model.OGCRequest;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
+import gov.usgs.wqp.ogcproxy.utils.CloseableHttpClientFactory;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
 
 
 public class ProxyService {
-	@Autowired
-	private Environment environment;
 
 	@Autowired
-	private WQPDynamicLayerCachingService layerCachingService;
+	protected CloseableHttpClientFactory closeableHttpClientFactory;
+	@Autowired
+	protected WQPDynamicLayerCachingService layerCachingService;
+	@Autowired
+	private String geoserverBaseURI;
+
+	private CloseableHttpClient serverClient;
 
 	private static final Logger LOG = LoggerFactory.getLogger(ProxyService.class);
 	private static final String CLASSNAME = ProxyService.class.getName();
 
 	private static boolean initialized;
-
-	private static String geoserverProtocol	= "http";
-	private static String geoserverHost		= "localhost";
-	private static String geoserverPort		= "8080";
-	private static String forwardUrl		= "http://localhost:8080";
-	private static String geoserverContext	= "geoserver";
-
-	// 15 minutes, default is infinite
-	private static int connection_ttl			= 15 * 60 * 1000;
-	private static int connections_max_total	= 256;
-	private static int connections_max_route	= 32;
-	// 5 minutes, default is infinite
-	private static int client_socket_timeout	= 5 * 60 * 1000;
-	// 15 seconds, default is infinite
-	private static int client_connection_timeout = 15 * 1000;
 
 	public static final String WMS_GET_CAPABILITIES_CONTENT = "<Layer queryable=\"1\">" +
 			"<Name>wqp_sites</Name>" +
@@ -121,8 +105,6 @@ public class ProxyService {
 
 	private static final ProxyService INSTANCE = new ProxyService();
 
-	private CloseableHttpClient serverClient;
-
 	/**
 	 * Private Constructor for Singleton Pattern
 	 */
@@ -153,42 +135,18 @@ public class ProxyService {
 				return;
 			}
 			initialized = true;
-			
-			String tmp = environment.getProperty("wqp.geoserver.proto");
-			if (!isEmpty(tmp)) {
-				geoserverProtocol = tmp;
-			}
-			tmp = environment.getProperty("wqp.geoserver.host");
-			if (!isEmpty(tmp)) {
-				geoserverHost = tmp;
-			}
-			tmp = environment.getProperty("wqp.geoserver.port");
-			if (!isEmpty(tmp)) {
-				geoserverPort= tmp;
-			}
 
-			forwardUrl = geoserverProtocol + "://" + geoserverHost + ":" + geoserverPort;
+			serverClient = closeableHttpClientFactory.getUnauthorizedCloseableHttpClient(true);
+		}
+	}
 
-			tmp = environment.getProperty("wqp.geoserver.context");
-			if (!isEmpty(tmp)) {
-				geoserverContext = tmp;
-			}
-
-			// Initialize connection manager, this is thread-safe. if we
-			// use this
-			// with any HttpClient instance it becomes thread-safe.
-			PoolingHttpClientConnectionManager clientConnectionManager = new PoolingHttpClientConnectionManager(
-					connection_ttl, TimeUnit.MILLISECONDS);
-			clientConnectionManager.setMaxTotal(connections_max_total);
-			clientConnectionManager.setDefaultMaxPerRoute(connections_max_route);
-
-			RequestConfig config = RequestConfig.custom().setConnectTimeout(client_connection_timeout)
-					.setSocketTimeout(client_socket_timeout).build();
-
-			//.disableContentCompression() keeps the response from geoserver in it's native form so the existing 
-			//logic still works - otherwise it tries to decompress it causing issues in the scrubbing process.
-			serverClient = HttpClients.custom().setConnectionManager(clientConnectionManager)
-					.disableContentCompression().setDefaultRequestConfig(config).build();
+	@PreDestroy
+	public void tearDown() {
+		try {
+			serverClient.close();
+			LOG.info("Closed serverClient");
+		} catch (IOException e) {
+			LOG.error("Issue trying to close serverClient:" + e.getLocalizedMessage());
 		}
 	}
 
@@ -207,6 +165,7 @@ public class ProxyService {
 		OGCRequest ogcRequest = convertVendorParms(request, ogcService);
 
 		// We now need to perform the proxy call to the GeoServer and return the result to the client
+		//TODO - only attempt to contact GeoServer if we have a valid feature type!!!
 		boolean proxySuccess = proxyRequest(request, response, ogcRequest);
 
 		if (proxySuccess) {
@@ -263,7 +222,7 @@ public class ProxyService {
 		try {
 			// 1) Generate Server URI
 			String serverRequestURIAsString = ProxyUtil.getServerRequestURIAsString(clientRequest, ogcRequest.getOgcParams(),
-							ProxyService.forwardUrl, ProxyService.geoserverContext);
+					geoserverBaseURI);
 
 			LOG.trace("Request to GeoServer is: [\n" + serverRequestURIAsString + "]");
 
@@ -355,7 +314,7 @@ public class ProxyService {
 		try {
 			HttpContext localContext = new BasicHttpContext();
 			HttpResponse methodReponse = serverClient.execute(serverRequest, localContext);
-			handleServerResponse(clientRequest, clientResponse, methodReponse, ogcRequest);
+			handleServerResponse(clientRequest, clientResponse, serverRequest, methodReponse, ogcRequest);
 		} catch (ClientProtocolException e) {
 			String msg = "Client protocol error ["
 					+ e.getMessage() + "]";
@@ -372,14 +331,13 @@ public class ProxyService {
 		}
 	}
 
-	private void handleServerResponse(HttpServletRequest clientRequest,
-			HttpServletResponse clientResponse, HttpResponse serverResponse,
+	private void handleServerResponse(HttpServletRequest clientRequest, HttpServletResponse clientResponse,
+			HttpUriRequest serverRequest, HttpResponse serverResponse,
 			OGCRequest ogcRequest) throws OGCProxyException {
 		String methodName = "handleServerResponse()";
 
 		String clientRequestURLAsString = clientRequest.getRequestURL().toString();
-		String serverRequestURLAsString = ProxyUtil.getServerRequestURIAsString(clientRequest, ogcRequest.getOgcParams(),
-						ProxyService.forwardUrl, ProxyService.geoserverContext);
+		String serverRequestURLAsString = serverRequest.getURI().toString();
 
 		// 1) Map server response status to client response
 		// NOTE: There's no clear way to map status message,
@@ -459,7 +417,7 @@ public class ProxyService {
 				byte[] inspectedBytes;
 				String contentType = methodEntity.getContentType().getValue();
 				if ((contentType != null) && (contentType.toLowerCase().contains("xml"))) {
-					inspectedBytes = inspectServerContent(clientRequest, ogcRequest, serverContent, contentCompressed);
+					inspectedBytes = inspectServerContent(clientRequest, serverRequest, ogcRequest, serverContent, contentCompressed);
 					
 					// We must set the content-length here for the possible change
 					// in content from the inspection
@@ -506,41 +464,46 @@ public class ProxyService {
 		}
 	}
 
-	private byte[] inspectServerContent(HttpServletRequest clientRequest, OGCRequest ogcRequest, byte[] serverContent, boolean contentCompressed) throws OGCProxyException {
+	protected byte[] inspectServerContent(HttpServletRequest clientRequest, HttpUriRequest serverRequest, OGCRequest ogcRequest,
+			byte[] serverContent, boolean contentCompressed) throws OGCProxyException {
 		String stringContent = "";
 		if (contentCompressed) {
 			stringContent = SystemUtils.uncompressGzipAsString(serverContent);
 		} else {
-			stringContent = Arrays.toString(serverContent);
+			stringContent = new String(serverContent);
 		}
 
 		// We now need to do some inspection on the data.  If the original OGC
 		// request is a GetCapabilities, we need to insert the service's specific
 		// information into the response.
-		if (ProxyUtil.OGC_GET_CAPABILITIES.equalsIgnoreCase(ogcRequest.getRequestType())) {
+		if (ProxyUtil.OGC_GET_CAPABILITIES.equalsIgnoreCase(ogcRequest.getRequestType())
+				&& ProxyDataSourceParameter.WQP_SITES == ogcRequest.getDataSource()) {
 			// This is a GetCapabilities call.  We need to include the service
 			// specific GetCapabilities information in the result so we conform
 			// to the OGC spec
-			if (ProxyDataSourceParameter.WQP_SITES == ogcRequest.getDataSource()) {
 				stringContent = addGetCapabilitiesInfo(ogcRequest.getOgcService(), stringContent);
-			}
 		}
 
+		String serverHost = serverRequest.getURI().getHost();
 		// We also need to scrub the response for any mention of the actual
 		// GeoServer's location and replace it with this proxy's location.
-		if (stringContent.contains(geoserverHost)) {
+		if (stringContent.contains(serverHost)) {
 			LOG.trace("Server response contains references to its hostname.  Redirecting entries to the proxy...");
 
-			String proxyServerName = clientRequest.getServerName();
-			String proxyContextPath = clientRequest.getContextPath().replaceFirst("^/", "");
+			String proxyHost = clientRequest.getServerName();
+			String proxyContext = clientRequest.getContextPath().replaceFirst("^/", "");
 			String proxyPort = clientRequest.getLocalPort() + "";
 			String proxyProtocol = clientRequest.getScheme();
 
-			stringContent = ProxyUtil.redirectContentToProxy(
-					stringContent, geoserverProtocol,
-					proxyProtocol, geoserverHost, proxyServerName,
-					geoserverPort, proxyPort, geoserverContext,
-					proxyContextPath);
+			String serverContext = serverRequest.getURI().getPath().replaceFirst("^/", "").split("/")[0];
+			String serverPort = serverRequest.getURI().getPort() + "";
+			String serverProtocol = serverRequest.getURI().getScheme();
+
+			stringContent = ProxyUtil.redirectContentToProxy(stringContent,
+					serverProtocol, proxyProtocol,
+					serverHost, proxyHost,
+					serverPort, proxyPort,
+					serverContext, proxyContext);
 		} else {
 			LOG.debug("Server response does not contain references to its hostname.  Continuing...");
 		}
@@ -548,7 +511,11 @@ public class ProxyService {
 		if (contentCompressed) {
 			return SystemUtils.compressStringToGzip(stringContent);
 		} else {
-			return stringContent.getBytes();
+			try {
+				return stringContent.getBytes("UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				throw new OGCProxyException(null, CLASSNAME, "inspectServerContent", e.getLocalizedMessage());
+			}
 		}
 	}
 
@@ -630,22 +597,6 @@ public class ProxyService {
 		}
 
 		return newContent.toString();
-	}
-
-	/**
-	 * Really only meant to be used by automated tests - Spring will normally handle it with the @Autowired annotation.
-	 * @param environment
-	 */
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
-	}
-
-	/**
-	 * Really only meant to be used by automated tests - Spring will normally handle it with the @Autowired annotation.
-	 * @param layerCachingService
-	 */
-	public void setWQPDynamicLayerCachingService(WQPDynamicLayerCachingService layerCachingService) {
-		this.layerCachingService = layerCachingService;
 	}
 
 }

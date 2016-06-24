@@ -56,11 +56,67 @@ public class ProxyUtilTest {
 	}
 
 	@Test
+	public void generateClientResponseHeadersTest() {
+		Header[] headers = {new BasicHeader("transfer-encoding", "tEncoding"), new BasicHeader(HttpHeaders.WARNING, "Yikes!")};
+		when(serverResponse.getAllHeaders()).thenReturn(headers);
+		clientResponse = new MockHttpServletResponse();
+		ProxyUtil.generateClientResponseHeaders(clientResponse, serverResponse);
+		assertTrue(clientResponse.getHeaderNames().contains(HttpHeaders.WARNING));
+		assertEquals("Yikes!", clientResponse.getHeader(HttpHeaders.WARNING));
+		assertFalse(clientResponse.getHeaderNames().contains("transfer-encoding"));
+		assertFalse(clientResponse.getHeaderNames().contains(HttpHeaders.TRANSFER_ENCODING));
+	}
+
+	@Test
+	public void generateServerRequestHeadersTest() {
+		Hashtable<String, String> headers = new Hashtable<>();
+		headers.put("content-length", "666");
+		headers.put(HttpHeaders.WARNING, "Yikes!");
+		when(clientRequest.getHeaderNames()).thenReturn(headers.keys());
+		when(clientRequest.getHeaders(eq("content-length"))).thenReturn(headers.elements());
+		when(clientRequest.getHeaders(eq(HttpHeaders.WARNING))).thenReturn(headers.elements());
+		serverRequest = new HttpGet("http://this.org:80/wow/dude");
+		ProxyUtil.generateServerRequestHeaders(clientRequest, serverRequest);
+		assertTrue(serverRequest.containsHeader(HttpHeaders.WARNING));
+
+		Header[] warnings = serverRequest.getHeaders(HttpHeaders.WARNING);
+		assertEquals(2, warnings.length);
+		assertEquals("Yikes!", warnings[0].getValue());
+		assertEquals("666", warnings[1].getValue());
+
+		assertFalse(serverRequest.containsHeader("content-length"));
+		assertFalse(serverRequest.containsHeader(HttpHeaders.CONTENT_LENGTH));
+
+		assertTrue(serverRequest.containsHeader(HttpHeaders.HOST));
+		Header[] hosts = serverRequest.getHeaders(HttpHeaders.HOST);
+		assertEquals(1, hosts.length);
+		assertEquals("this.org:80", hosts[0].getValue());
+	}
+
+	@Test
+	public void getCaseSensitiveParameterTest() {
+		String parm = ProxyUtil.getCaseSensitiveParameter(null, null);
+		assertNull(parm);
+
+		parm = ProxyUtil.getCaseSensitiveParameter("orig", null);
+		assertEquals("orig", parm);
+
+		parm = ProxyUtil.getCaseSensitiveParameter(null, new HashSet<String>(Arrays.asList("wayWrong", "OrIg", "nope")));
+		assertNull(parm);
+
+		parm = ProxyUtil.getCaseSensitiveParameter("wow", new HashSet<String>(Arrays.asList("wayWrong", "OrIg", "nope")));
+		assertEquals("wow", parm);
+
+		parm = ProxyUtil.getCaseSensitiveParameter("orig", new HashSet<String>(Arrays.asList("wayWrong", "OrIg", "nope")));
+		assertEquals("OrIg", parm);
+	}
+
+	@Test
 	public void getRequestedServiceTest() {
 		Map<String, String[]> wfs = new HashMap<>();
 		wfs.put(ProxyUtil.OGC_SERVICE_PARAMETER, new String[] {"qwerty"});
 		assertEquals(OGCServices.WFS, ProxyUtil.getRequestedService(OGCServices.WFS, wfs));
-		
+
 		wfs.put(ProxyUtil.OGC_SERVICE_PARAMETER, new String[] {"WFS"});
 		Map<String, String[]> wms = new HashMap<>();
 		wms.put(ProxyUtil.OGC_SERVICE_PARAMETER, new String[] {"WMS"});
@@ -86,7 +142,7 @@ public class ProxyUtilTest {
 		assertEquals(OGCServices.WMS, ProxyUtil.getRequestedService(OGCServices.WFS, wms));
 		assertEquals(OGCServices.WFS, ProxyUtil.getRequestedService(OGCServices.WMS, wfs));
 		assertEquals(OGCServices.WMS, ProxyUtil.getRequestedService(OGCServices.WMS, wms));
-		
+
 		//Try with wonky service
 		wfs.put("sErViCe", new String[] {"wfs"});
 		wms.put("sErViCe", new String[] {"wms"});
@@ -94,7 +150,31 @@ public class ProxyUtilTest {
 		assertEquals(OGCServices.WMS, ProxyUtil.getRequestedService(OGCServices.WFS, wms));
 		assertEquals(OGCServices.WFS, ProxyUtil.getRequestedService(OGCServices.WMS, wfs));
 		assertEquals(OGCServices.WMS, ProxyUtil.getRequestedService(OGCServices.WMS, wms));
-		
+
+	}
+
+	@Test
+	public void getServerRequestURIAsStringTest() {
+		when(clientRequest.getServletPath()).thenReturn("/goHere");
+
+		Map<String, String> ogcParams = new HashMap<>();
+		ogcParams.put(WMSParameters.layer.toString(), "j@ck:e");
+		ogcParams.put("ReQuEsT", OGCRequest.GET_LEGEND_GRAPHIC);
+
+		assertEquals("http://bbggr.org/proxy/goHere?ReQuEsT=GetLegendGraphic&layer=j%40ck%3Ae",
+				ProxyUtil.getServerRequestURIAsString(clientRequest, ogcParams, "http://bbggr.org/proxy"));
+	}
+
+	@Test
+	public void redirectContentToProxyTest() {
+		assertEquals("", ProxyUtil.redirectContentToProxy(null, null, null, null, null, null, null, null, null));
+		assertEquals("", ProxyUtil.redirectContentToProxy("abc", null, null, null, null, null, null, null, null));
+		assertEquals("ywxz", ProxyUtil.redirectContentToProxy("abcd", "d", "z", "a", "y", "c", "x", "b", "w"));
+		assertEquals("", ProxyUtil.redirectContentToProxy("abcd", null, "z", null, "y", null, "x", null, "w"));
+		assertEquals("wxwywxwzwxwywxwawxwywxwzwxwywxwbwxwywxwzwxwywxwcwxwywxwzwxwywxwdwxwywxwzwxwywxw",
+				ProxyUtil.redirectContentToProxy("abcd", "", "z", "", "y", "", "x", "", "w"));
+		assertEquals("", ProxyUtil.redirectContentToProxy("abcd", "d", null, "a", null, "c", null, "b", null));
+		assertEquals("", ProxyUtil.redirectContentToProxy("abcd", "d", "", "a", "", "c", "", "b", ""));
 	}
 
 	@Test
@@ -109,7 +189,7 @@ public class ProxyUtilTest {
 		when(clientRequest.getParameterMap()).thenReturn(requestParams);
 		ogcRequest = ProxyUtil.separateParameters(clientRequest, OGCServices.WFS);
 		assertEquals(OGCServices.WMS, ogcRequest.getOgcService());
-		
+
 		assertEquals(3, ogcRequest.getOgcParams().size());
 		assertEquals(ProxyDataSourceParameter.WQP_SITES.toString(), ogcRequest.getOgcParams().get(WMSParameters.layer.toString()));
 		assertEquals(OGCRequest.GET_LEGEND_GRAPHIC, ogcRequest.getOgcParams().get("ReQuEsT"));
@@ -118,11 +198,11 @@ public class ProxyUtilTest {
 		assertTrue(ogcRequest.getSearchParams().isEmpty());
 		assertTrue(ogcRequest.getRequestBody().isEmpty());
 
-		
+
 		requestParams.put("searchParams", null);
 		ogcRequest = ProxyUtil.separateParameters(clientRequest, OGCServices.WFS);
 		assertEquals(OGCServices.WMS, ogcRequest.getOgcService());
-		
+
 		assertEquals(3, ogcRequest.getOgcParams().size());
 		assertEquals(ProxyDataSourceParameter.WQP_SITES.toString(), ogcRequest.getOgcParams().get(WMSParameters.layer.toString()));
 		assertEquals(OGCRequest.GET_LEGEND_GRAPHIC, ogcRequest.getOgcParams().get("ReQuEsT"));
@@ -130,12 +210,12 @@ public class ProxyUtilTest {
 
 		assertTrue(ogcRequest.getSearchParams().isEmpty());
 		assertTrue(ogcRequest.getRequestBody().isEmpty());
-		
+
 
 		requestParams.put("searchParams", new String[]{"huc:06*|07*;sampleMedia:Water;characteristicType:Nutrient"});
 		ogcRequest = ProxyUtil.separateParameters(clientRequest, OGCServices.WFS);
 		assertEquals(OGCServices.WMS, ogcRequest.getOgcService());
-		
+
 		assertEquals(3, ogcRequest.getOgcParams().size());
 		assertEquals(ProxyDataSourceParameter.WQP_SITES.toString(), ogcRequest.getOgcParams().get(WMSParameters.layer.toString()));
 		assertEquals(OGCRequest.GET_LEGEND_GRAPHIC, ogcRequest.getOgcParams().get("ReQuEsT"));
@@ -157,10 +237,10 @@ public class ProxyUtilTest {
 		when(clientRequest.getMethod()).thenReturn(HttpPost.METHOD_NAME);
 		when(clientRequest.getParameterMap()).thenReturn(requestParams);
 		when(clientRequest.getInputStream()).thenReturn(a);
-		
+
 		OGCRequest ogcRequest = ProxyUtil.separateParameters(clientRequest, OGCServices.WFS);
 		assertEquals(OGCServices.WFS, ogcRequest.getOgcService());
-		
+
 		assertEquals(5, ogcRequest.getOgcParams().size());
 		assertEquals(ProxyDataSourceParameter.WQP_SITES.toString(), ogcRequest.getOgcParams().get(WFSParameters.typeName.toString()));
 		assertEquals("", ogcRequest.getOgcParams().get(WFSParameters.typeNames.toString()));
@@ -176,82 +256,4 @@ public class ProxyUtilTest {
 		assertEquals(OgcParserTest.wfs_minus_vendorParams, ogcRequest.getRequestBody());
 	}
 
-	@Test
-	public void getServerRequestURIAsStringTest() {
-		when(clientRequest.getServletPath()).thenReturn("/goHere");
-
-		Map<String, String> ogcParams = new HashMap<>();
-		ogcParams.put(WMSParameters.layer.toString(), "j@ck:e");
-		ogcParams.put("ReQuEsT", OGCRequest.GET_LEGEND_GRAPHIC);
-
-		assertEquals("http://bbggr.org/proxy/goHere?ReQuEsT=GetLegendGraphic&layer=j%40ck%3Ae", ProxyUtil.getServerRequestURIAsString(clientRequest, ogcParams, "http://bbggr.org", "proxy"));
-	}
-	
-	@Test
-	public void generateServerRequestHeadersTest() {
-		Hashtable<String, String> headers = new Hashtable<>();
-		headers.put("content-length", "666");
-		headers.put(HttpHeaders.WARNING, "Yikes!");
-		when(clientRequest.getHeaderNames()).thenReturn(headers.keys());
-		when(clientRequest.getHeaders(eq("content-length"))).thenReturn(headers.elements());
-		when(clientRequest.getHeaders(eq(HttpHeaders.WARNING))).thenReturn(headers.elements());
-		serverRequest = new HttpGet("http://this.org:80/wow/dude");
-		ProxyUtil.generateServerRequestHeaders(clientRequest, serverRequest);
-		assertTrue(serverRequest.containsHeader(HttpHeaders.WARNING));
-		
-		Header[] warnings = serverRequest.getHeaders(HttpHeaders.WARNING);
-		assertEquals(2, warnings.length);
-		assertEquals("Yikes!", warnings[0].getValue());
-		assertEquals("666", warnings[1].getValue());
-		
-		assertFalse(serverRequest.containsHeader("content-length"));
-		assertFalse(serverRequest.containsHeader(HttpHeaders.CONTENT_LENGTH));
-		
-		assertTrue(serverRequest.containsHeader(HttpHeaders.HOST));
-		Header[] hosts = serverRequest.getHeaders(HttpHeaders.HOST);
-		assertEquals(1, hosts.length);
-		assertEquals("this.org:80", hosts[0].getValue());
-	}
-	
-	@Test
-	public void generateClientResponseHeadersTest() {
-		Header[] headers = {new BasicHeader("transfer-encoding", "tEncoding"), new BasicHeader(HttpHeaders.WARNING, "Yikes!")};
-		when(serverResponse.getAllHeaders()).thenReturn(headers);
-		clientResponse = new MockHttpServletResponse();
-		ProxyUtil.generateClientResponseHeaders(clientResponse, serverResponse);
-		assertTrue(clientResponse.getHeaderNames().contains(HttpHeaders.WARNING));
-		assertEquals("Yikes!", clientResponse.getHeader(HttpHeaders.WARNING));
-		assertFalse(clientResponse.getHeaderNames().contains("transfer-encoding"));
-		assertFalse(clientResponse.getHeaderNames().contains(HttpHeaders.TRANSFER_ENCODING));
-	}
-		
-	@Test
-	public void redirectContentToProxyTest() {
-		assertEquals("", ProxyUtil.redirectContentToProxy(null, null, null, null, null, null, null, null, null));
-		assertEquals("", ProxyUtil.redirectContentToProxy("abc", null, null, null, null, null, null, null, null));
-		assertEquals("ywxz", ProxyUtil.redirectContentToProxy("abcd", "d", "z", "a", "y", "c", "x", "b", "w"));
-		assertEquals("", ProxyUtil.redirectContentToProxy("abcd", null, "z", null, "y", null, "x", null, "w"));
-		assertEquals("wxwywxwzwxwywxwawxwywxwzwxwywxwbwxwywxwzwxwywxwcwxwywxwzwxwywxwdwxwywxwzwxwywxw",
-				ProxyUtil.redirectContentToProxy("abcd", "", "z", "", "y", "", "x", "", "w"));
-		assertEquals("", ProxyUtil.redirectContentToProxy("abcd", "d", null, "a", null, "c", null, "b", null));
-		assertEquals("", ProxyUtil.redirectContentToProxy("abcd", "d", "", "a", "", "c", "", "b", ""));
-	}
-
-	@Test
-	public void getCaseSensitiveParameterTest() {
-		String parm = ProxyUtil.getCaseSensitiveParameter(null, null);
-		assertNull(parm);
-
-		parm = ProxyUtil.getCaseSensitiveParameter("orig", null);
-		assertEquals("orig", parm);
-
-		parm = ProxyUtil.getCaseSensitiveParameter(null, new HashSet<String>(Arrays.asList("wayWrong", "OrIg", "nope")));
-		assertNull(parm);
-
-		parm = ProxyUtil.getCaseSensitiveParameter("wow", new HashSet<String>(Arrays.asList("wayWrong", "OrIg", "nope")));
-		assertEquals("wow", parm);
-
-		parm = ProxyUtil.getCaseSensitiveParameter("orig", new HashSet<String>(Arrays.asList("wayWrong", "OrIg", "nope")));
-		assertEquals("OrIg", parm);
-	}
 }

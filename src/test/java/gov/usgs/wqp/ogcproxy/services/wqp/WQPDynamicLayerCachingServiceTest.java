@@ -19,24 +19,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.Credentials;
-import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.HttpClients;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 import org.springframework.core.env.Environment;
 
@@ -53,9 +47,8 @@ import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
+import gov.usgs.wqp.ogcproxy.utils.GeoServerUtils;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(HttpClients.class)
 public class WQPDynamicLayerCachingServiceTest {
 
 	@Mock
@@ -65,38 +58,34 @@ public class WQPDynamicLayerCachingServiceTest {
 	@Mock
 	private Environment environment;
 	@Mock
+	private GeoServerUtils geoServerUtils;
+	@Mock
 	private CloseableHttpResponse response;
 	@Mock
 	private StatusLine statusLine;
 	@Spy
 	WQPDynamicLayerCachingService service = WQPDynamicLayerCachingService.getInstance();
 
-	public final static String WQP_WORKSPACE = "qw_portal_map";
+	public final static String WQP_WORKSPACE = "wqp_sites";
 	public final static String ONE_QUAL_NAME = String.join(":", WQP_WORKSPACE, JsonObjectResponseHandlerTest.ONE_NAME);
 	public final static String TWO_QUAL_NAME = String.join(":", WQP_WORKSPACE, JsonObjectResponseHandlerTest.TWO_NAME);
 	public final static String THREE_QUAL_NAME = String.join(":", WQP_WORKSPACE, JsonObjectResponseHandlerTest.THREE_NAME);
 
 	@Before
 	public void beforeTest() {
-		PowerMockito.mockStatic(HttpClients.class);
 		MockitoAnnotations.initMocks(this);
-		when(HttpClients.custom()).thenReturn(httpClientBuilder);
 		when(httpClientBuilder.build()).thenReturn(httpClient);
-		
-		//reset those potentially mucked up in any tests - (fun with statics - not)
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "threadSleep", 500);
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverProtocol", "http");
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverHost", "localhost");
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverPort", "8080");
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverContext", "geoserver");
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverWorkspace", "qw_portal_map");
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverBaseUri", "");
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverUser", "");
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverPass", "");
-		
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "requestToLayerCache", new ConcurrentHashMap<String, DynamicLayerCache>());
+		when(geoServerUtils.buildLocalContext()).thenReturn(new HttpClientContext());
+		when(geoServerUtils.buildAuthorizedClient()).thenReturn(httpClient);
+		when(geoServerUtils.buildDataStoreRestGet()).thenReturn("http://owi.usgs.gov/geoserver");
+		when(geoServerUtils.buildWorkspaceRestDelete()).thenReturn("http://owi.usgs.gov/geoserver");
+
+		service.geoServerUtils = geoServerUtils;
+
+		service.httpClient = httpClient;
+		service.geoserverWorkspace = WQP_WORKSPACE;
 	}
-	
+
 	@Test
 	public void clearCacheTest() {
 		int cnt = service.clearCache();
@@ -107,22 +96,20 @@ public class WQPDynamicLayerCachingServiceTest {
 		cnt = service.clearCache();
 		verify(service, times(2)).clearGeoserverWorkspace();
 		verify(service, times(2)).clearInMemoryCache();
-		
+
 		assertEquals(0, cnt);
 	}
 
 	@Test
 	public void clearGeoserverWorkspaceTest() {
 		try {
-			when(httpClient.execute(any(HttpDelete.class))).thenThrow(new IOException("Hi")).thenReturn(response);
-			when(response.getStatusLine()).thenReturn(statusLine);
-			when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_OK);
+			when(httpClient.execute(any(HttpDelete.class), any(HttpClientContext.class))).thenThrow(new IOException("Hi")).thenReturn(response);
 
 			service.clearGeoserverWorkspace();
-			verify(httpClient, times(1)).execute(any(HttpDelete.class));
-			
+			verify(httpClient, times(1)).execute(any(HttpDelete.class), any(HttpClientContext.class));
+
 			service.clearGeoserverWorkspace();
-			verify(httpClient, times(2)).execute(any(HttpDelete.class));
+			verify(httpClient, times(2)).execute(any(HttpDelete.class), any(HttpClientContext.class));
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail("shouldn't get here at this time");
@@ -140,7 +127,7 @@ public class WQPDynamicLayerCachingServiceTest {
 		c2.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
 		cache.put(c2.getKey(), c2);
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "requestToLayerCache", cache);
-		
+
 		int cnt = service.clearInMemoryCache();
 		assertEquals(2, cnt);
 		Map<String, DynamicLayerCache> afterCache = Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "requestToLayerCache");
@@ -148,30 +135,10 @@ public class WQPDynamicLayerCachingServiceTest {
 	}
 
 	@Test
-	public void getCacheStoreTest() {
-		//TODO
-	}
-	
-
-	@Test
-	public void getCredentialsProviderTest() {
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverHost", "test");
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverPort", "8081");
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverUser", "me");
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "geoserverPass", "pass");
-		CredentialsProvider credentialsProvider = service.getCredentialsProvider();
-		assertNotNull(credentialsProvider);
-		assertEquals("{<any realm>@test:8081=[principal: me]}", credentialsProvider.toString());
-		Credentials credentials = credentialsProvider.getCredentials(new AuthScope("test", 8081));
-		assertEquals("pass", credentials.getPassword());
-		assertEquals("me", credentials.getUserPrincipal().getName());
-	}
-	
-	@Test
 	public void getDynamicLayerTest() {
 		//TODO
 	}
-	
+
 	@Test
 	public void getLayerCacheTest() {
 		DynamicLayerCache existingCache = new DynamicLayerCache("dynamicSites_123456", "qw_portal_map");
@@ -184,7 +151,7 @@ public class WQPDynamicLayerCachingServiceTest {
 		} catch (Exception e) {
 			fail("Didn't expect to get exception: " + e.getLocalizedMessage());
 		}
-		
+
 		defaultCache = new DynamicLayerCache("123456", "qw_portal_map");
 		try {
 			assertEquals(existingCache, service.getLayerCache(defaultCache));
@@ -215,7 +182,7 @@ public class WQPDynamicLayerCachingServiceTest {
 		i = service.getResponseIterator(null);
 		assertNotNull(i);
 		assertFalse(i.hasNext());
-		
+
 		i = service.getResponseIterator(buildNoDataStoreTestDataStoreResponse());
 		assertNotNull(i);
 		assertFalse(i.hasNext());
@@ -223,50 +190,41 @@ public class WQPDynamicLayerCachingServiceTest {
 	
 	@Test
 	public void initializeTest() {
-		when(environment.getProperty("proxy.thread.sleep")).thenReturn("","456");
-		when(environment.getProperty("wqp.geoserver.proto")).thenReturn("","https");
-		when(environment.getProperty("wqp.geoserver.host")).thenReturn("","somewhere");
-		when(environment.getProperty("wqp.geoserver.port")).thenReturn("","8443");
-		when(environment.getProperty("wqp.geoserver.context")).thenReturn("","mycontext");
-		when(environment.getProperty("wqp.geoserver.workspace")).thenReturn("", "some_workspace");
-		when(environment.getProperty("wqp.geoserver.user")).thenReturn("","useme");
-		when(environment.getProperty("wqp.geoserver.pass")).thenReturn("","secret");
+		when(environment.getProperty("proxy.thread.sleep")).thenReturn("", "456");
 
-		service.setEnvironment(environment);
+		service.environment = environment;
 		service.initialize();
-		
+
 		//defaults since all are empty string
 		assertEnvironmentDefaults();
-		
+
 		//still defaults because already initialized...
 		service.initialize();
 		assertEnvironmentDefaults();
-		
+
 		//start over and apply some.
 		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "initialized", false);
 		service.initialize();
 		assertEquals(Long.valueOf("456"), Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "threadSleep"));
-		assertEquals("https", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverProtocol"));
-		assertEquals("somewhere", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverHost"));
-		assertEquals("8443", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverPort"));
-		assertEquals("mycontext", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverContext"));
-		assertEquals("some_workspace", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverWorkspace"));
-		assertEquals("https://somewhere:8443/mycontext", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverBaseUri"));
-		assertEquals("useme", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverUser"));
-		assertEquals("secret", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverPass"));
-
 	}
 
 	@Test
-	public void populateCacheTest() throws UnsupportedOperationException, IOException {
-		when(httpClient.execute(any(HttpGet.class), any(JsonObjectResponseHandler.class)))
+	public void populateCacheTest() throws UnsupportedOperationException, IOException, OGCProxyException {
+		when(httpClient.execute(any(HttpGet.class), any(JsonObjectResponseHandler.class), any(HttpClientContext.class)))
+				.thenThrow(new HttpResponseException(HttpStatus.SC_NOT_FOUND, "fake not found"))
 				.thenReturn(null, new JsonObject(), buildEmptyDataStoresTestDataStoreResponse(), buildCompleteTestDataSourceResponse());
-		
+
+		//Workspace not found
+		service.populateCache();
+		assertTrue(service.getCacheStore().isEmpty());
+		verify(httpClient).execute(any(HttpGet.class), any(JsonObjectResponseHandler.class), any(HttpClientContext.class));
+		verify(geoServerUtils).createWorkspace(any(CloseableHttpClient.class), any(HttpClientContext.class));
+
 		//Null response
 		service.populateCache();
 		assertTrue(service.getCacheStore().isEmpty());
-		verify(httpClient).execute(any(HttpGet.class), any(JsonObjectResponseHandler.class));
-		
+		verify(httpClient, times(2)).execute(any(HttpGet.class), any(JsonObjectResponseHandler.class), any(HttpClientContext.class));
+
 		//No Layers
 		service.populateCache();
 		assertTrue(service.getCacheStore().isEmpty());
@@ -279,32 +237,26 @@ public class WQPDynamicLayerCachingServiceTest {
 		service.populateCache();
 		Map<String, DynamicLayerCache> cache = service.getCacheStore();
 		assertEquals(3, cache.size());
-		
+
 		assertTrue(cache.containsKey(JsonObjectResponseHandlerTest.ONE_KEY));
 		DynamicLayerCache one = cache.get(JsonObjectResponseHandlerTest.ONE_KEY);
 		assertEquals(JsonObjectResponseHandlerTest.ONE_NAME, one.getLayerName());
 		assertEquals(ONE_QUAL_NAME, one.getQualifiedLayerName());
 		assertEquals(DynamicLayerStatus.AVAILABLE, one.getCurrentStatus());
-		
+
 		assertTrue(cache.containsKey(JsonObjectResponseHandlerTest.TWO_KEY));
 		DynamicLayerCache two = cache.get(JsonObjectResponseHandlerTest.TWO_KEY);
 		assertEquals(JsonObjectResponseHandlerTest.TWO_NAME, two.getLayerName());
 		assertEquals(TWO_QUAL_NAME, two.getQualifiedLayerName());
 		assertEquals(DynamicLayerStatus.AVAILABLE, two.getCurrentStatus());
-		
+
 		assertTrue(cache.containsKey(JsonObjectResponseHandlerTest.THREE_KEY));
 		DynamicLayerCache three = cache.get(JsonObjectResponseHandlerTest.THREE_KEY);
 		assertEquals(JsonObjectResponseHandlerTest.THREE_NAME, three.getLayerName());
 		assertEquals(THREE_QUAL_NAME, three.getQualifiedLayerName());
 		assertEquals(DynamicLayerStatus.AVAILABLE, three.getCurrentStatus());
-		
 	}
 
-	@Test
-	public void removeLayerCacheTest() {
-		//TODO
-	}
-	
 	@Test
 	public void waitForFinalStatusTest() {
 		DynamicLayerCache currentCache = new DynamicLayerCache("12345678", "testWorkspace");
@@ -319,7 +271,7 @@ public class WQPDynamicLayerCachingServiceTest {
 				fail("Wrong exception thrown!");
 			}
 		}
-		
+
 		currentCache.setCurrentStatus(DynamicLayerStatus.AVAILABLE);
 		try {
 			assertEquals(currentCache, service.waitForFinalStatus(currentCache));
@@ -332,14 +284,6 @@ public class WQPDynamicLayerCachingServiceTest {
 
 	private void assertEnvironmentDefaults() {
 		assertEquals(Long.valueOf("500"), Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "threadSleep"));
-		assertEquals("http", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverProtocol"));
-		assertEquals("localhost", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverHost"));
-		assertEquals("8080", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverPort"));
-		assertEquals("geoserver", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverContext"));
-		assertEquals("qw_portal_map", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverWorkspace"));
-		assertEquals("http://localhost:8080/geoserver", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverBaseUri"));
-		assertEquals("", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverUser"));
-		assertEquals("", Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "geoserverPass"));
 	}
 
 	public static JsonObject buildCompleteTestDataSourceResponse() {
@@ -362,7 +306,7 @@ public class WQPDynamicLayerCachingServiceTest {
 		layerList.add(three);
 		return rtn;
 	}
-	
+
 	public static JsonObject buildEmptyDataStoresTestDataStoreResponse() {
 		JsonObject rtn = new JsonObject();
 		JsonObject dataStores = new JsonObject();
@@ -380,7 +324,6 @@ public class WQPDynamicLayerCachingServiceTest {
 		dataStores.add(WQPDynamicLayerCachingService.DATASTORE, dataStoreList);
 		return rtn;
 	}
-
 
 	public static JsonObject buildNoDataStoreTestDataStoreResponse() {
 		JsonObject rtn = new JsonObject();

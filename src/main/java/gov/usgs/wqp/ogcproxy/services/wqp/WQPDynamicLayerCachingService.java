@@ -2,6 +2,7 @@ package gov.usgs.wqp.ogcproxy.services.wqp;
 
 import static org.springframework.util.StringUtils.isEmpty;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -9,15 +10,14 @@ import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
+import org.apache.http.HttpStatus;
+import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +33,7 @@ import gov.usgs.wqp.ogcproxy.geo.JsonObjectResponseHandler;
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
 import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
 import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
+import gov.usgs.wqp.ogcproxy.utils.GeoServerUtils;
 
 public class WQPDynamicLayerCachingService {
 	private static final Logger LOG = LoggerFactory.getLogger(WQPDynamicLayerCachingService.class);
@@ -42,34 +43,22 @@ public class WQPDynamicLayerCachingService {
 
 	@Autowired
 	private WQPLayerBuildingService wqpLayerBuildingService;
+	@Autowired
+	protected String geoserverWorkspace;
+	@Autowired
+	protected GeoServerUtils geoServerUtils;
 
 	@Autowired
-	private Environment environment;
+	protected Environment environment;
 	private static boolean initialized;
-	
+
 	private static Map<String, DynamicLayerCache> requestToLayerCache;
-	
-	private static long threadSleep				= 500;
-	private static String geoserverProtocol		= "http";
-	private static String geoserverHost			= "localhost";
-	private static String geoserverPort			= "8080";
-	private static String geoserverContext		= "geoserver";
-	private static String geoserverWorkspace	= "qw_portal_map";
-	private static String geoserverBaseUri		= "";
-	private static String geoserverDatastores	= "datastores.json";
-	private static String geoserverRest			= "rest";
-	private static String geoserverWorkspaces	= "workspaces";
-	private static String geoserverUser			= "";
-	private static String geoserverPass			= "";
-	/* ====================================================================== */
-		
-	/*
-	 * INSTANCE		===========================================================
-	 * ========================================================================
-	 */
-	/* ====================================================================== */
+
+	private static long threadSleep = 500;
+
+	protected CloseableHttpClient httpClient;
+
 	private static final WQPDynamicLayerCachingService INSTANCE = new WQPDynamicLayerCachingService();
-	/* ====================================================================== */
 
 	/**
 	 * Private Constructor for Singleton Pattern
@@ -114,36 +103,19 @@ public class WQPDynamicLayerCachingService {
 						  "- Keeping thread sleep default to [" + threadSleep + "].\n" + e.getMessage() + "\n");
 			}
 
-			String tmp = environment.getProperty("wqp.geoserver.proto");
-			if (!isEmpty(tmp)) {
-				geoserverProtocol = tmp;
-			}
-			tmp = environment.getProperty("wqp.geoserver.host");
-			if (!isEmpty(tmp)) {
-				geoserverHost = tmp;
-			}
-			tmp = environment.getProperty("wqp.geoserver.port");
-			if (!isEmpty(tmp)) {
-				geoserverPort= tmp;
-			}
-			tmp = environment.getProperty("wqp.geoserver.context");
-			if (!isEmpty(tmp)) {
-				geoserverContext = tmp;
-			}
-			tmp = environment.getProperty("wqp.geoserver.user");
-			if (!isEmpty(tmp)) {
-				geoserverUser = tmp;
-			}
-			tmp = environment.getProperty("wqp.geoserver.pass");
-			if (!isEmpty(tmp)) {
-				geoserverPass = tmp;
-			}
-			tmp = environment.getProperty("wqp.geoserver.workspace");
-			if (!isEmpty(tmp)) {
-				geoserverWorkspace = tmp;
-			}
-			geoserverBaseUri = geoserverProtocol + "://" + geoserverHost + ":" + geoserverPort + "/" + geoserverContext;
+			httpClient = geoServerUtils.buildAuthorizedClient();
+
 			populateCache();
+		}
+	}
+
+	@PreDestroy
+	public void tearDown() {
+		try {
+			httpClient.close();
+			LOG.info("Closed httpClient");
+		} catch (IOException e) {
+			LOG.error("Issue trying to close httpClient:" + e.getLocalizedMessage());
 		}
 	}
 
@@ -234,6 +206,7 @@ public class WQPDynamicLayerCachingService {
 				removeLayerCache(layerCache.getKey());
 			}
 
+			//TODO Bubble this error up to the client!!
 			LOG.error("Layer was not created for search parameters.", e);
 		}
 
@@ -384,10 +357,11 @@ public class WQPDynamicLayerCachingService {
 	}
 
 	protected void clearGeoserverWorkspace() {
-		String deleteUri = String.join("/", geoserverBaseUri, geoserverRest, geoserverWorkspaces, geoserverWorkspace) + "?recurse=true";
-		try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(getCredentialsProvider()).build()) {
+		String deleteUri = geoServerUtils.buildWorkspaceRestDelete();
+		try {
+			HttpClientContext localContext = geoServerUtils.buildLocalContext();
 			HttpDelete httpDelete = new HttpDelete(deleteUri);
-			httpClient.execute(httpDelete);
+			httpClient.execute(httpDelete, localContext);
 		} catch (Exception e) {
 			//TODO - OK to just eat?
 			LOG.error("Problems resetting workspace in geoserver: " + e.getLocalizedMessage(), e);
@@ -448,9 +422,10 @@ public class WQPDynamicLayerCachingService {
 		 * just in case...
 		 */
 		LOG.trace("START");
-		try (CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(getCredentialsProvider()).build()) {
-			String uri = String.join("/", geoserverBaseUri, geoserverRest, geoserverWorkspaces, geoserverWorkspace, geoserverDatastores);
-			JsonObject jsonObject = httpClient.execute(new HttpGet(uri), new JsonObjectResponseHandler());
+		HttpClientContext localContext = geoServerUtils.buildLocalContext();
+		try {
+			JsonObject jsonObject = httpClient.execute(new HttpGet(geoServerUtils.buildDataStoreRestGet()),
+					new JsonObjectResponseHandler(), localContext);
 			Iterator<JsonElement> i = getResponseIterator(jsonObject);
 			while (i.hasNext()) {
 				JsonObject layer = i.next().getAsJsonObject();
@@ -463,7 +438,15 @@ public class WQPDynamicLayerCachingService {
 				}
 			}
 		} catch (Exception e) {
-			LOG.error("Problems loading cache from geoserver: " + e.getLocalizedMessage(), e);
+			if (e instanceof HttpResponseException && ((HttpResponseException)e).getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+				try {
+					geoServerUtils.createWorkspace(httpClient, localContext);
+				} catch (OGCProxyException e1) {
+					LOG.error("Problems creating workspace while loading cache: " + e.getLocalizedMessage(), e);
+				}
+			} else {
+				LOG.error("Problems loading cache from geoserver: " + e.getLocalizedMessage(), e);
+			}
 		}
 		LOG.trace("FINISH");
 	}
@@ -478,24 +461,6 @@ public class WQPDynamicLayerCachingService {
 			rtn = jsonObject.getAsJsonObject(DATASTORES).getAsJsonArray(DATASTORE).iterator();
 		}
 		return rtn;
-	}
-
-	protected CredentialsProvider getCredentialsProvider() {
-		//TODO refactor to either WQPDynamicLayerCachingService or WQPLayerBuildingService
-		CredentialsProvider credsProvider = new BasicCredentialsProvider();
-		credsProvider.setCredentials(
-				new AuthScope(geoserverHost, Integer.parseInt(geoserverPort)),
-				new UsernamePasswordCredentials(geoserverUser, geoserverPass));
-		return credsProvider;
-		//TODO end
-	}
-
-	/**
-	 * Really only meant to be used by automated tests - Spring will normally handle it with the @Autowired annotation.
-	 * @param environment
-	 */
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
 	}
 
 }
