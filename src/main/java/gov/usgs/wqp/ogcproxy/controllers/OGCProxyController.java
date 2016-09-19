@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -47,6 +48,12 @@ public class OGCProxyController {
 		mv.addObject("version", ApplicationVersion.getVersion());
 
 		return mv;
+	}
+
+	@GetMapping({"/schemas/**", "/ows/**"})
+	public void getSchemasAndOws(HttpServletRequest request, HttpServletResponse response) {
+		LOG.debug("OGCProxyController.wmsProxy() INFO - Performing request.");
+		proxyService.performRequest(request, response, OGCServices.WMS);
 	}
 
 	/** 
