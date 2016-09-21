@@ -415,7 +415,7 @@ public class ProxyService {
 				// cover both cases.  If we need more contentType support we'll
 				// have to expand the following logic.
 				byte[] inspectedBytes;
-				String contentType = methodEntity.getContentType().getValue();
+				String contentType = null == methodEntity.getContentType() ? null : methodEntity.getContentType().getValue();
 				if ((contentType != null) && (contentType.toLowerCase().contains("xml"))) {
 					inspectedBytes = inspectServerContent(clientRequest, serverRequest, ogcRequest, serverContent, contentCompressed);
 					
