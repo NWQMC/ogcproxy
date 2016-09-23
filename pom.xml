@@ -54,9 +54,10 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.version>4.3.0.RELEASE</spring.version>
-		<gt.version>15.0</gt.version>
+		<spring.version>4.3.3.RELEASE</spring.version>
+		<gt.version>15.1</gt.version>
 		<powermock.version>1.6.5</powermock.version>
+		<logback-classic-version>1.1.7</logback-classic-version>
 		<warName>ogcproxy</warName>
 		<cida.maven.url>http://internal.cida.usgs.gov/maven</cida.maven.url>
 		<additionalparam>-Xdoclint:none</additionalparam>
@@ -98,7 +99,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
-				<version>2.6</version>
+				<version>3.0.0</version>
 				<configuration>
 					<failOnMissingWebXml>false</failOnMissingWebXml>
 					<archive>
@@ -217,12 +218,12 @@
 			<scope>test</scope>
 		</dependency>
 		<!-- ================================================================== -->
-		<!-- Log4j dependencies -->
+		<!-- Logging dependencies -->
 		<!-- ================================================================== -->
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.7.21</version>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>${logback-classic-version}</version>
 		</dependency>
 		<!-- ================================================================== -->
 		<!-- GeoTools dependencies -->

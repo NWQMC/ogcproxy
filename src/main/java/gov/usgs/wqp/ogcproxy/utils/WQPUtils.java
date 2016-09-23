@@ -45,6 +45,9 @@ import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 public class WQPUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(WQPUtils.class);
 
+	private WQPUtils() {
+	}
+
 	public static SearchParameters<String, List<String>> parseSearchParams(String searchParamString) {
 		SearchParameters<String, List<String>> searchParams = new SearchParameters<>();
 
@@ -116,7 +119,8 @@ public class WQPUtils {
 			throws OGCProxyException {
 		HttpUriRequest request = null;
 
-		StringBuilder requestURI = new StringBuilder(simpleStationURL + "?");
+		StringBuilder requestURI = new StringBuilder();
+		requestURI.append(simpleStationURL).append("?");
 		String sepParams = "";
 		for (Map.Entry<String,List<String>> paramEntry : searchParams.entrySet()) {
 			String param = paramEntry.getKey();
@@ -143,7 +147,7 @@ public class WQPUtils {
 			try {
 				encodedValue = URLEncoder.encode(joinedValues.toString(), "UTF-8").replaceAll("%26","&").replaceAll("%3D","=");
 			} catch (UnsupportedEncodingException e) {
-				LOG.error("Encoding parameter value exception:\n[" + e.getMessage() + "].  Using un-encoded value instead [" + joinedValues.toString() + "]");
+				LOG.error("Encoding parameter value exception:\n[" + e.getMessage() + "].  Using un-encoded value instead [" + joinedValues.toString() + "]", e);
 				encodedValue = joinedValues.toString();
 			}
 
@@ -159,13 +163,13 @@ public class WQPUtils {
 			serverRequestURI = (new URL(requestURI.toString())).toURI();
 		} catch (MalformedURLException e) {
 			String msg = "Exception : Syntax error parsing server URL [" + e.getMessage() + "].";
-			LOG.error(msg);
+			LOG.error(msg, e);
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;
 			throw new OGCProxyException(id, "WQPUtils", "generateSimpleStationRequest()", msg);
 		} catch (URISyntaxException e) {
 			String msg = "Exception : Syntax error parsing server URL [" + e.getMessage() + "].";
-			LOG.error(msg);
+			LOG.error(msg, e);
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;
 			throw new OGCProxyException(id, "WQPUtils", "generateSimpleStationRequest()", msg);
@@ -187,13 +191,13 @@ public class WQPUtils {
 			methodResponse = httpClient.execute(serverRequest, localContext);
 		} catch (ClientProtocolException e) {
 			String msg = "Exception : Client protocol error [" + e.getMessage() + "]";
-			LOG.error(msg);
+			LOG.error(msg, e);
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.CLIENT_PROTOCOL_ERROR;
 			throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
 		} catch (IOException e) {
 			String msg = "Exception : I/O error on server request [" + e.getMessage() + "]";
-			LOG.error(msg);
+			LOG.error(msg, e);
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_REQUEST_IO_ERROR;
 			throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
@@ -228,7 +232,7 @@ public class WQPUtils {
 		} catch (Exception e) {
 			String msg = "Exception reading response from server [" +
 					e.getMessage() + "] Check that the path exists: " + filePath;
-			LOG.error(msg);
+			LOG.error(msg, e);
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_REQUEST_IO_ERROR;
 			throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
@@ -238,7 +242,7 @@ public class WQPUtils {
 				// connection pool for future reuse!
 				EntityUtils.consume(methodEntity);
 			} catch (IOException e) {
-				LOG.error("Consuming remaining bytes in server response entity from SimpleStation request [" + serverRequest.getURI() + "]");
+				LOG.error("Consuming remaining bytes in server response entity from SimpleStation request [" + serverRequest.getURI() + "]", e);
 			}
 
 			try {
@@ -251,7 +255,7 @@ public class WQPUtils {
 				}
 			} catch (IOException e) {
 				String msg = "Exception closing buffered streams [" + e.getMessage() + "] continuing...";
-				LOG.error(msg);
+				LOG.error(msg, e);
 			}
 		}
 

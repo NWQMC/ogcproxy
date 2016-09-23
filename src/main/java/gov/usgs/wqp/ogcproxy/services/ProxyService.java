@@ -62,7 +62,7 @@ public class ProxyService {
 	private static final Logger LOG = LoggerFactory.getLogger(ProxyService.class);
 	private static final String CLASSNAME = ProxyService.class.getName();
 
-	private static boolean initialized;
+	private volatile boolean initialized;
 
 	public static final String WMS_GET_CAPABILITIES_CONTENT = "<Layer queryable=\"1\">" +
 			"<Name>wqp_sites</Name>" +
@@ -146,7 +146,7 @@ public class ProxyService {
 			serverClient.close();
 			LOG.info("Closed serverClient");
 		} catch (IOException e) {
-			LOG.error("Issue trying to close serverClient:" + e.getLocalizedMessage());
+			LOG.error("Issue trying to close serverClient:" + e.getLocalizedMessage(), e);
 		}
 	}
 
@@ -470,7 +470,11 @@ public class ProxyService {
 		if (contentCompressed) {
 			stringContent = SystemUtils.uncompressGzipAsString(serverContent);
 		} else {
-			stringContent = new String(serverContent);
+			try {
+				stringContent = new String(serverContent, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				throw new OGCProxyException(null, CLASSNAME, "inspectServerContent", e.getLocalizedMessage());
+			}
 		}
 
 		// We now need to do some inspection on the data.  If the original OGC
@@ -532,7 +536,7 @@ public class ProxyService {
 		 * very large String of XML is smaller in memory than an entire XML DOM
 		 * object of the same string.
 		 */
-		StringBuffer newContent = new StringBuffer();
+		StringBuilder newContent = new StringBuilder();
 
 		switch (serviceType) {
 			case WMS:

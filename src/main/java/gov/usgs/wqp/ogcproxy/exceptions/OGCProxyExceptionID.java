@@ -9,8 +9,12 @@ public class OGCProxyExceptionID {
 		this.exceptionId = Long.valueOf(id);
 	}
 
-	public String toString() { return this.name; }
-	public Long value() { return this.exceptionId; }
+	public String toString() {
+		return this.name;
+	}
+	public Long value() {
+		return this.exceptionId;
+	}
 
 	//-----------------------------------------
 	// EXCEPTION DEFINITIONS

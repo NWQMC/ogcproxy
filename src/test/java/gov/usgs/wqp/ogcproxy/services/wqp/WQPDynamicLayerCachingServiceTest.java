@@ -33,6 +33,8 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.powermock.reflect.Whitebox;
 import org.springframework.core.env.Environment;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -49,6 +51,7 @@ import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.model.status.DynamicLayerStatus;
 import gov.usgs.wqp.ogcproxy.utils.GeoServerUtils;
 
+@DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class WQPDynamicLayerCachingServiceTest {
 
 	@Mock
@@ -197,15 +200,18 @@ public class WQPDynamicLayerCachingServiceTest {
 
 		//defaults since all are empty string
 		assertEnvironmentDefaults();
+		verify(environment, times(1)).getProperty("proxy.thread.sleep");
 
 		//still defaults because already initialized...
 		service.initialize();
 		assertEnvironmentDefaults();
+		verify(environment, times(1)).getProperty("proxy.thread.sleep");
 
 		//start over and apply some.
-		Whitebox.setInternalState(WQPDynamicLayerCachingService.class, "initialized", false);
+		service.initialized = false;
 		service.initialize();
 		assertEquals(Long.valueOf("456"), Whitebox.getInternalState(WQPDynamicLayerCachingService.class, "threadSleep"));
+		verify(environment, times(2)).getProperty("proxy.thread.sleep");
 	}
 
 	@Test

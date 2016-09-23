@@ -7,13 +7,11 @@ import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.servlet.ModelAndView;
 
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
@@ -40,9 +38,9 @@ public class OGCProxyController {
 	 * 
 	 * @return The splash page of the application.
 	 */
-	@RequestMapping(value="/", method=RequestMethod.GET)
+	@GetMapping("/")
 	public ModelAndView entry() {
-		LOG.debug("OGCProxyController.entry() called");
+		LOG.info("OGCProxyController.entry() called");
 		
 		ModelAndView mv = new ModelAndView("index.jsp");
 		mv.addObject("version", ApplicationVersion.getVersion());
@@ -52,91 +50,56 @@ public class OGCProxyController {
 
 	@GetMapping({"/schemas/**", "/ows/**"})
 	public void getSchemasAndOws(HttpServletRequest request, HttpServletResponse response) {
-		LOG.debug("OGCProxyController.wmsProxy() INFO - Performing request.");
+		LOG.info("OGCProxyController.getSchemasAndOws() - Performing request.");
 		proxyService.performRequest(request, response, OGCServices.WMS);
+		LOG.info("OGCProxyController.getSchemasAndOws() - Done performing request.");
 	}
 
-	/** 
-	 * WMS Get endpoint.
-	 * May actually contain a WMS or WFS call - the "SERVICE" parameter is used to determine the actual service being called.
-	 * 
-	 * @param request
-	 * @param response
-	 */
-	@RequestMapping(value="/wms", method={RequestMethod.GET})
+	@GetMapping("/wms")
 	public void wmsProxyGet(HttpServletRequest request, HttpServletResponse response) {
-		LOG.debug("OGCProxyController.wmsProxy() INFO - Performing request.");
+		LOG.info("OGCProxyController.wmsProxyGet() - Performing request.");
 		proxyService.performRequest(request, response, OGCServices.WMS);
+		LOG.info("OGCProxyController.wmsProxyGet() - Done performing request.");
 	}
 
-	/** 
-	 * WFS Get endpoint.
-	 * May actually contain a WMS or WFS call - the "SERVICE" parameter is used to determine the actual service being called.
-	 * 
-	 * @param request
-	 * @param response
-	 */
-	@RequestMapping(value="/wfs", method=RequestMethod.GET)
+	@GetMapping("/wfs")
 	public void wfsProxyGet(HttpServletRequest request, HttpServletResponse response) {
-		LOG.debug("OGCProxyController.wfsProxy() INFO - Performing request.");
+		LOG.info("OGCProxyController.wfsProxyGet() - Performing request.");
 		proxyService.performRequest(request, response, OGCServices.WFS);
+		LOG.info("OGCProxyController.wfsProxyGet() - Done performing request.");
 	}
 
-	/** 
-	 * WMS Post endpoint.
-	 * May actually contain a WMS or WFS call - the "SERVICE" parameter is used to determine the actual service being called.
-	 * 
-	 * @param request
-	 * @param response
-	 */
-	@Async
-	@RequestMapping(value="/wms", method=RequestMethod.POST)
+	@PostMapping("/wms")
 	public void wmsProxyPost(HttpServletRequest request, HttpServletResponse response) {
-		LOG.debug("OGCProxyController.wmsProxyPost() INFO - Performing request.");
+		LOG.info("OGCProxyController.wmsProxyPost() INFO - Performing request.");
 		proxyService.performRequest(request, response, OGCServices.WMS);
+		LOG.info("OGCProxyController.wmsProxyPost() INFO - Done performing request.");
 	}
 
-	/** 
-	 * WFS Post endpoint.
-	 * May actually contain a WMS or WFS call - the "SERVICE" parameter is used to determine the actual service being called.
-	 * 
-	 * @param request
-	 * @param response
-	 */
-	@Async
-	@RequestMapping(value="/wfs", method=RequestMethod.POST)
+	@PostMapping("/wfs")
 	public void wfsProxyPost(HttpServletRequest request, HttpServletResponse response) {
-		LOG.debug("OGCProxyController.wfsProxyPost() INFO - Performing request.");
+		LOG.info("OGCProxyController.wfsProxyPost() - Performing request.");
 		proxyService.performRequest(request, response, OGCServices.WFS);
+		LOG.info("OGCProxyController.wfsProxyPost() - Done performing request.");
 	}
 
-	/** 
-	 * Get the current status of the OGCProxy cache object.
-	 * 
-	 * @param site The cache DataSource to display content from. 
-	 * @return The cache status report.
-	 */
-	@RequestMapping(value="/rest/cachestatus/{site}", method=RequestMethod.GET)
-	public DeferredResult<ModelAndView> restCacheStatus(@PathVariable String site) {
-		DeferredResult<ModelAndView> finalResult = new DeferredResult<ModelAndView>();
-
-		finalResult.setResult(restService.checkCacheStatus(site));
-
+	@GetMapping("/rest/cachestatus/{site}")
+	public ModelAndView restCacheStatus(@PathVariable String site) {
+		LOG.info("OGCProxyController.restCacheStatus() - Performing request.");
+		ModelAndView finalResult = restService.checkCacheStatus(site);
+		LOG.info("OGCProxyController.restCacheStatus() - Performing request.");
 		return finalResult;
 	}
 
-	/** 
-	 * Clear the specified DataSource's cache.
-	 * @param site The cache DataSource to clear.
-	 * @return The cache clear report.
-	 */
-	@RequestMapping(value="/rest/clearcache/{site}", method=RequestMethod.DELETE)
+	@DeleteMapping("/rest/clearcache/{site}")
 	public void restClearCache(@PathVariable String site, HttpServletResponse response) {
+		LOG.info("OGCProxyController.restClearCache() - Done performing request.");
 		if (restService.clearCacheBySite(site)) {
 			response.setStatus(HttpStatus.SC_OK);
 		} else {
 			response.setStatus(HttpStatus.SC_BAD_REQUEST);
 		}
+		LOG.info("OGCProxyController.restClearCache() - Done performing request.");
 	}
 
 }

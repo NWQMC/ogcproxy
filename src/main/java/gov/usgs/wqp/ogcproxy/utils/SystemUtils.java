@@ -36,10 +36,9 @@ public class SystemUtils {
 	public static final char[] ILLEGAL_CHARACTERS = { '/', '\n', '\r', '\t', '\0', '\f', '`', '?', '*', '\\', '<', '>', '|', '\"', ':' };
 
 	public static final String MEDIATYPE_APPLICATION_ZIP = "application/zip";
+	private static final int BUFFER = 2048;
 
-	public static boolean PROFILE = false;
-
-	static {
+	private SystemUtils() {
 	}
 
 	public static boolean filenameIsValid(String name) {
@@ -81,36 +80,37 @@ public class SystemUtils {
 
 		String[] directoryFiles = directory.list(filter);
 
-		try {
-			final int BUFFER = 2048;
-			BufferedInputStream origin = null;
-			FileOutputStream dest = new FileOutputStream(zipFileName);
-			ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(dest));
-
-			byte data[] = new byte[BUFFER];
-
-			for (String shpFilename : directoryFiles) {
-				String file = path + File.separator + shpFilename;
-				FileInputStream fi = new FileInputStream(file);
-				origin = new BufferedInputStream(fi, BUFFER);
-
-				ZipEntry entry = new ZipEntry(shpFilename);
-				out.putNextEntry(entry);
-				int count;
-
-				while ((count = origin.read(data, 0, BUFFER)) != -1) {
-					out.write(data, 0, count);
+		if (null != directoryFiles) {
+			try {
+				BufferedInputStream origin = null;
+				FileOutputStream dest = new FileOutputStream(zipFileName);
+				ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(dest));
+	
+				byte[] data = new byte[BUFFER];
+	
+				for (String shpFilename : directoryFiles) {
+					String file = path + File.separator + shpFilename;
+					FileInputStream fi = new FileInputStream(file);
+					origin = new BufferedInputStream(fi, BUFFER);
+	
+					ZipEntry entry = new ZipEntry(shpFilename);
+					out.putNextEntry(entry);
+					int count;
+	
+					while ((count = origin.read(data, 0, BUFFER)) != -1) {
+						out.write(data, 0, count);
+					}
+	
+					origin.close();
+	
+					File deleteFile = new File(file);
+					deleteFile.delete();
 				}
-
-				origin.close();
-
-				File deleteFile = new File(file);
-				deleteFile.delete();
+				out.close();
+			} catch (IOException e) {
+				LOG.error(e.getMessage(), e);
+				return false;
 			}
-			out.close();
-		} catch (IOException e) {
-			LOG.error(e.getMessage());
-			return false;
 		}
 
 		return true;
@@ -139,8 +139,8 @@ public class SystemUtils {
 			} catch (IOException e) {
 				String msg = "SystemUtils.uncompressGzipAsString() Exception : Error reading gzip content [" +
 						 e.getMessage() + "]";
-					LOG.error(msg);
-					
+					LOG.error(msg, e);
+
 					OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_ERROR;
 					throw new OGCProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
 			}
@@ -155,7 +155,7 @@ public class SystemUtils {
 		} catch (UnsupportedEncodingException e) {
 			String msg = "SystemUtils.uncompressGzipAsString() Exception : Error reading gzip content [" +
 					 e.getMessage() + "]";
-			LOG.error(msg);
+			LOG.error(msg, e);
 			
 			OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_NOT_UTF8;
 			throw new OGCProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
@@ -176,17 +176,17 @@ public class SystemUtils {
 		} catch (IOException e) {
 			String msg = "SystemUtils.uncompressGzipAsString() Exception : Error creating GZIPOutputStream [" +
 				 e.getMessage() + "]";
-			LOG.error(msg);
+			LOG.error(msg, e);
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;
 			throw new OGCProxyException(id, "ProxyUtil", "compressStringToGzip()", msg);
 		}
 		try {
-			gzip.write(content.getBytes());
+			gzip.write(content.getBytes("UTF-8"));
 		} catch (IOException e) {
 			String msg = "SystemUtils.uncompressGzipAsString() Exception : Error writing content to GZIPOutputStream [" +
 					 e.getMessage() + "]";
-				LOG.error(msg);
+				LOG.error(msg, e);
 
 				OGCProxyExceptionID id = OGCProxyExceptionID.UTIL_GZIP_COMPRESSION_ERROR;
 				throw new OGCProxyException(id, "SystemUtils", "compressStringToGzip()", msg);
@@ -196,7 +196,7 @@ public class SystemUtils {
 		} catch (IOException e) {
 			String msg = "SystemUtils.uncompressGzipAsString() Warning : Error closing GZIPOutputStream [" +
 					 e.getMessage() + "]";
-			LOG.error(msg);
+			LOG.error(msg, e);
 		}
 
 		return out.toByteArray();

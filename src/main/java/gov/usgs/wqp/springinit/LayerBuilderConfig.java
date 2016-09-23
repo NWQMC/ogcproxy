@@ -40,7 +40,7 @@ public class LayerBuilderConfig {
 	@Bean
 	public String layerbuilderPath() {
 		return isEmpty(environment.getProperty("wqp.layerbuilder.path"))
-				? "station/search" : environment.getProperty("wqp.layerbuilder.path");
+				? "Station/search" : environment.getProperty("wqp.layerbuilder.path");
 	}
 
 	@Bean

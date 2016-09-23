@@ -1,12 +1,16 @@
 package gov.usgs.wqp.ogcproxy.model.parser;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.util.Map;
 
 import org.junit.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 
+import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WFSParameters;
+import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters;
+import gov.usgs.wqp.ogcproxy.model.parameters.WQPParameters;
 import gov.usgs.wqp.ogcproxy.model.parser.OgcParser;
 
 public class OgcParserTest {
@@ -138,12 +142,12 @@ public class OgcParserTest {
 		parser.parse();
 		Map<String,String[]> requestParams = parser.getRequestParamsAsMap();
 
-		assertEquals(5, requestParams.size());
-		assertEquals("GetFeature", requestParams.get("request")[0]);
-		assertEquals("1.1.0", requestParams.get("version")[0]);
-		assertEquals("WFS", requestParams.get("service")[0]);
-		assertEquals("wqp_sites", requestParams.get("typeNames")[0]);
-		assertEquals("", requestParams.get("typeName")[0]);
+		assertEquals(4, requestParams.size());
+		assertEquals("GetFeature", requestParams.get(WFSParameters.request.toString())[0]);
+		assertEquals("1.1.0", requestParams.get(WFSParameters.version.toString())[0]);
+		assertEquals("WFS", requestParams.get(WFSParameters.service.toString())[0]);
+		assertEquals("wqp_sites", requestParams.get(WFSParameters.typeNames.toString())[0]);
+		assertFalse(requestParams.containsKey(WFSParameters.typeName.toString()));
 	}
 
 	@Test
@@ -157,12 +161,12 @@ public class OgcParserTest {
 		parser.parse();
 		Map<String,String[]> requestParams = parser.getRequestParamsAsMap();
 
-		assertEquals(5, requestParams.size());
-		assertEquals("GetFeature", requestParams.get("request")[0]);
-		assertEquals("1.1.0", requestParams.get("version")[0]);
-		assertEquals("WFS", requestParams.get("service")[0]);
-		assertEquals("wqp_sites", requestParams.get("typeName")[0]);
-		assertEquals("", requestParams.get("typeNames")[0]);
+		assertEquals(4, requestParams.size());
+		assertEquals("GetFeature", requestParams.get(WFSParameters.request.toString())[0]);
+		assertEquals("1.1.0", requestParams.get(WFSParameters.version.toString())[0]);
+		assertEquals("WFS", requestParams.get(WFSParameters.service.toString())[0]);
+		assertEquals("wqp_sites", requestParams.get(WFSParameters.typeName.toString())[0]);
+		assertFalse(requestParams.containsKey(WFSParameters.typeNames.toString()));
 	}
 
 	@Test
@@ -176,13 +180,13 @@ public class OgcParserTest {
 		parser.parse();
 		Map<String,String[]> requestParams = parser.getRequestParamsAsMap();
 
-		assertEquals(6, requestParams.size());
-		assertEquals("GetFeature", requestParams.get("request")[0]);
-		assertEquals("1.1.0", requestParams.get("version")[0]);
-		assertEquals("WFS", requestParams.get("service")[0]);
-		assertEquals("wqp_sites", requestParams.get("typeName")[0]);
-		assertEquals("", requestParams.get("typeNames")[0]);
-		assertEquals(SEARCH_PARAMS_DECODED, requestParams.get("searchParams")[0]);
+		assertEquals(5, requestParams.size());
+		assertEquals("GetFeature", requestParams.get(WFSParameters.request.toString())[0]);
+		assertEquals("1.1.0", requestParams.get(WFSParameters.version.toString())[0]);
+		assertEquals("WFS", requestParams.get(WFSParameters.service.toString())[0]);
+		assertEquals("wqp_sites", requestParams.get(WFSParameters.typeName.toString())[0]);
+		assertFalse(requestParams.containsKey(WFSParameters.typeNames.toString()));
+		assertEquals(SEARCH_PARAMS_DECODED, requestParams.get(WQPParameters.searchParams.toString())[0]);
 
 		assertEquals(wfs_minus_vendorParams, parser.getBodyMinusVendorParams());
 	}
@@ -199,11 +203,11 @@ public class OgcParserTest {
 		Map<String,String[]> requestParams = parser.getRequestParamsAsMap();
 
 		assertEquals(5, requestParams.size());
-		assertEquals("GetMap", requestParams.get("request")[0]);
-		assertEquals("1.1.1", requestParams.get("version")[0]);
-		assertEquals("WMS", requestParams.get("service")[0]);
-		assertEquals("wqp_sites", requestParams.get("layers")[0]);
-		assertEquals(SEARCH_PARAMS_DECODED, requestParams.get("searchParams")[0]);
+		assertEquals("GetMap", requestParams.get(WFSParameters.request.toString())[0]);
+		assertEquals("1.1.1", requestParams.get(WFSParameters.version.toString())[0]);
+		assertEquals("WMS", requestParams.get(WFSParameters.service.toString())[0]);
+		assertEquals("wqp_sites", requestParams.get(WMSParameters.layers.toString())[0]);
+		assertEquals(SEARCH_PARAMS_DECODED, requestParams.get(WQPParameters.searchParams.toString())[0]);
 
 		assertEquals(WMS_GET_MAP_MINUS_VENDOR_PARAMS, parser.getBodyMinusVendorParams());
 	}

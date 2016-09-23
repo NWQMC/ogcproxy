@@ -89,22 +89,31 @@ public class OgcParser {
 
 	protected void parseWfs(Document doc) throws UnsupportedEncodingException {
 		NodeList nodes = doc.getElementsByTagNameNS("*", "Query");
-		//Only expect one Query node
-		requestParams.put(WFSParameters.typeName.toString(),
-				new String[] {getAttributeText(nodes.item(0).getAttributes(), WFSParameters.typeName.toString())});
-		requestParams.put(WFSParameters.typeNames.toString(),
-				new String[] {getAttributeText(nodes.item(0).getAttributes(), WFSParameters.typeNames.toString())});
+		if (0 < nodes.getLength()) {
+			//Expect one and only one Query node
 
-		getVendorParams(doc.getElementsByTagNameNS("*", "PropertyIsEqualTo"));
+			String[] typeName = new String[] {getAttributeText(nodes.item(0).getAttributes(), WFSParameters.typeName.toString())};
+			String[] typeNames = new String[] {getAttributeText(nodes.item(0).getAttributes(), WFSParameters.typeNames.toString())};
+			if (typeName.length > 0 && !typeName[0].isEmpty()) {
+				requestParams.put(WFSParameters.typeName.toString(), typeName);
+			}
+			if (typeNames.length > 0 && !typeNames[0].isEmpty()) {
+				requestParams.put(WFSParameters.typeNames.toString(), typeNames);
+			}
+	
+			getVendorParams(doc.getElementsByTagNameNS("*", "PropertyIsEqualTo"));
+		}
 	}
 
 	protected void parseWms(Document doc) throws UnsupportedEncodingException {
 		NodeList nodes = doc.getElementsByTagNameNS("*", "NamedLayer");
-		//Only expect one NamedLayer node
-		requestParams.put(WMSParameters.layers.toString(),
-				new String[] {getNodeText((Element) nodes.item(0), "Name")});
-
-		getVendorParams(doc.getElementsByTagNameNS("*", "Vendor"));
+		if (0 < nodes.getLength()) {
+			//Expect one and only one NamedLayer node
+			requestParams.put(WMSParameters.layers.toString(),
+					new String[] {getNodeText((Element) nodes.item(0), "Name")});
+	
+			getVendorParams(doc.getElementsByTagNameNS("*", "Vendor"));
+		}
 	}
 
 	protected void getVendorParams(NodeList vendorParams) throws UnsupportedEncodingException {

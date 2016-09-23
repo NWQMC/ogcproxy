@@ -77,7 +77,7 @@ public class GeoServerConfig {
 			geoserverCatchupTime = Long.parseLong(environment.getProperty("wqp.geoserver.catchup.time"));
 		} catch (Exception e) {
 			LOG.info("WQPLayerBuildingService() Constructor Exception: Failed to parse property [wqp.geoserver.catchup.time] " +
-					  "- Keeping GeoServer Catchup Time default to [" + geoserverCatchupTime + "].\n" + e.getMessage() + "\n");
+					  "- Keeping GeoServer Catchup Time default to [" + geoserverCatchupTime + "].\n" + e.getMessage() + "\n", e);
 		}
 		return geoserverCatchupTime;
 	}
