@@ -23,7 +23,7 @@ import gov.usgs.wqp.ogcproxy.services.ProxyService;
 
 public class CloseableHttpClientFactory {
 
-	private static boolean initialized;
+	private volatile boolean initialized;
 
 	private static final CloseableHttpClientFactory INSTANCE = new CloseableHttpClientFactory();
 

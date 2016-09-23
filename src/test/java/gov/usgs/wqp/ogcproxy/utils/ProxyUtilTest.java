@@ -37,6 +37,7 @@ import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WFSParameters;
 import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
+import gov.usgs.wqp.ogcproxy.model.parameters.WQPParameters;
 import gov.usgs.wqp.ogcproxy.model.parser.OgcParserTest;
 
 public class ProxyUtilTest {
@@ -199,7 +200,7 @@ public class ProxyUtilTest {
 		assertTrue(ogcRequest.getRequestBody().isEmpty());
 
 
-		requestParams.put("searchParams", null);
+		requestParams.put(WQPParameters.searchParams.toString(), null);
 		ogcRequest = ProxyUtil.separateParameters(clientRequest, OGCServices.WFS);
 		assertEquals(OGCServices.WMS, ogcRequest.getOgcService());
 
@@ -212,7 +213,7 @@ public class ProxyUtilTest {
 		assertTrue(ogcRequest.getRequestBody().isEmpty());
 
 
-		requestParams.put("searchParams", new String[]{"huc:06*|07*;sampleMedia:Water;characteristicType:Nutrient"});
+		requestParams.put(WQPParameters.searchParams.toString(), new String[]{"huc:06*|07*;sampleMedia:Water;characteristicType:Nutrient"});
 		ogcRequest = ProxyUtil.separateParameters(clientRequest, OGCServices.WFS);
 		assertEquals(OGCServices.WMS, ogcRequest.getOgcService());
 
@@ -241,9 +242,9 @@ public class ProxyUtilTest {
 		OGCRequest ogcRequest = ProxyUtil.separateParameters(clientRequest, OGCServices.WFS);
 		assertEquals(OGCServices.WFS, ogcRequest.getOgcService());
 
-		assertEquals(5, ogcRequest.getOgcParams().size());
+		assertEquals(4, ogcRequest.getOgcParams().size());
 		assertEquals(ProxyDataSourceParameter.WQP_SITES.toString(), ogcRequest.getOgcParams().get(WFSParameters.typeName.toString()));
-		assertEquals("", ogcRequest.getOgcParams().get(WFSParameters.typeNames.toString()));
+		assertFalse(requestParams.containsKey(WFSParameters.typeNames.toString()));
 		assertEquals("GetFeature", ogcRequest.getOgcParams().get("request"));
 		assertEquals(OGCServices.WFS.toString(), ogcRequest.getOgcParams().get("service"));
 		assertEquals("1.1.0", ogcRequest.getOgcParams().get("version"));

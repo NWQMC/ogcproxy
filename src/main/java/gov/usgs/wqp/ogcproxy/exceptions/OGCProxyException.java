@@ -8,7 +8,7 @@ public class OGCProxyException extends Exception {
 	private final String method;						// the name of the method that threw the exception
 	private final String message;						// a detailed message
 	private final OGCProxyException previous; 			// the exception which was caught
-	private String delimeter = "\n";					// line separator
+	private final String delimeter = "\n";				// line separator
 
 	public OGCProxyException(final OGCProxyExceptionID id, final String classname, final String method, final String message) {
 		this(id, classname, method, message, null);
@@ -31,14 +31,9 @@ public class OGCProxyException extends Exception {
 	}
 
 	public String traceBack() {
-		return traceBack("\n");
-	}
-
-	public String traceBack(final String sep) {
-		this.delimeter = sep;
 		int level = 0;
 		OGCProxyException e = this;
-		final StringBuffer text = new StringBuffer(line("OGCProxyException Trace: Calling sequence (top to bottom)"));
+		final StringBuilder text = new StringBuilder(line("OGCProxyException Trace: Calling sequence (top to bottom)"));
 		while (e != null) {
 			level++;
 			text.append(this.delimeter);

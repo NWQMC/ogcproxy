@@ -1,6 +1,6 @@
 package gov.usgs.wqp.ogcproxy.model.cache;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
@@ -26,9 +26,12 @@ public class DynamicLayerCache {
 	private String workspace;
 	private DynamicLayerStatus currentStatus;
 	private SearchParameters<String, List<String>> searchParameters;
-	private Date dateCreated;
+	private LocalDateTime dateCreated;
 	//This should probably be the "data source" when we have more than WQP
 	private OGCServices originatingService;
+
+	//see http://cida-eros-sonar.er.usgs.gov:9001/sonar/coding_rules#rule_key=squid%3AS2445 - this might be one of our issues....
+	private Object lockObj = new Object();
 
 	/** 
 	 * Constructor for Layers found in Geoserver.
@@ -51,7 +54,7 @@ public class DynamicLayerCache {
 		this.workspace = workspace;
 		this.searchParameters = ogcRequest.getSearchParams();
 		this.currentStatus = DynamicLayerStatus.INITIATED;
-		this.dateCreated = new Date();
+		this.dateCreated = LocalDateTime.now();
 		this.originatingService = ogcRequest.getOgcService();
 	}
 	
@@ -70,7 +73,7 @@ public class DynamicLayerCache {
 	}
 
 	public void setCurrentStatus(DynamicLayerStatus currentStatus) {
-		synchronized (this.currentStatus) {
+		synchronized (lockObj) {
 			this.currentStatus = currentStatus;
 		}
 	}
@@ -79,7 +82,7 @@ public class DynamicLayerCache {
 		return this.searchParameters;
 	}
 
-	public Date getDateCreated() {
+	public LocalDateTime getDateCreated() {
 		return dateCreated;
 	}
 

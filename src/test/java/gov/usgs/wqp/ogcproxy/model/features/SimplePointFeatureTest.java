@@ -31,7 +31,7 @@ public class SimplePointFeatureTest {
 		//match, the data will be all hosed.
 		SimpleFeatureType featureType = null;
 		try {
-			featureType = SimplePointFeature.getFeatureType();
+			featureType = SimplePointFeatureType.FEATURETYPE;
 			assertEquals(CRS.decode("EPSG:4326"), featureType.getCoordinateReferenceSystem());
 		} catch (Exception e) {
 			fail("Failed requesting featureType: " + e.getMessage());
@@ -50,7 +50,7 @@ public class SimplePointFeatureTest {
 
 		SimplePointFeature currentPointFeature = new SimplePointFeature((JsonObject) new JsonParser().parse(JSON_FEATURE));
 
-		SimpleFeature generatedFeature = currentPointFeature.getSimpleFeature(new SimpleFeatureBuilder(SimplePointFeature.getFeatureType()));
+		SimpleFeature generatedFeature = currentPointFeature.getSimpleFeature(new SimpleFeatureBuilder(SimplePointFeatureType.FEATURETYPE));
 		assertEquals(JTSFactoryFinder.getGeometryFactory().createPoint(new Coordinate(-88.9773314, 43.3836014)),
 				generatedFeature.getAttribute("the_geom"));
 		assertEquals("BBGGR", generatedFeature.getAttribute(FeatureAttributeType.orgId.toString()));

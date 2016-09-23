@@ -2,7 +2,7 @@ package gov.usgs.wqp.ogcproxy.model.attributes;
 
 public class GeoJSONAttributes {
 	
-	public GeoJSONAttributes() {
+	private GeoJSONAttributes() {
 	}
 	
 	public static final String PROVIDER = "ProviderName";

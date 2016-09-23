@@ -1,11 +1,12 @@
 package gov.usgs.wqp.ogcproxy.model.parameters;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("serial")
 public class SearchParameters<T, K> extends ConcurrentHashMap<String, List<String>> {
-	private final int prime = 31;
+	private static final int PRIME = 31;
 	private int currentHash = 1;
 	
 	@Override
@@ -18,10 +19,10 @@ public class SearchParameters<T, K> extends ConcurrentHashMap<String, List<Strin
 			this.remove(key);
 		}
 		
-		int newHash = this.prime + key.hashCode();
+		int newHash = PRIME + key.hashCode();
 		
 		for (String s : value) {
-			newHash = newHash * this.prime + s.hashCode();
+			newHash = newHash * PRIME + s.hashCode();
 		}
 		
 		this.currentHash += newHash;
@@ -34,13 +35,13 @@ public class SearchParameters<T, K> extends ConcurrentHashMap<String, List<Strin
 		List<String> oldValue = super.remove(key);
 		
 		if (oldValue == null) {
-			return null;
+			return Collections.emptyList();
 		}
 		
-		int oldHash = this.prime + ((String)key).hashCode();
+		int oldHash = PRIME + ((String)key).hashCode();
 		
 		for (String s : oldValue) {
-			oldHash = oldHash * this.prime + s.hashCode();
+			oldHash = oldHash * PRIME + s.hashCode();
 		}
 		
 		this.currentHash -= oldHash;

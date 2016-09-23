@@ -50,7 +50,7 @@ public class WQPDynamicLayerCachingService {
 
 	@Autowired
 	protected Environment environment;
-	private static boolean initialized;
+	protected volatile boolean initialized;
 
 	private static Map<String, DynamicLayerCache> requestToLayerCache;
 
@@ -79,7 +79,7 @@ public class WQPDynamicLayerCachingService {
 
 	@PostConstruct
 	public void initialize() {
-		LOG.trace("WQPDynamicLayerCachingService.initialize() called");
+		LOG.trace("WQPDynamicLayerCachingService.initialize() called: " + initialized);
 
 		/*
 		 * Since we are using Spring DI we cannot access the environment bean
@@ -100,7 +100,7 @@ public class WQPDynamicLayerCachingService {
 				threadSleep = Long.parseLong(environment.getProperty("proxy.thread.sleep"));
 			} catch (Exception e) {
 				LOG.error("Failed to parse property [proxy.thread.sleep] " +
-						  "- Keeping thread sleep default to [" + threadSleep + "].\n" + e.getMessage() + "\n");
+						  "- Keeping thread sleep default to [" + threadSleep + "].\n" + e.getMessage() + "\n", e);
 			}
 
 			httpClient = geoServerUtils.buildAuthorizedClient();
@@ -115,7 +115,7 @@ public class WQPDynamicLayerCachingService {
 			httpClient.close();
 			LOG.info("Closed httpClient");
 		} catch (IOException e) {
-			LOG.error("Issue trying to close httpClient:" + e.getLocalizedMessage());
+			LOG.error("Issue trying to close httpClient:" + e.getLocalizedMessage(), e);
 		}
 	}
 
@@ -190,7 +190,10 @@ public class WQPDynamicLayerCachingService {
 					break;
 
 				case ERROR:
-					LOG.error("Layer cache is in an ERROR state and cannot continue request.");
+					LOG.error("Retrieved layer name [" + layerCache.getLayerName() +
+							"] for key ["+ ogcRequest.getSearchParams().unsignedHashCode() +
+							"] and its status is [" + layerCache.getCurrentStatus().toString() +
+							"].  Cannot continue request.");
 					break;
 
 				default:

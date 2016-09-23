@@ -40,11 +40,11 @@ import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
 import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeature;
+import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeatureType;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
 import gov.usgs.wqp.ogcproxy.utils.CloseableHttpClientFactory;
 import gov.usgs.wqp.ogcproxy.utils.GeoServerUtils;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
-import gov.usgs.wqp.ogcproxy.utils.TimeProfiler;
 import gov.usgs.wqp.ogcproxy.utils.WQPUtils;
 
 public class WQPLayerBuildingService {
@@ -64,7 +64,7 @@ public class WQPLayerBuildingService {
 	@Qualifier("shapefileDirectory")
 	private String shapefileDirectory;
 
-	private static boolean initialized;
+	private volatile boolean initialized;
 
 	protected CloseableHttpClient geoserverClient;
 	protected CloseableHttpClient wqpClient;
@@ -118,17 +118,17 @@ public class WQPLayerBuildingService {
 			wqpClient.close();
 			LOG.info("Closed goeserverClient and wqpClient");
 		} catch (IOException e) {
-			LOG.error("Issue trying to close goeserverClient and wqpClient:" + e.getLocalizedMessage());
+			LOG.error("Issue trying to close goeserverClient and wqpClient:" + e.getLocalizedMessage(), e);
 		}
 	}
 
 	public String buildDynamicLayer(SearchParameters<String, List<String>> searchParams) throws OGCProxyException {
+		long startTime = System.nanoTime();
 		/*
 		 * Get GeoJson from source
 		 */
 		String layerName = DynamicLayerCache.DYNAMIC_LAYER_PREFIX + searchParams.unsignedHashCode();
 		File dataFile = getGeoJsonData(searchParams, layerName);
-		TimeProfiler.startTimer("WQPLayerBuildingService.buildDynamicLayer() INFO: ShapeFileConverter Overall Time");
 
 		/*
 		 * Parse the GeoJsonData
@@ -162,7 +162,7 @@ public class WQPLayerBuildingService {
 		 */
 		geoServerUtils.uploadShapefile(geoserverClient, shapefileDirectory, layerName);
 
-		TimeProfiler.endTimer("WQPLayerBuildingService.buildDynamicLayer() INFO: ShapeFileConverter Overall Time", LOG);
+		LOG.info(layerName + " created in " + ((System.nanoTime() - startTime) / 1000000000d) + " seconds");
 
 		return layerName;
 	}
@@ -188,13 +188,11 @@ public class WQPLayerBuildingService {
 	private List<SimpleFeature> processInput(String filename) throws OGCProxyException {
 		List<SimpleFeature> features = new ArrayList<>();
 		try {
-			TimeProfiler.startTimer("WQX_OB_XML Parse Execution Time");
 			JsonParser parser = new JsonParser();
 			Object obj = parser.parse(new FileReader(filename));
 			if (obj instanceof JsonObject && ((JsonObject) obj).has("features") && ((JsonObject) obj).get("features").isJsonArray()) {
 				features.addAll(processFeatures(((JsonObject) obj).getAsJsonArray("features").iterator())); 
 			}
-			TimeProfiler.endTimer("WQX_OB_XML Parse Execution Time", LOG);
 		} catch (Exception e) {
 			LOG.error("WQPLayerBuildingService.parseInput() Exception: " + e.getMessage());
 			String msg = "WQPLayerBuildingService.buildDynamicLayer() EXCEPTION : Parsing the input failed.  Throwing Exception...";
@@ -206,7 +204,7 @@ public class WQPLayerBuildingService {
 	}
 
 	private List<SimpleFeature> processFeatures(Iterator<JsonElement> i) {
-		SimpleFeatureBuilder featurebuilder = new SimpleFeatureBuilder(SimplePointFeature.getFeatureType());
+		SimpleFeatureBuilder featurebuilder = new SimpleFeatureBuilder(SimplePointFeatureType.FEATURETYPE);
 		List<SimpleFeature> features = new ArrayList<>();
 		while (i.hasNext()) {
 			JsonObject jsonFeature = i.next().getAsJsonObject();
@@ -217,10 +215,7 @@ public class WQPLayerBuildingService {
 
 	private boolean createShapeFile(String path, String filename, boolean createIndex, List<SimpleFeature> features) {
 		File newFile = new File(path + "/" + filename + ".shp");
-
-		TimeProfiler.startTimer("WQPLayerBuildingService.createShapeFile() INFO: GeoTools - ShapefileDataStoreFactory Creation Time");
 		ShapefileDataStoreFactory dataStoreFactory = new ShapefileDataStoreFactory();
-		TimeProfiler.endTimer("WQPLayerBuildingService.createShapeFile() INFO: GeoTools - ShapefileDataStoreFactory Creation Time", LOG);
 
 		Map<String, Serializable> params = new HashMap<>();
 		try {
@@ -231,7 +226,6 @@ public class WQPLayerBuildingService {
 		}
 		params.put("create spatial index", createIndex);
 
-		TimeProfiler.startTimer("WQPLayerBuildingService.createShapeFile() INFO: GeoTools - ShapefileDataStore Creation Time");
 		ShapefileDataStore newDataStore;
 		try {
 			newDataStore = (ShapefileDataStore) dataStoreFactory.createNewDataStore(params);
@@ -239,13 +233,12 @@ public class WQPLayerBuildingService {
 			LOG.error(e.getMessage(), e);
 			return false;
 		}
-		TimeProfiler.endTimer("WQPLayerBuildingService.createShapeFile() INFO: GeoTools - ShapefileDataStore Creation Time", LOG);
 
 		/*
 		 * TYPE is used as a template to describe the file contents
 		 */
 		try {
-			newDataStore.createSchema(SimplePointFeature.getFeatureType());
+			newDataStore.createSchema(SimplePointFeatureType.FEATURETYPE);
 		} catch (IOException e) {
 			LOG.error(e.getMessage(), e);
 			return false;
@@ -254,13 +247,11 @@ public class WQPLayerBuildingService {
 		/*
 		 * Write the features to the shapefile
 		 */
-		TimeProfiler.startTimer("WQPLayerBuildingService.createShapeFile() INFO: OVERALL GeoTools ShapeFile Creation Time");
 		if (!writeToShapeFile(newDataStore, features, path, filename)) {
 			String error = "Unable to write shape file";
 			LOG.error(error);
 			return false;
 		}
-		TimeProfiler.endTimer("WQPLayerBuildingService.createShapeFile() INFO: OVERALL GeoTools ShapeFile Creation Time", LOG);
 
 		return true;
 	}
@@ -282,7 +273,7 @@ public class WQPLayerBuildingService {
 				 * SimpleFeatureCollection object, so we use the ListFeatureCollection
 				 * class to wrap our list of features.
 				 */
-				SimpleFeatureCollection collection = new ListFeatureCollection(SimplePointFeature.getFeatureType(), features);
+				SimpleFeatureCollection collection = new ListFeatureCollection(SimplePointFeatureType.FEATURETYPE, features);
 				
 				featureStore.setTransaction(transaction);
 				try {
@@ -299,14 +290,12 @@ public class WQPLayerBuildingService {
 				SystemUtils.createZipFromFilematch(path, filename);
 			} else {
 				String msg = typeName + " does not support read/write access";
-				System.out.println(msg);
 				LOG.error(msg);
 				return false;
 			}
 
 		} catch (IOException e) {
-			System.out.println(e.getMessage());
-			LOG.error(e.getMessage());
+			LOG.error(e.getMessage(), e);
 			return false;
 		}
 

@@ -1,17 +1,14 @@
 package gov.usgs.wqp.ogcproxy.model.features;
 
 import org.geotools.feature.simple.SimpleFeatureBuilder;
-import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.feature.simple.SimpleFeatureType;
 
 import com.google.gson.JsonObject;
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.Point;
 
-import gov.usgs.wqp.ogcproxy.model.attributes.FeatureAttributeType;
 import gov.usgs.wqp.ogcproxy.model.attributes.GeoJSONAttributes;
 
 /**
@@ -39,8 +36,6 @@ public class SimplePointFeature {
 	private SimpleFeature simpleFeature;
 
 	private GeometryFactory geometryFactory;
-
-	private static SimpleFeatureType FEATURETYPE;
 
 	public SimplePointFeature(JsonObject jsonFeature) {
 		this.provider = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.PROVIDER).getAsString();
@@ -70,7 +65,7 @@ public class SimplePointFeature {
 		featureBuilder.add(this.type);
 		featureBuilder.add(this.searchType);
 		featureBuilder.add(this.huc8);
-		featureBuilder.add(provider.toString());
+		featureBuilder.add(this.provider);
 		this.simpleFeature = featureBuilder.buildFeature(null);
 
 		return this.simpleFeature;
@@ -78,10 +73,10 @@ public class SimplePointFeature {
 
 	@Override
 	public String toString() {
-		StringBuffer sb = new StringBuffer();
+		StringBuilder sb = new StringBuilder();
 
 		sb.append("SimplePointFeature Instance:");
-		sb.append("\tProvider:\t" + provider.toString() + "\n");
+		sb.append("\tProvider:\t" + this.provider + "\n");
 		sb.append("\tName:\t\t" + this.name + "\n");
 		sb.append("\tLocation Name:\t" + this.locationName + "\n");
 		sb.append("\tType:\t\t" + this.type + "\n");
@@ -94,35 +89,6 @@ public class SimplePointFeature {
 		sb.append("\tPOINT: " + this.point + "\n");
 
 		return sb.toString();
-	}
-
-	public static SimpleFeatureType getFeatureType() {
-		if (SimplePointFeature.FEATURETYPE == null) {
-			synchronized(SimplePointFeature.class) {
-				if (SimplePointFeature.FEATURETYPE == null) {
-					SimpleFeatureTypeBuilder builder = new SimpleFeatureTypeBuilder();
-					builder.setName("Location");
-					// Coordinate reference system
-					builder.setSRS("EPSG:4326");
-
-					// add attributes in order
-					builder.add("the_geom", Point.class);
-					builder.length(32).add(FeatureAttributeType.orgId.toString(), String.class);
-					builder.length(128).add(FeatureAttributeType.orgName.toString(), String.class);
-					builder.length(32).add(FeatureAttributeType.name.toString(), String.class);
-					builder.length(256).add(FeatureAttributeType.locName.toString(), String.class);
-					builder.length(32).add(FeatureAttributeType.type.toString(), String.class);
-					builder.length(32).add(FeatureAttributeType.searchType.toString(), String.class);
-					builder.length(32).add(FeatureAttributeType.huc8.toString(), String.class);
-					builder.length(32).add(FeatureAttributeType.provider.toString(), String.class);
-
-					// build the type
-					SimplePointFeature.FEATURETYPE = builder.buildFeatureType();
-				}
-			}
-		}
-
-		return SimplePointFeature.FEATURETYPE;
 	}
 
 }
