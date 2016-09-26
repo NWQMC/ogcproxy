@@ -1,6 +1,6 @@
 package gov.usgs.wqp.ogcproxy.model.cache;
 
-import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
@@ -26,7 +26,7 @@ public class DynamicLayerCache {
 	private String workspace;
 	private DynamicLayerStatus currentStatus;
 	private SearchParameters<String, List<String>> searchParameters;
-	private LocalDateTime dateCreated;
+	private Date dateCreated;
 	//This should probably be the "data source" when we have more than WQP
 	private OGCServices originatingService;
 
@@ -54,7 +54,7 @@ public class DynamicLayerCache {
 		this.workspace = workspace;
 		this.searchParameters = ogcRequest.getSearchParams();
 		this.currentStatus = DynamicLayerStatus.INITIATED;
-		this.dateCreated = LocalDateTime.now();
+		this.dateCreated = new Date();
 		this.originatingService = ogcRequest.getOgcService();
 	}
 	
@@ -82,7 +82,7 @@ public class DynamicLayerCache {
 		return this.searchParameters;
 	}
 
-	public LocalDateTime getDateCreated() {
+	public Date getDateCreated() {
 		return dateCreated;
 	}
 
