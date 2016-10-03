@@ -76,7 +76,7 @@ public class CloseableHttpClientFactoryTest {
 	}
 
 	@Test
-	public void initializeTest() {
+	public void initializeTest() throws InterruptedException {
 		factory.initialize();
 		assertNotNull(factory.clientConnectionManager);
 		assertEquals(CloseableHttpClientFactory.CONNECTIONS_MAX_TOTAL, factory.clientConnectionManager.getMaxTotal());

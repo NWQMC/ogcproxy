@@ -1,10 +1,12 @@
 package gov.usgs.wqp.ogcproxy.utils;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
@@ -151,12 +153,22 @@ public class GeoServerUtils {
 	protected void verifyWorkspaceExists(CloseableHttpClient geoserverClient, HttpClientContext localContext) throws OGCProxyException {
 		int statusCode = -1;
 		String workspaceURI = buildWorkspacesRestGet();
+		CloseableHttpResponse response = null;
 		try {
-			statusCode = geoserverClient.execute(new HttpGet(workspaceURI), localContext).getStatusLine().getStatusCode();
+			response = geoserverClient.execute(new HttpGet(workspaceURI), localContext);
+			statusCode = response.getStatusLine().getStatusCode();
 		} catch (Exception e){
 			LOG.error(e.getLocalizedMessage(), e);
 			throw new OGCProxyException(OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR, "GeoServerUtils", "verifyWorkspaceExists()", 
 					"Exception: " + e.getLocalizedMessage());
+		} finally {
+			try {
+				if (null != response) {
+					response.close();
+				}
+			} catch (IOException e1) {
+				LOG.error("Trouble closing geoserver workspace verification response", e1);
+			}
 		}
 		if (HttpStatus.SC_NOT_FOUND == statusCode) {
 			createWorkspace(geoserverClient, localContext);
@@ -166,18 +178,28 @@ public class GeoServerUtils {
 	protected void putShapefile(CloseableHttpClient geoserverClient, HttpClientContext localContext,
 			String layerName, String mediaType, File file) throws OGCProxyException {
 		int statusCode = -1;
+		CloseableHttpResponse response = null;
 		try {
 			HttpPut httpPut = new HttpPut(buildShapeFileRestPut(layerName));
 			HttpEntity fileEntity = new FileEntity(file, ContentType.create(mediaType));
 			httpPut.setEntity(fileEntity);
 	
-			statusCode = geoserverClient.execute(httpPut, localContext).getStatusLine().getStatusCode();
+			response = geoserverClient.execute(httpPut, localContext);
+			statusCode = response.getStatusLine().getStatusCode();
 			LOG.debug("GeoServerUtils.putShapefile() INFO: \nGeoServer response for request [" + httpPut.getURI()
 				+ "] is: \n[" + statusCode + "]");
 		} catch (Exception e) {
 			LOG.error(e.getLocalizedMessage(), e);
 			throw new OGCProxyException(OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR, "GeoServerUtils", "putShapefile()", 
 					"Exception: " + e.getLocalizedMessage());
+		} finally {
+			try {
+				if (null != response) {
+					response.close();
+				}
+			} catch (IOException e1) {
+				LOG.error("Trouble closing geoserver workspace verification response", e1);
+			}
 		}
 		if (HttpStatus.SC_CREATED != statusCode) {
 			throw new OGCProxyException(OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR, "GeoServerUtils", "putShapefile()", 
@@ -193,16 +215,26 @@ public class GeoServerUtils {
 		String object = "<namespace><prefix>" + geoserverWorkspace
 				+ "</prefix><uri>http://www.waterqualitydata.us/ogcservices</uri></namespace>";
 		int statusCode = -1;
+		CloseableHttpResponse response = null;
 		try {
 			HttpPost httpPost = new HttpPost(buildNamespacePost());
 			HttpEntity httpEntity = new StringEntity(object);
 			httpPost.setEntity(httpEntity);
 			httpPost.addHeader("content-type", mediaType);
-			statusCode = geoserverClient.execute(httpPost, localContext).getStatusLine().getStatusCode();
+			response = geoserverClient.execute(httpPost, localContext);
+			statusCode = response.getStatusLine().getStatusCode();
 		} catch (Exception e) {
 			LOG.error(e.getLocalizedMessage(), e);
 			throw new OGCProxyException(OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR, "GeoServerUtils", "createWorkspace()", 
 					"Exception: " + e.getLocalizedMessage());
+		} finally {
+			try {
+				if (null != response) {
+					response.close();
+				}
+			} catch (IOException e1) {
+				LOG.error("Trouble closing geoserver workspace verification response", e1);
+			}
 		}
 		if (HttpStatus.SC_CREATED != statusCode) {
 			throw new OGCProxyException(OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR, "GeoServerUtils", "createWorkspace()", 
