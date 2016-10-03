@@ -3,6 +3,7 @@ package gov.usgs.wqp.ogcproxy.utils;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -29,6 +30,7 @@ public class CloseableHttpClientFactory {
 
 	protected PoolingHttpClientConnectionManager clientConnectionManager;
 	protected RequestConfig config;
+	protected IdleConnectionMonitorThread staleMonitor;
 
 	/**
 	 * Private Constructor for Singleton Pattern
@@ -58,9 +60,10 @@ public class CloseableHttpClientFactory {
 	 * Since we are using Spring DI we cannot access the environment bean in
 	 * the constructor. We'll just use a locked initialized variable to
 	 * check initialization after instantiation and set the env properties here.
+	 * @throws InterruptedException 
 	 */
 	@PostConstruct
-	public void initialize() {
+	public void initialize() throws InterruptedException {
 		if ( initialized ) {
 			return;
 		}
@@ -75,10 +78,20 @@ public class CloseableHttpClientFactory {
 			clientConnectionManager = new PoolingHttpClientConnectionManager(CONNECTION_TTL, TimeUnit.MILLISECONDS);
 			clientConnectionManager.setMaxTotal(CONNECTIONS_MAX_TOTAL);
 			clientConnectionManager.setDefaultMaxPerRoute(CONNECTIONS_MAX_ROUTE);
+			clientConnectionManager.setValidateAfterInactivity(CLIENT_CONNECTION_TIMEOUT);
 
 			config = RequestConfig.custom().setConnectTimeout(CLIENT_CONNECTION_TIMEOUT)
 					.setSocketTimeout(CLIENT_SOCKET_TIMEOUT).build();
+
+			staleMonitor = new IdleConnectionMonitorThread(clientConnectionManager, CLIENT_CONNECTION_TIMEOUT);
+			staleMonitor.start();
+			staleMonitor.join(1000);
 		}
+	}
+
+	@PreDestroy
+	public void tearDown() {
+		staleMonitor.shutdown();
 	}
 
 	public HttpClientBuilder getCommonClientBuilder() {

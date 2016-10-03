@@ -20,6 +20,7 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
@@ -310,11 +311,11 @@ public class ProxyService {
 
 	private void handleServerRequest(HttpServletRequest clientRequest, HttpServletResponse clientResponse,
 			HttpUriRequest serverRequest, OGCRequest ogcRequest) throws OGCProxyException {
-		
+		HttpContext localContext = new BasicHttpContext();
+		CloseableHttpResponse methodResponse = null;
 		try {
-			HttpContext localContext = new BasicHttpContext();
-			HttpResponse methodReponse = serverClient.execute(serverRequest, localContext);
-			handleServerResponse(clientRequest, clientResponse, serverRequest, methodReponse, ogcRequest);
+			methodResponse = serverClient.execute(serverRequest, localContext);
+			handleServerResponse(clientRequest, clientResponse, serverRequest, methodResponse, ogcRequest);
 		} catch (ClientProtocolException e) {
 			String msg = "Client protocol error ["
 					+ e.getMessage() + "]";
@@ -328,6 +329,14 @@ public class ProxyService {
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_REQUEST_IO_ERROR;
 			throw new OGCProxyException(id, CLASSNAME, "handleServerRequest()", msg);
+		} finally {
+			try {
+				if (null != methodResponse) {
+					methodResponse.close();
+				}
+			} catch (IOException e1) {
+				LOG.error("Trouble closing geoserver response", e1);
+			}
 		}
 	}
 

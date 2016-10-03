@@ -17,12 +17,12 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
@@ -179,16 +179,18 @@ public class WQPUtils {
 		return request;
 	}
 
-	public static String retrieveSearchParamData(HttpClient httpClient, SearchParameters<String, List<String>> searchParams, String simpleStationURL, String workingDirectory, String layerName) throws OGCProxyException {
+	public static String retrieveSearchParamData(CloseableHttpClient httpClient, SearchParameters<String, List<String>> searchParams, String simpleStationURL, String workingDirectory, String layerName) throws OGCProxyException {
 		List<String> multiparams = new ArrayList<String>();
 		multiparams.add("providers");
 		HttpUriRequest serverRequest = WQPUtils.generateSimpleStationRequest(searchParams, simpleStationURL, multiparams);
 
-		HttpResponse methodResponse;
+		CloseableHttpResponse methodResponse = null;
+		HttpContext localContext = new BasicHttpContext();
+		String rtn = "";
 
 		try {
-			HttpContext localContext = new BasicHttpContext();
 			methodResponse = httpClient.execute(serverRequest, localContext);
+			rtn = processResponse(methodResponse, workingDirectory, layerName, serverRequest);
 		} catch (ClientProtocolException e) {
 			String msg = "Exception : Client protocol error [" + e.getMessage() + "]";
 			LOG.error(msg, e);
@@ -201,8 +203,20 @@ public class WQPUtils {
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_REQUEST_IO_ERROR;
 			throw new OGCProxyException(id, "WQPUtils", "retrieveSearchParamData()", msg);
+		} finally {
+			try {
+				if (null != methodResponse) {
+					methodResponse.close();
+				}
+			} catch (IOException e1) {
+				LOG.error("Trouble closing wqp response", e1);
+			}
 		}
 
+		return rtn;
+	}
+
+	public static String processResponse(CloseableHttpResponse methodResponse, String workingDirectory, String layerName, HttpUriRequest serverRequest) throws OGCProxyException {
 		StatusLine serverStatusLine = methodResponse.getStatusLine();
 		int statusCode = serverStatusLine.getStatusCode();
 		LOG.debug("DEBUG: Server status code " + statusCode);
