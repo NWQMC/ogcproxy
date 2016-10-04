@@ -87,13 +87,13 @@ public class OGCProxyController {
 	public ModelAndView restCacheStatus(@PathVariable String site) {
 		LOG.info("OGCProxyController.restCacheStatus() - Performing request.");
 		ModelAndView finalResult = restService.checkCacheStatus(site);
-		LOG.info("OGCProxyController.restCacheStatus() - Performing request.");
+		LOG.info("OGCProxyController.restCacheStatus() - Done performing request.");
 		return finalResult;
 	}
 
 	@DeleteMapping("/rest/clearcache/{site}")
 	public void restClearCache(@PathVariable String site, HttpServletResponse response) {
-		LOG.info("OGCProxyController.restClearCache() - Done performing request.");
+		LOG.info("OGCProxyController.restClearCache() - Performing request.");
 		if (restService.clearCacheBySite(site)) {
 			response.setStatus(HttpStatus.SC_OK);
 		} else {

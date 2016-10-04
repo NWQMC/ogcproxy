@@ -18,9 +18,6 @@
 					Date Created
 				</td>
 				<td style="border: 2px solid black;font-size: 20px;font-weight: bold;text-align: center;padding-left: 5px;padding-right: 5px;">
-					Layer Status
-				</td>
-				<td style="border: 2px solid black;font-size: 20px;font-weight: bold;text-align: center;padding-left: 5px;padding-right: 5px;">
 					Layer Search Params
 				</td>
 			</tr>
@@ -34,9 +31,6 @@
 					</td>
 					<td style="border: 1px solid black;padding-left: 5px;padding-right: 5px;">
 						<fmt:formatDate type="both" dateStyle="long" timeStyle="long" value="${cacheItem.dateCreated}" />
-					</td>
-					<td style="border: 1px solid black;padding-left: 5px;padding-right: 5px;">
-						${cacheItem.currentStatus}
 					</td>
 					<td style="border: 1px solid black;padding-left: 5px;padding-right: 5px;">
 						<table>

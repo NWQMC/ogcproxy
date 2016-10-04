@@ -1,5 +1,7 @@
 package gov.usgs.wqp.ogcproxy.services;
 
+import java.util.concurrent.ExecutionException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +29,15 @@ public class RESTService {
 			LOG.trace("Checking cache status for site [" + site + "]");
 			mv.setViewName("wqp_cache_status.jsp");
 			mv.addObject("site", "WQP Layer Building Service");
-			mv.addObject("cache", layerCachingService.getCacheStore().values());
+			try {
+				mv.addObject("cache", layerCachingService.getCacheValues());
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		} else {
 			// Or return an error
 			mv.setViewName("invalid_site.jsp");

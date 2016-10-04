@@ -29,8 +29,8 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.ModelAndView;
 
+import gov.usgs.wqp.ogcproxy.model.DynamicLayer;
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
-import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.services.ProxyService;
 import gov.usgs.wqp.ogcproxy.services.RESTService;
@@ -111,8 +111,8 @@ public class OGCProxyControllerTest {
 
 	@Test
 	public void restCacheStatusTest() throws Exception {
-		Map<String, DynamicLayerCache> cache = new HashMap<>();
-		cache.put("abc", new DynamicLayerCache(new OGCRequest(OGCServices.WMS), "abcWorkspace"));
+		Map<String, DynamicLayer> cache = new HashMap<>();
+		cache.put("abc", new DynamicLayer(new OGCRequest(OGCServices.WMS), "abcWorkspace"));
 		when(restService.checkCacheStatus(anyString())).thenReturn(getBadCacheStatus(), getOkCacheStatus(cache));
 
 		mockMvc.perform(get("/rest/cachestatus/wqp_sites"))
@@ -132,8 +132,8 @@ public class OGCProxyControllerTest {
 
 	@Test
 	public void restClearCacheTest() throws Exception {
-		Map<String, DynamicLayerCache> cache = new HashMap<>();
-		cache.put("abc", new DynamicLayerCache(new OGCRequest(OGCServices.WMS), "abcWorkspace"));
+		Map<String, DynamicLayer> cache = new HashMap<>();
+		cache.put("abc", new DynamicLayer(new OGCRequest(OGCServices.WMS), "abcWorkspace"));
 		when(restService.clearCacheBySite(anyString())).thenReturn(false, true);
 
 		mockMvc.perform(delete("/rest/clearcache/no_sites_here"))
@@ -143,7 +143,7 @@ public class OGCProxyControllerTest {
 				.andExpect(status().isOk());
 	}
 
-	protected ModelAndView getOkCacheStatus(Map<String, DynamicLayerCache> cache) {
+	protected ModelAndView getOkCacheStatus(Map<String, DynamicLayer> cache) {
 		ModelAndView mv = new ModelAndView("wqp_cache_status.jsp");
 		mv.addObject("site", "WQP Layer Building Service");
 		mv.addObject("cache", cache.values());
