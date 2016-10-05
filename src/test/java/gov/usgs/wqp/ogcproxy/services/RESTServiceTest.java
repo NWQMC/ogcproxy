@@ -5,8 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.concurrent.ExecutionException;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,8 +15,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.web.servlet.ModelAndView;
 
+import gov.usgs.wqp.ogcproxy.model.DynamicLayer;
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
-import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
@@ -34,17 +35,17 @@ public class RESTServiceTest {
 	}
 
 	@Test
-	public void checkCacheStatusOkTest() {
-		Map<String, DynamicLayerCache> cache = new HashMap<>();
-		cache.put("abc", new DynamicLayerCache(new OGCRequest(OGCServices.WMS), "abcWorkspace"));
-		when(layerCachingService.getCacheStore()).thenReturn(cache);
+	public void checkCacheStatusOkTest() throws InterruptedException, ExecutionException {
+		Collection<DynamicLayer> cache = new ArrayList<>();
+		cache.add(new DynamicLayer(new OGCRequest(OGCServices.WMS), "abcWorkspace"));
+		when(layerCachingService.getCacheValues()).thenReturn(cache);
 
 		ModelAndView mv = service.checkCacheStatus(ProxyDataSourceParameter.WQP_SITES.toString());
 		assertEquals("wqp_cache_status.jsp", mv.getViewName());
 		assertTrue(mv.getModelMap().containsKey("site"));
 		assertEquals("WQP Layer Building Service", mv.getModelMap().get("site"));
 		assertTrue(mv.getModelMap().containsKey("cache"));
-		assertEquals(cache.values(), mv.getModelMap().get("cache"));
+		assertEquals(cache, mv.getModelMap().get("cache"));
 	}
 
 	@Test

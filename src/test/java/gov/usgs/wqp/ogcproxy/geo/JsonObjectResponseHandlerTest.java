@@ -21,18 +21,18 @@ import org.mockito.MockitoAnnotations;
 
 import com.google.gson.JsonObject;
 
-import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
+import gov.usgs.wqp.ogcproxy.model.DynamicLayer;
 
 public class JsonObjectResponseHandlerTest {
 
 	public final static String ONE_KEY = "2943210710";
-	public final static String ONE_NAME = DynamicLayerCache.DYNAMIC_LAYER_PREFIX + ONE_KEY;
+	public final static String ONE_NAME = DynamicLayer.DYNAMIC_LAYER_PREFIX + ONE_KEY;
 	public final static String ONE_HREF = "http://cida-eros-wqpgsdev.er.usgs.gov:8080/geoserver/rest/layers/" + ONE_NAME + ".json";
 	public final static String TWO_KEY = "3121669545";
-	public final static String TWO_NAME = DynamicLayerCache.DYNAMIC_LAYER_PREFIX + TWO_KEY;
+	public final static String TWO_NAME = DynamicLayer.DYNAMIC_LAYER_PREFIX + TWO_KEY;
 	public final static String TWO_HREF = "http://cida-eros-wqpgsdev.er.usgs.gov:8080/geoserver/rest/layers/" + TWO_NAME + ".json";
 	public final static String THREE_KEY = "3671118748";
-	public final static String THREE_NAME = DynamicLayerCache.DYNAMIC_LAYER_PREFIX + THREE_KEY;
+	public final static String THREE_NAME = DynamicLayer.DYNAMIC_LAYER_PREFIX + THREE_KEY;
 	public final static String THREE_HREF = "http://cida-eros-wqpgsdev.er.usgs.gov:8080/geoserver/rest/layers/" + THREE_NAME + ".json";
 
 	public final static String TEST_LAYER_RESPONSE = "{\"layers\": {\"layer\": [{\"name\": \""

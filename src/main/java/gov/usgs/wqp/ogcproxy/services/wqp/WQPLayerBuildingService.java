@@ -38,7 +38,7 @@ import com.google.gson.JsonParser;
 
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
-import gov.usgs.wqp.ogcproxy.model.cache.DynamicLayerCache;
+import gov.usgs.wqp.ogcproxy.model.DynamicLayer;
 import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeature;
 import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeatureType;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
@@ -122,13 +122,13 @@ public class WQPLayerBuildingService {
 		}
 	}
 
-	public String buildDynamicLayer(SearchParameters<String, List<String>> searchParams) throws OGCProxyException {
+	public DynamicLayer buildDynamicLayer(DynamicLayer dynamicLayer) throws OGCProxyException {
 		long startTime = System.nanoTime();
 		/*
 		 * Get GeoJson from source
 		 */
-		String layerName = DynamicLayerCache.DYNAMIC_LAYER_PREFIX + searchParams.unsignedHashCode();
-		File dataFile = getGeoJsonData(searchParams, layerName);
+		String layerName = dynamicLayer.getLayerName();
+		File dataFile = getGeoJsonData(dynamicLayer.getSearchParameters(), layerName);
 
 		/*
 		 * Parse the GeoJsonData
@@ -164,7 +164,7 @@ public class WQPLayerBuildingService {
 
 		LOG.info(layerName + " created in " + ((System.nanoTime() - startTime) / 1000000000d) + " seconds");
 
-		return layerName;
+		return dynamicLayer;
 	}
 
 	private File getGeoJsonData(SearchParameters<String, List<String>> searchParams, String layerName) throws OGCProxyException {

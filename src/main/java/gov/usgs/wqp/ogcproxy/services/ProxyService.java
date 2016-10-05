@@ -40,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
+import gov.usgs.wqp.ogcproxy.model.DynamicLayer;
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
@@ -178,6 +179,7 @@ public class ProxyService {
 
 	protected OGCRequest convertVendorParms(HttpServletRequest request, OGCServices ogcService) {
 		OGCRequest ogcRequest = ProxyUtil.separateParameters(request, ogcService);
+		LOG.info("Parameters: " + ogcRequest.getSearchParams() + " :layer key:" + DynamicLayer.buildLayerName(ogcRequest));
 
 		if (ogcRequest.isValidVendorRequest()) {
 			// We can now proceed with the request. Depending on the value of
