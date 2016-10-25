@@ -20,7 +20,7 @@ public class SimplePointFeatureTest {
 
 	public static final String JSON_FEATURE = 
 			"{\"type\": \"Feature\",\"geometry\": {\"type\": \"Point\",\"coordinates\": [-88.9773314,43.3836014]}," +
-			"\"properties\": {\"ResultCount\": \"100\",\"ProviderName\": \"UNKNOWN\",\"OrganizationIdentifier\": \"BBGGR\"," +
+			"\"properties\": {\"resultCount\": \"100\",\"ProviderName\": \"UNKNOWN\",\"OrganizationIdentifier\": \"BBGGR\"," +
 			"\"OrganizationFormalName\": \"Berry Berry Good Garden Rentals\",\"MonitoringLocationIdentifier\": \"BBGGR-00000123\"," +
 			"\"MonitoringLocationName\": \"DS1 Well\",\"MonitoringLocationTypeName\": \"Well of mine\"," +
 			"\"ResolvedMonitoringLocationTypeName\": \"Well\",\"HUCEightDigitCode\": \"12345687\"}}";
