@@ -14,5 +14,6 @@ public class GeoJSONAttributes {
 	public static final String SEARCH_TYPE = "ResolvedMonitoringLocationTypeName";
 	public static final String HUC8 = "HUCEightDigitCode";
 	public static final String POINT = "coordinates";
+	public static final String RESULT_COUNT = "ResultCount";
 
 }

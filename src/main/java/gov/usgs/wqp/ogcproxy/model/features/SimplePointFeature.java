@@ -29,6 +29,7 @@ public class SimplePointFeature {
 	private double longitude;
 	private double latitude;
 	private Point point;
+	private String resultCount;
 
 	private String orgName;
 	private String orgId;
@@ -48,6 +49,7 @@ public class SimplePointFeature {
 		this.huc8 = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.HUC8).getAsString();
 		this.longitude = jsonFeature.getAsJsonObject("geometry").getAsJsonArray(GeoJSONAttributes.POINT).get(0).getAsDouble();
 		this.latitude = jsonFeature.getAsJsonObject("geometry").getAsJsonArray(GeoJSONAttributes.POINT).get(1).getAsDouble();
+		this.resultCount = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.RESULT_COUNT).getAsString();
 
 		this.geometryFactory = JTSFactoryFinder.getGeometryFactory();
 		this.point = this.geometryFactory.createPoint(new Coordinate(this.longitude, this.latitude));
@@ -66,6 +68,7 @@ public class SimplePointFeature {
 		featureBuilder.add(this.searchType);
 		featureBuilder.add(this.huc8);
 		featureBuilder.add(this.provider);
+		featureBuilder.add(this.resultCount);
 		this.simpleFeature = featureBuilder.buildFeature(null);
 
 		return this.simpleFeature;
@@ -86,6 +89,7 @@ public class SimplePointFeature {
 		sb.append("\tOrgId:\t\t" + this.orgId + "\n");
 		sb.append("\tLongitude:\t" + this.longitude + "\n");
 		sb.append("\tLatitude:\t" + this.latitude + "\n");
+		sb.append("\tResultCount:\t" + this.resultCount + "\n");
 		sb.append("\tPOINT: " + this.point + "\n");
 
 		return sb.toString();
