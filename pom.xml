@@ -3,7 +3,7 @@
 
 	<groupId>gov.usgs.cida.wqp</groupId>
 	<artifactId>ogcproxy</artifactId>
-	<version>0.8.0-SNAPSHOT</version>
+	<version>0.8.0</version>
 	<packaging>war</packaging>
 
 	<name>ogcproxy</name>
@@ -143,7 +143,7 @@
 		<connection>git:http://cida-eros-stash.er.usgs.gov:7999/wqp/ogcproxy.git</connection>
 		<developerConnection>scm:git:ssh://git@cida-eros-stash.er.usgs.gov:7999/wqp/ogcproxy.git</developerConnection>
 		<url>http://internal.cida.usgs.gov/stash/projects/WQP/repos/ogcproxy/browse</url>
-		<tag>HEAD</tag>
+		<tag>ogcproxy-0.8.0</tag>
 	</scm>
 
 
