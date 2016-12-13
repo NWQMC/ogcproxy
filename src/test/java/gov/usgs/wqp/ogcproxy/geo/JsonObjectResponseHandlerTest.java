@@ -40,12 +40,6 @@ public class JsonObjectResponseHandlerTest {
 			+ TWO_NAME + "\",\"href\": \"" + TWO_HREF + "\"}, {\"name\": \""
 			+ THREE_NAME + "\",\"href\": \"" + THREE_HREF + "\"}]}}";
 
-//	public final static String xxx = "{\"namespaces\":{\"namespace\":[{\"name\":\"test\",\"href\":\"http://localhost:8081/geoserver/rest/namespaces/test.json\"}]}}";
-//	{"workspaces":{"workspace":[{"name":"test","href":"http:\/\/localhost:8081\/geoserver\/rest\/workspaces\/test.json"}]}}
-//	JsonObject result = 
-//	result.getAsJsonObject("namespaces").getAsJsonArray("namespace").get(0).getAsJsonObject().get("name");
-//	result.getAsJsonObject("layers").getAsJsonArray("layer").get(0).getAsJsonObject().get("name");
-
 	@Mock
 	private HttpResponse response;
 	@Mock

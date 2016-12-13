@@ -54,10 +54,10 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.version>4.3.3.RELEASE</spring.version>
+		<spring.version>4.3.4.RELEASE</spring.version>
 		<gt.version>15.1</gt.version>
-		<powermock.version>1.6.5</powermock.version>
-		<logback-classic-version>1.1.7</logback-classic-version>
+		<powermock.version>1.6.5</powermock.version> <!-- Do not update to 1.6.6, it is unable to handle the CloseableHttpResponse.close() method. Possibly related to https://github.com/powermock/powermock/issues/717 -->
+		<logback-classic-version>1.1.8</logback-classic-version>
 		<warName>ogcproxy</warName>
 		<cida.maven.url>http://internal.cida.usgs.gov/maven</cida.maven.url>
 		<additionalparam>-Xdoclint:none</additionalparam>
@@ -136,6 +136,11 @@
 			<id>opengeo</id>
 			<name>OpenGeo Maven Repository</name>
 			<url>http://repo.boundlessgeo.com/main/</url>
+		</repository>
+		<repository>
+			<id>nexus-public</id>
+			<name>CIDA Nexus</name>
+			<url>${cida.maven.url}/content/groups/public/</url>
 		</repository>
 	</repositories>
 
@@ -289,7 +294,7 @@
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
-			<version>2.7</version>
+			<version>2.8.0</version>
 		</dependency>
 	</dependencies>
 </project>
