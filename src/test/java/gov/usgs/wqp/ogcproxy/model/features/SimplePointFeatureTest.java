@@ -20,7 +20,7 @@ public class SimplePointFeatureTest {
 
 	public static final String JSON_FEATURE = 
 			"{\"type\": \"Feature\",\"geometry\": {\"type\": \"Point\",\"coordinates\": [-88.9773314,43.3836014]}," +
-			"\"properties\": {\"resultCount\": \"100\",\"ProviderName\": \"UNKNOWN\",\"OrganizationIdentifier\": \"BBGGR\"," +
+			"\"properties\": {\"activityCount\": \"3\",\"resultCount\": \"100\",\"ProviderName\": \"UNKNOWN\",\"OrganizationIdentifier\": \"BBGGR\"," +
 			"\"OrganizationFormalName\": \"Berry Berry Good Garden Rentals\",\"MonitoringLocationIdentifier\": \"BBGGR-00000123\"," +
 			"\"MonitoringLocationName\": \"DS1 Well\",\"MonitoringLocationTypeName\": \"Well of mine\"," +
 			"\"ResolvedMonitoringLocationTypeName\": \"Well\",\"HUCEightDigitCode\": \"12345687\"}}";
@@ -37,7 +37,7 @@ public class SimplePointFeatureTest {
 			fail("Failed requesting featureType: " + e.getMessage());
 		}
 		assertEquals("Location", featureType.getName().getLocalPart());
-		assertEquals(10, featureType.getAttributeCount());
+		assertEquals(11, featureType.getAttributeCount());
 		assertEquals("the_geom", featureType.getAttributeDescriptors().get(0).getName().getLocalPart());
 		assertEquals(FeatureAttributeType.orgId.toString(), featureType.getAttributeDescriptors().get(1).getName().getLocalPart());
 		assertEquals(FeatureAttributeType.orgName.toString(), featureType.getAttributeDescriptors().get(2).getName().getLocalPart());
@@ -47,7 +47,8 @@ public class SimplePointFeatureTest {
 		assertEquals(FeatureAttributeType.searchType.toString(), featureType.getAttributeDescriptors().get(6).getName().getLocalPart());
 		assertEquals(FeatureAttributeType.huc8.toString(), featureType.getAttributeDescriptors().get(7).getName().getLocalPart());
 		assertEquals(FeatureAttributeType.provider.toString(), featureType.getAttributeDescriptors().get(8).getName().getLocalPart());
-		assertEquals(FeatureAttributeType.resultCnt.toString(), featureType.getAttributeDescriptors().get(9).getName().getLocalPart());
+		assertEquals(FeatureAttributeType.sampleCnt.toString(), featureType.getAttributeDescriptors().get(9).getName().getLocalPart());
+		assertEquals(FeatureAttributeType.resultCnt.toString(), featureType.getAttributeDescriptors().get(10).getName().getLocalPart());
 
 		SimplePointFeature currentPointFeature = new SimplePointFeature((JsonObject) new JsonParser().parse(JSON_FEATURE));
 
@@ -62,6 +63,7 @@ public class SimplePointFeatureTest {
 		assertEquals("Well", generatedFeature.getAttribute(FeatureAttributeType.searchType.toString()));
 		assertEquals("12345687", generatedFeature.getAttribute(FeatureAttributeType.huc8.toString()));
 		assertEquals("UNKNOWN", generatedFeature.getAttribute(FeatureAttributeType.provider.toString()));
+		assertEquals("3", generatedFeature.getAttribute(FeatureAttributeType.sampleCnt.toString()));
 		assertEquals("100", generatedFeature.getAttribute(FeatureAttributeType.resultCnt.toString()));
 	}
 
