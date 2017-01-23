@@ -42,12 +42,14 @@ import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
 import gov.usgs.wqp.ogcproxy.model.DynamicLayer;
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
+import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
-import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
 import gov.usgs.wqp.ogcproxy.utils.CloseableHttpClientFactory;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.FileCopyUtils;
 
 
 public class ProxyService {
@@ -64,46 +66,32 @@ public class ProxyService {
 	private static final Logger LOG = LoggerFactory.getLogger(ProxyService.class);
 	private static final String CLASSNAME = ProxyService.class.getName();
 
-	private volatile boolean initialized;
+	private volatile boolean initialized; 
+	
+	public static String TEMP_WMS;
 
-	public static final String WMS_GET_CAPABILITIES_CONTENT = "<Layer queryable=\"1\">" +
-			"<Name>wqp_sites</Name>" +
-			"<Title>wqp_sites</Title>" +
-			"<Abstract />" +
-			"<KeywordList>" +
-			"<Keyword>features</Keyword>" +
-			"<Keyword>wqp_sites</Keyword>" +
-			"</KeywordList>" +
-			"<CRS>EPSG:4326</CRS>" +
-			"<EX_GeographicBoundingBox>" +
-			"<westBoundLongitude>-179.144806</westBoundLongitude>" +
-			"<eastBoundLongitude>179.76416</eastBoundLongitude>" +
-			"<southBoundLatitude>18.913826</southBoundLatitude>" +
-			"<northBoundLatitude>71.332649</northBoundLatitude>" +
-			"</EX_GeographicBoundingBox>" +
-			"<BoundingBox CRS=\"CRS:84\" minx=\"-179.144806\" miny=\"18.913826\"" +
-			" maxx=\"179.76416\" maxy=\"71.332649\" />" +
-			"<BoundingBox CRS=\"EPSG:4326\" minx=\"18.913826\" miny=\"-179.144806\"" +
-			" maxx=\"71.332649\" maxy=\"179.76416\" />" +
-			"<Style>" +
-			"<Name>point</Name>" +
-			"<Title>Default Point</Title>" +
-			"<Abstract>A sample style that draws a point</Abstract>" +
-			"</Style>" +
-			"</Layer>";
+	public static String WMS_GET_CAPABILITIES_1_3_0_CONTENT;
+	
+	public static String WMS_GET_CAPABILITIES_1_1_1_CONTENT;
 
 	/**
 	 * WFS GetFeature allows the use of the searchParams parameter.  Declare it in the GetCapabilities
 	 * document with the ows:AnyValue indicator (http://schemas.opengis.net/ows/1.1.0/owsDomainType.xsd)
 	 */
-	public static final String WFS_GET_CAPABILITIES_CONTENT = "<ows:Parameter name=\"searchParams\">" +
-			"<ows:AnyValue />" +
-			"</ows:Parameter>" +
-			"<ows:Parameter name=\"typeName\">" +
-			"<ows:AllowedValues>" +
-			"<ows:Value>wqp_sites</ows:Value>" +
-			"</ows:AllowedValues>" +
-			"</ows:Parameter>";
+	public static final String WFS_GET_CAPABILITIES_CONTENT = "<FeatureType xmlns:wqp_sites=\"http://www.waterqualitydata.us/ogcservices\">" +
+		"<Name>wqp_sites</Name>" +
+		"<Title>dynamicSites_2776951308</Title>" +
+		"<Abstract/>" +
+		"<ows:Keywords>" +
+		"<ows:Keyword>wqp_sites</ows:Keyword>" +
+		"<ows:Keyword>features</ows:Keyword>" +
+		"</ows:Keywords>" +
+		"<DefaultCRS>urn:ogc:def:crs:EPSG::4326</DefaultCRS>" +
+		"<ows:WGS84BoundingBox>" +
+		"<ows:LowerCorner>-179.144806 18.913826</ows:LowerCorner>\n" +
+		"<ows:UpperCorner>179.76416 71.332649</ows:UpperCorner>\n" +
+		"</ows:WGS84BoundingBox>" +
+		"</FeatureType>";
 
 	private static final ProxyService INSTANCE = new ProxyService();
 
@@ -111,6 +99,13 @@ public class ProxyService {
 	 * Private Constructor for Singleton Pattern
 	 */
 	private ProxyService() {
+		try {
+			WMS_GET_CAPABILITIES_1_3_0_CONTENT = new String(FileCopyUtils.copyToByteArray(new ClassPathResource("schemas.wms.capabilities/GetCapabilities.1.3.0.xml").getInputStream()));
+			WMS_GET_CAPABILITIES_1_1_1_CONTENT = new String(FileCopyUtils.copyToByteArray(new ClassPathResource("schemas.wms.capabilities/GetCapabilities.1.1.1.xml").getInputStream()));
+		} 
+		catch (IOException e) {
+			LOG.error("Unexpected exception reading file: " + e.getLocalizedMessage());
+		}
 	}
 
 	/**
@@ -226,6 +221,7 @@ public class ProxyService {
 			// 1) Generate Server URI
 			String serverRequestURIAsString = ProxyUtil.getServerRequestURIAsString(clientRequest, ogcRequest.getOgcParams(),
 					geoserverBaseURI);
+			String clientRequestMethod = clientRequest.getMethod().toUpperCase();
 
 			LOG.trace("Request to GeoServer is: [\n" + serverRequestURIAsString + "]");
 
@@ -234,7 +230,7 @@ public class ProxyService {
 			URI serverRequestURI = new URL(serverRequestURIAsString).toURI();
 
 			// 2 ) Create request base on client request method
-			switch (clientRequest.getMethod().toUpperCase()) {
+			switch (clientRequestMethod) {
 			case HttpHead.METHOD_NAME:
 				serverRequest = new HttpHead(serverRequestURI);
 				break;
@@ -257,7 +253,7 @@ public class ProxyService {
 				serverRequest = new HttpOptions(serverRequestURI);
 				break;
 			default:
-				String msg = "Unsupported request method [" + serverRequest + "].";
+				String msg = "Unsupported request method [" + clientRequestMethod + "].";
 				LOG.error(msg);
 				OGCProxyExceptionID id = OGCProxyExceptionID.UNSUPPORTED_REQUEST_METHOD;
 				throw new OGCProxyException(id, CLASSNAME, methodName, msg);
@@ -293,20 +289,14 @@ public class ProxyService {
 				}
 			}
 
-		} catch (MalformedURLException e) {
+		} catch (MalformedURLException | URISyntaxException e) {
 			String msg = "Syntax error parsing server URL ["
 					+ e.getMessage() + "].";
 			LOG.error(msg, e);
 
 			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;
 			throw new OGCProxyException(id, CLASSNAME, methodName, msg);
-		} catch (URISyntaxException e) {
-			String msg = "Syntax error parsing server URL [" + e.getMessage() + "].";
-			LOG.error(msg, e);
-
-			OGCProxyExceptionID id = OGCProxyExceptionID.URL_PARSING_EXCEPTION;
-			throw new OGCProxyException(id, CLASSNAME, methodName, msg);
-		}
+		} 
 
 		return serverRequest;
 	}
@@ -491,12 +481,11 @@ public class ProxyService {
 		// We now need to do some inspection on the data.  If the original OGC
 		// request is a GetCapabilities, we need to insert the service's specific
 		// information into the response.
-		if (ProxyUtil.OGC_GET_CAPABILITIES.equalsIgnoreCase(ogcRequest.getRequestType())
-				&& ProxyDataSourceParameter.WQP_SITES == ogcRequest.getDataSource()) {
+		if (ProxyUtil.OGC_GET_CAPABILITIES.equalsIgnoreCase(ogcRequest.getRequestType())) {
 			// This is a GetCapabilities call.  We need to include the service
 			// specific GetCapabilities information in the result so we conform
 			// to the OGC spec
-				stringContent = addGetCapabilitiesInfo(ogcRequest.getOgcService(), stringContent);
+				stringContent = addGetCapabilitiesInfo(ogcRequest.getOgcService(), ogcRequest.getOgcParams().get(WMSParameters.version.toString()), stringContent);
 		}
 
 		String serverHost = serverRequest.getURI().getHost();
@@ -533,8 +522,26 @@ public class ProxyService {
 			}
 		}
 	}
+	
+	private String getWMSProxyDataSourceContent(String version) {
+		StringBuilder result = new StringBuilder();
+		LOG.info("Get Capabilities for version " + version);
+		switch (version) {
+			case "1.1.1":
+			case "1.1.0":
+			case "1.0.0":
+				result.append(WMS_GET_CAPABILITIES_1_1_1_CONTENT);
+				LOG.info("Retruning 1.1.1 content");
+				break;
+			default:
+				result.append(WMS_GET_CAPABILITIES_1_3_0_CONTENT);
+				LOG.info("Returning 1.3.0 content");
+		}
+		LOG.info("Content: " + result.toString());
+		return result.toString();
+	}
 
-	public String addGetCapabilitiesInfo(OGCServices serviceType, String serverContent) {
+	public String addGetCapabilitiesInfo(OGCServices serviceType, String version, String serverContent) {
 		/*
 		 * For now we are assuming all GetCapabilities responses are XML.
 		 *
@@ -564,7 +571,7 @@ public class ProxyService {
 				}
 
 				newContent.append(serverContent.substring(0, closingParentTag));
-				newContent.append(WMS_GET_CAPABILITIES_CONTENT);
+				newContent.append(getWMSProxyDataSourceContent(version));
 				newContent.append(serverContent.substring(closingParentTag, serverContent.length()));
 				break;
 
