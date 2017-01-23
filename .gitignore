@@ -4,3 +4,4 @@ save.classpath
 .settings
 /target
 *.log
+/src/main/webapp/META-INF
