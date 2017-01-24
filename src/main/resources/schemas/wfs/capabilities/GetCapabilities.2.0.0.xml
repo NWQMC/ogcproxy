@@ -1,0 +1,14 @@
+<FeatureType xmlns:wqp_sites="http://www.waterqualitydata.us/ogcservices">
+	<Name>wqp_sites</Name>
+	<Title>wqp_sites</Title>
+	<Abstract/>
+	<ows:Keywords>
+		<ows:Keyword>features</ows:Keyword>
+		<ows:Keyword>wqp_sites</ows:Keyword>
+	</ows:Keywords>
+	<DefaultSRS>urn:x-ogc:def:crs:EPSG:4326</DefaultSRS>
+	<ows:WGS84BoundingBox>
+		<ows:LowerCorner>-179.14734 17.6743956660002</ows:LowerCorner>
+		<ows:UpperCorner>179.77848 71.3892104650001</ows:UpperCorner>
+	</ows:WGS84BoundingBox>
+</FeatureType>

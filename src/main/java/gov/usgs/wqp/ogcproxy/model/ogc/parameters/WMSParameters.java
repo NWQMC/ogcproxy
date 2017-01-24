@@ -2,19 +2,9 @@ package gov.usgs.wqp.ogcproxy.model.ogc.parameters;
 
 /**
  * WMSParameters
- * @author prusso
- *<br /><br />
- *	This enumeration was created at the beginning of the WMSProxy design but
- *	once development got past its prototyping stage, it was deemed not needed
- *	for current operation.
- *<br /><br />
- *	It has been left in the WMSProxy codebase due to possible future necessity
- *	of declaring and filtering on WMS Parameters.
+ * http://docs.geoserver.org/stable/en/user/services/wms/reference.html
  */
 public enum WMSParameters {
-	/**
-	 * http://docs.geoserver.org/stable/en/user/services/wms/reference.html
-	 */
 	service,
 	version,
 	request,

@@ -1,0 +1,8 @@
+<FeatureType>
+	<Name>wqp_sites</Name>
+	<Title>wqp_sites</Title>
+	<Abstract/>
+	<Keywords>features, wqp_sites</Keywords>
+	<SRS>EPSG:4326</SRS>
+	<LatLongBoundingBox minx="-179.14734" miny="17.6743956660002" maxx="179.77848" maxy="71.3892104650001"/>
+</FeatureType>

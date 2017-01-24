@@ -68,30 +68,13 @@ public class ProxyService {
 
 	private volatile boolean initialized; 
 	
-	public static String TEMP_WMS;
-
 	public static String WMS_GET_CAPABILITIES_1_3_0_CONTENT;
 	
 	public static String WMS_GET_CAPABILITIES_1_1_1_CONTENT;
-
-	/**
-	 * WFS GetFeature allows the use of the searchParams parameter.  Declare it in the GetCapabilities
-	 * document with the ows:AnyValue indicator (http://schemas.opengis.net/ows/1.1.0/owsDomainType.xsd)
-	 */
-	public static final String WFS_GET_CAPABILITIES_CONTENT = "<FeatureType xmlns:wqp_sites=\"http://www.waterqualitydata.us/ogcservices\">" +
-		"<Name>wqp_sites</Name>" +
-		"<Title>dynamicSites_2776951308</Title>" +
-		"<Abstract/>" +
-		"<ows:Keywords>" +
-		"<ows:Keyword>wqp_sites</ows:Keyword>" +
-		"<ows:Keyword>features</ows:Keyword>" +
-		"</ows:Keywords>" +
-		"<DefaultCRS>urn:ogc:def:crs:EPSG::4326</DefaultCRS>" +
-		"<ows:WGS84BoundingBox>" +
-		"<ows:LowerCorner>-179.144806 18.913826</ows:LowerCorner>\n" +
-		"<ows:UpperCorner>179.76416 71.332649</ows:UpperCorner>\n" +
-		"</ows:WGS84BoundingBox>" +
-		"</FeatureType>";
+	
+	public static String WFS_GET_CAPABILITIES_1_0_0_CONTENT;
+	
+	public static String WFS_GET_CAPABILITIES_2_0_0_CONTENT;
 
 	private static final ProxyService INSTANCE = new ProxyService();
 
@@ -100,10 +83,13 @@ public class ProxyService {
 	 */
 	private ProxyService() {
 		try {
-			WMS_GET_CAPABILITIES_1_3_0_CONTENT = new String(FileCopyUtils.copyToByteArray(new ClassPathResource("schemas.wms.capabilities/GetCapabilities.1.3.0.xml").getInputStream()));
-			WMS_GET_CAPABILITIES_1_1_1_CONTENT = new String(FileCopyUtils.copyToByteArray(new ClassPathResource("schemas.wms.capabilities/GetCapabilities.1.1.1.xml").getInputStream()));
+			WMS_GET_CAPABILITIES_1_3_0_CONTENT = new String(FileCopyUtils.copyToByteArray(new ClassPathResource("schemas/wms/capabilities/GetCapabilities.1.3.0.xml").getInputStream()));
+			WMS_GET_CAPABILITIES_1_1_1_CONTENT = new String(FileCopyUtils.copyToByteArray(new ClassPathResource("schemas/wms/capabilities/GetCapabilities.1.1.1.xml").getInputStream()));
+			WFS_GET_CAPABILITIES_1_0_0_CONTENT = new String(FileCopyUtils.copyToByteArray(new ClassPathResource("schemas/wfs/capabilities/GetCapabilities.1.0.0.xml").getInputStream()));
+			WFS_GET_CAPABILITIES_2_0_0_CONTENT = new String(FileCopyUtils.copyToByteArray(new ClassPathResource("schemas/wfs/capabilities/GetCapabilities.2.0.0.xml").getInputStream()));
 		} 
 		catch (IOException e) {
+			
 			LOG.error("Unexpected exception reading file: " + e.getLocalizedMessage());
 		}
 	}
@@ -523,23 +509,45 @@ public class ProxyService {
 		}
 	}
 	
-	private String getWMSProxyDataSourceContent(String version) {
-		StringBuilder result = new StringBuilder();
-		LOG.info("Get Capabilities for version " + version);
-		switch (version) {
-			case "1.1.1":
-			case "1.1.0":
-			case "1.0.0":
-				result.append(WMS_GET_CAPABILITIES_1_1_1_CONTENT);
-				LOG.info("Retruning 1.1.1 content");
+	private String getDataSourceGetCapabilitiesClosingTag(OGCServices serviceType) {
+		String result = null;
+		switch (serviceType) {
+			case WMS:
+				result = "</Layer>";
 				break;
-			default:
-				result.append(WMS_GET_CAPABILITIES_1_3_0_CONTENT);
-				LOG.info("Returning 1.3.0 content");
+			case WFS:
+				result = "</FeatureTypeList>";
 		}
-		LOG.info("Content: " + result.toString());
-		return result.toString();
+		return result;
 	}
+	
+	private String getProxyDataSourceGetCapabilities(OGCServices serviceType, String version) {
+		String result = null;
+		switch (serviceType) {
+			case WMS:
+				switch (version) {
+					case "1.1.1":
+					case "1.1.0":
+					case "1.0.0":
+						result = WMS_GET_CAPABILITIES_1_1_1_CONTENT;
+					break;
+				default:
+					result = WMS_GET_CAPABILITIES_1_3_0_CONTENT;
+				}
+			break;
+			case WFS:
+				switch (version) {
+					case "1.0.0":
+						result = WFS_GET_CAPABILITIES_1_0_0_CONTENT;
+						break;
+					default:
+						result = WFS_GET_CAPABILITIES_2_0_0_CONTENT;
+				}
+			
+		}
+		return result;
+	};
+	
 
 	public String addGetCapabilitiesInfo(OGCServices serviceType, String version, String serverContent) {
 		/*
@@ -555,70 +563,20 @@ public class ProxyService {
 		 * object of the same string.
 		 */
 		StringBuilder newContent = new StringBuilder();
-
-		switch (serviceType) {
-			case WMS:
-				/*
-				 * For WMS, our XLM blob just needs to live inside the parent
-				 * <Layer> element.  Since it can live ANYWHERE in the parent
-				 * <Layer></Layer> element we will just look for the LAST
-				 * closing </Layer> tag and insert our stuff before it.
-				 */
-				int closingParentTag = serverContent.lastIndexOf("</Layer>");
-				if (closingParentTag == -1) {
-					LOG.warn("WMS GetCapabilities response from mapping service does not contain a closing </Layer> element.  Returning silently...");
-					return serverContent;
-				}
-
-				newContent.append(serverContent.substring(0, closingParentTag));
-				newContent.append(getWMSProxyDataSourceContent(version));
-				newContent.append(serverContent.substring(closingParentTag, serverContent.length()));
-				break;
-
-			case WFS:
-				/*
-				 * WFS GetCapabilities response is different than WMS.  Most of our
-				 * WFS requests will center around GetFeature so we need to add
-				 * the "searchParams" parameter definition to the GetFeature operation
-				 * description.
-				 *
-				 * We will look for string token: "<ows:Operation name="GetFeature">"
-				 * and then look for the closing "</ows:DCP>" tag (a required child
-				 * element for an operation http://schemas.opengis.net/ows/1.1.0/owsOperationsMetadata.xsd).
-				 *
-				 * Once we found the closing </ows:DCP> tag of the GetFeature operation, we insert
-				 * our XML after it and append the rest of the document below it.  If we dont find
-				 * this tag we'll just insert it right before the closing </ows:Operation> tag.
-				 */
-				int getFeatureTag = serverContent.lastIndexOf("<ows:Operation name=\"GetFeature\">");
-				if (getFeatureTag == -1) {
-					LOG.warn("WFS GetCapabilities response from mapping service does not contain a <ows:Operation name=\"GetFeature\"> element.  Returning silently...");
-					return serverContent;
-				}
-
-				int insertTag = serverContent.indexOf("</ows:DCP>", getFeatureTag);
-				if (insertTag == -1) {
-					LOG.warn("WFS GetCapabilities response from mapping service does not contain a closing </ows:DCP> element from the location of the <ows:Operation name=\"GetFeature\"> tag.  Looking for closing Operation tag.");
-
-					insertTag = serverContent.indexOf("</ows:Operation>", getFeatureTag);
-					if (insertTag == -1) {
-						LOG.warn("WFS GetCapabilities response from mapping service does not contain a closing </ows:Operation> element from the location of the <ows:Operation name=\"GetFeature\"> tag.  Returning silently...");
-						return serverContent;
-					}
-				} else {
-					insertTag += "</ows:DCP>".length();
-				}
-
-				newContent.append(serverContent.substring(0, insertTag));
-				newContent.append(WFS_GET_CAPABILITIES_CONTENT);
-				newContent.append(serverContent.substring(insertTag, serverContent.length()));
-				break;
-
-			default:
-				break;
+		String closingTag = getDataSourceGetCapabilitiesClosingTag(serviceType);
+		String addedContent = getProxyDataSourceGetCapabilities(serviceType, version);
+		
+		if ((null != closingTag) && (null != addedContent)) {
+			int closingTagIndex = serverContent.lastIndexOf(closingTag);
+			if (closingTagIndex == -1) {
+				LOG.warn("WMS GetCapabilities response from mapping service does not contain a closing </Layer> element.  Returning silently...");
+				newContent.append(serverContent);
+			} else {
+				newContent.append(serverContent.substring(0, closingTagIndex));
+				newContent.append(addedContent);
+				newContent.append(serverContent.substring(closingTagIndex, serverContent.length()));
+			}
 		}
-
 		return newContent.toString();
 	}
-
 }
