@@ -37,6 +37,8 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.FileCopyUtils;
 
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
@@ -48,8 +50,7 @@ import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
 import gov.usgs.wqp.ogcproxy.utils.CloseableHttpClientFactory;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.FileCopyUtils;
+
 
 
 public class ProxyService {
