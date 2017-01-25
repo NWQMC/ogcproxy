@@ -17,6 +17,6 @@
             <Format>image/png</Format>
             <OnlineResource xmlns:xlink="http://www.w3.org/1999/xlink" xlink:type="simple"
 			xlink:href="https://www.waterqualitydata.us/ogcservices/wms?request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=wqp_sites"/>
-        </LegendURL> +
-	</Style> +
+        </LegendURL>
+	</Style>
 </Layer>;
