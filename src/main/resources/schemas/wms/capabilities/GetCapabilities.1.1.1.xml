@@ -19,4 +19,4 @@
 			xlink:href="https://www.waterqualitydata.us/ogcservices/wms?request=GetLegendGraphic&amp;format=image%2Fpng&amp;width=20&amp;height=20&amp;layer=wqp_sites"/>
         </LegendURL>
 	</Style>
-</Layer>;
+</Layer>
