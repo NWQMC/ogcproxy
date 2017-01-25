@@ -133,8 +133,7 @@ public class ProxyServiceTest {
 		when(request.getScheme()).thenReturn("http");
 		when(ProxyUtil.redirectContentToProxy(anyString(), anyString(),anyString(),anyString(),anyString(),
 				anyString(),anyString(),anyString(),anyString())).thenReturn("ReQuEsT");
-		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySetOf(String.class)))
-			.thenReturn("request", WMSParameters.layers.toString(), null);
+		
 		OGCRequest ogcRequest = new OGCRequest(OGCServices.WMS, new HashMap<>(), new SearchParameters<>(), null);
 		byte[] serverContent = "https://owi.usgs.gov:8443/wow?cool=beans".getBytes();
 		byte[] sillyServerContent = "silly response".getBytes();
@@ -158,14 +157,58 @@ public class ProxyServiceTest {
 		assertEquals("compressed String", 
 				SystemUtils.uncompressGzipAsString(service.inspectServerContent(request, serverRequest, ogcRequest,
 						SystemUtils.compressStringToGzip("compressed String"), true)));
-
+	}
+	
+	@Test
+	public void inspectServerWMSCapabilitiesTest() throws OGCProxyException, URISyntaxException {
+		when(serverRequest.getURI()).thenReturn(new URI("https://owi.usgs.gov:8443/wow"));
+		when(request.getServerName()).thenReturn("gp.org");
+		when(request.getContextPath()).thenReturn("ac");
+		when(request.getLocalPort()).thenReturn(8080);
+		when(request.getScheme()).thenReturn("http");
+		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySetOf(String.class)))
+			.thenReturn("request");
+		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySetOf(String.class)))
+			.thenReturn("request");
+		
 		//verify that addGetCapabilitesInfo is called
 		Map<String, String> ogcParams = new HashMap<>();
-		ogcParams.put(WMSParameters.layers.toString(), ProxyDataSourceParameter.WQP_SITES.toString());
+		ogcParams.put(WMSParameters.version.toString(), "1.3.0");
 		ogcParams.put("request", ProxyUtil.OGC_GET_CAPABILITIES);
+		OGCRequest ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, new SearchParameters<>(), null);
+		byte [] abc = service.inspectServerContent(request, serverRequest, ogcRequest, "</Layer>".getBytes(), false);
+		assertEquals(ProxyService.WMS_GET_CAPABILITIES_1_3_0_CONTENT + "</Layer>", new String(abc));
+		
+		ogcParams.put(WMSParameters.version.toString(), "1.1.1");
 		ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, new SearchParameters<>(), null);
 		abc = service.inspectServerContent(request, serverRequest, ogcRequest, "</Layer>".getBytes(), false);
-		assertEquals(ProxyService.WMS_GET_CAPABILITIES_CONTENT + "</Layer>", new String(abc));
+		assertEquals(ProxyService.WMS_GET_CAPABILITIES_1_1_1_CONTENT + "</Layer>", new String(abc));
+	}
+	
+	@Test
+	public void inspectServerWFSCapabilitiesTest() throws OGCProxyException, URISyntaxException {
+		when(serverRequest.getURI()).thenReturn(new URI("https://owi.usgs.gov:8443/wow"));
+		when(request.getServerName()).thenReturn("gp.org");
+		when(request.getContextPath()).thenReturn("ac");
+		when(request.getLocalPort()).thenReturn(8080);
+		when(request.getScheme()).thenReturn("http");
+		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySetOf(String.class)))
+			.thenReturn("request");
+		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySetOf(String.class)))
+			.thenReturn("request");
+		
+		//verify that addGetCapabilitesInfo is called
+		Map<String, String> ogcParams = new HashMap<>();
+		ogcParams.put(WMSParameters.version.toString(), "2.0.0");
+		ogcParams.put("request", ProxyUtil.OGC_GET_CAPABILITIES);
+		OGCRequest ogcRequest = new OGCRequest(OGCServices.WFS, ogcParams, new SearchParameters<>(), null);
+		byte [] abc = service.inspectServerContent(request, serverRequest, ogcRequest, "</FeatureTypeList>".getBytes(), false);
+		assertEquals(ProxyService.WFS_GET_CAPABILITIES_2_0_0_CONTENT + "</FeatureTypeList>", new String(abc));
+		
+		ogcParams.put(WMSParameters.version.toString(), "1.0.0");
+		ogcRequest = new OGCRequest(OGCServices.WFS, ogcParams, new SearchParameters<>(), null);
+		abc = service.inspectServerContent(request, serverRequest, ogcRequest, "</FeatureTypeList>".getBytes(), false);
+		assertEquals(ProxyService.WFS_GET_CAPABILITIES_1_0_0_CONTENT + "</FeatureTypeList>", new String(abc));
 	}
 
 	@Test

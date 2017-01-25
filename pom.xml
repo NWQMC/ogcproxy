@@ -7,21 +7,21 @@
 	<packaging>war</packaging>
 
 	<name>ogcproxy</name>
-	<url>http://cida.usgs.gov/</url>
+	<url>https://cida.usgs.gov/</url>
 
 	<inceptionYear>2014</inceptionYear>
 	<organization>
 		<name>Center for Integrated Data Analytics</name>
-		<url>http://cida.usgs.gov</url>
+		<url>https://cida.usgs.gov</url>
 	</organization>
 
 	<licenses>
 		<license>
 			<name>Public Domain</name>
-			<url>http://water.usgs.gov/software/help/notice/</url>
+			<url>https://water.usgs.gov/software/help/notice/</url>
 			<comments>
 							U.S.Geological Survey Software User Rights Notice
-							Copied from http://water.usgs.gov/software/help/notice/ on December 6, 2013.  Please check webpage for updates.
+							Copied from https://water.usgs.gov/software/help/notice/ on December 6, 2013.  Please check webpage for updates.
 
 							Software and related material (data and (or) documentation), contained in or furnished in connection with a software distribution, are made available by the U.S. Geological Survey (USGS) to be used in the public interest and in the advancement of science. You may, without any fee or cost, use, copy, modify, or distribute this software, and any derivative works thereof, and its supporting documentation, subject to the following restrictions and understandings.
 
@@ -47,7 +47,7 @@
 			<name>Philip Russo</name>
 			<email>prusso@usgs.gov</email>
 			<organization>Center for Integrated Data Analytics</organization>
-			<organizationUrl>http://cida.usgs.gov</organizationUrl>
+			<organizationUrl>https://cida.usgs.gov</organizationUrl>
 			<timezone>-6</timezone>
 		</developer>
 	</developers>
@@ -59,7 +59,7 @@
 		<powermock.version>1.6.5</powermock.version> <!-- Do not update to 1.6.6, it is unable to handle the CloseableHttpResponse.close() method. Possibly related to https://github.com/powermock/powermock/issues/717 -->
 		<logback-classic-version>1.1.8</logback-classic-version>
 		<warName>ogcproxy</warName>
-		<cida.maven.url>http://internal.cida.usgs.gov/maven</cida.maven.url>
+		<cida.maven.url>https://internal.cida.usgs.gov/maven</cida.maven.url>
 		<additionalparam>-Xdoclint:none</additionalparam>
 	</properties>
 
@@ -135,7 +135,7 @@
 			</snapshots>
 			<id>opengeo</id>
 			<name>OpenGeo Maven Repository</name>
-			<url>http://repo.boundlessgeo.com/main/</url>
+			<url>https://repo.boundlessgeo.com/main/</url>
 		</repository>
 		<repository>
 			<id>nexus-public</id>
@@ -145,9 +145,9 @@
 	</repositories>
 
 	<scm>
-		<connection>git:http://cida-eros-stash.er.usgs.gov:7999/wqp/ogcproxy.git</connection>
+		<connection>git:https:internal.cida.usgs.gov/stash/scm/wqp/ogcproxy.git</connection>
 		<developerConnection>scm:git:ssh://git@cida-eros-stash.er.usgs.gov:7999/wqp/ogcproxy.git</developerConnection>
-		<url>http://internal.cida.usgs.gov/stash/projects/WQP/repos/ogcproxy/browse</url>
+		<url>https://internal.cida.usgs.gov/stash/projects/WQP/repos/ogcproxy/browse</url>
 		<tag>HEAD</tag>
 	</scm>
 
