@@ -527,13 +527,13 @@ public class ProxyService {
 		switch (serviceType) {
 			case WMS:
 				switch (version) {
-					case "1.1.1":
-					case "1.1.0":
-					case "1.0.0":
+					case "1.3.0":
+					case "":
+						result = WMS_GET_CAPABILITIES_1_3_0_CONTENT;
+						break;
+						
+					default:
 						result = WMS_GET_CAPABILITIES_1_1_1_CONTENT;
-					break;
-				default:
-					result = WMS_GET_CAPABILITIES_1_3_0_CONTENT;
 				}
 			break;
 			case WFS:
