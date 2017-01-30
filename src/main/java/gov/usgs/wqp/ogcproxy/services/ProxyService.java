@@ -472,7 +472,7 @@ public class ProxyService {
 			// This is a GetCapabilities call.  We need to include the service
 			// specific GetCapabilities information in the result so we conform
 			// to the OGC spec
-				stringContent = addGetCapabilitiesInfo(ogcRequest.getOgcService(), ogcRequest.getOgcParams().get(WMSParameters.version.toString()), stringContent);
+				stringContent = addGetCapabilitiesInfo(ogcRequest.getOgcService(), ogcRequest.getOgcParams().getOrDefault(WMSParameters.version.toString(), ""), stringContent);
 		}
 
 		String serverHost = serverRequest.getURI().getHost();
