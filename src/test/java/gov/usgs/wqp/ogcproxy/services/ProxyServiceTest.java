@@ -170,6 +170,8 @@ public class ProxyServiceTest {
 			.thenReturn("request");
 		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySetOf(String.class)))
 			.thenReturn("request");
+		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySetOf(String.class)))
+			.thenReturn("request");
 		
 		//verify that addGetCapabilitesInfo is called
 		Map<String, String> ogcParams = new HashMap<>();
@@ -183,6 +185,11 @@ public class ProxyServiceTest {
 		ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, new SearchParameters<>(), null);
 		abc = service.inspectServerContent(request, serverRequest, ogcRequest, "</Layer>".getBytes(), false);
 		assertEquals(ProxyService.WMS_GET_CAPABILITIES_1_1_1_CONTENT + "</Layer>", new String(abc));
+		
+		ogcParams.remove(WMSParameters.version.toString());
+		ogcRequest = new OGCRequest(OGCServices.WMS, ogcParams, new SearchParameters<>(), null);
+		abc = service.inspectServerContent(request, serverRequest, ogcRequest, "</Layer>".getBytes(), false);
+		assertEquals(ProxyService.WMS_GET_CAPABILITIES_1_3_0_CONTENT + "</Layer>", new String(abc));
 	}
 	
 	@Test
