@@ -81,21 +81,24 @@ public class ProxyUtil {
 
 	/**
 	 * separateParameters()
-	 * <br /><br />
+	 * 
 	 * This method separates all dynamic search parameters from any OGC specific
 	 * parameters.  Search parameters are used for creating dynamic layers.
 	 *
-	 * @param requestParams
-	 * @return
+	 * @param request
+	 * @param ogcService
+	 * @return OGCRequest
 	 */
 	public static OGCRequest separateParameters(HttpServletRequest request, OGCServices ogcService) {
-		Map<String, String[]> requestParams = request.getParameterMap();
+		Map<String, String[]> requestParams = new HashMap();
+		requestParams.putAll(request.getParameterMap());
+		
 		String requestBody = ""; 
 		if (HttpPost.METHOD_NAME.equalsIgnoreCase(request.getMethod())) {
 			OgcParser ogcParser = new OgcParser(request);
 			try {
 				ogcParser.parse();
-				requestParams = ogcParser.getRequestParamsAsMap();
+				requestParams.putAll(ogcParser.getRequestParamsAsMap());
 				requestBody = ogcParser.getBodyMinusVendorParams();
 			} catch (Exception e) {
 				//TODO - maybe something?

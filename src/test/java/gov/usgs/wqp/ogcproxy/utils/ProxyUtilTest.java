@@ -256,5 +256,33 @@ public class ProxyUtilTest {
 
 		assertEquals(OgcParserTest.wfs_minus_vendorParams, ogcRequest.getRequestBody());
 	}
+	
+	@Test
+	public void separateParametersPostWithQueryParamsTest() throws IOException {
+		DelegatingServletInputStream a = new DelegatingServletInputStream(
+				new ByteArrayInputStream(OgcParserTest.wfs_minus_vendorParams.getBytes()));
+		Map<String, String[]> requestParams = new HashMap<>();
+		requestParams.put(WQPParameters.searchParams.toString(), new String[] {"countrycode:US;statecode:US:55|US:28|US:32;characteristicName:Atrazine"});
+		when(clientRequest.getMethod()).thenReturn(HttpPost.METHOD_NAME);
+		when(clientRequest.getParameterMap()).thenReturn(requestParams);
+		when(clientRequest.getInputStream()).thenReturn(a);
+
+		OGCRequest ogcRequest = ProxyUtil.separateParameters(clientRequest, OGCServices.WFS);
+		assertEquals(OGCServices.WFS, ogcRequest.getOgcService());
+
+		assertEquals(4, ogcRequest.getOgcParams().size());
+		assertEquals(ProxyDataSourceParameter.WQP_SITES.toString(), ogcRequest.getOgcParams().get(WFSParameters.typeName.toString()));
+		assertFalse(requestParams.containsKey(WFSParameters.typeNames.toString()));
+		assertEquals("GetFeature", ogcRequest.getOgcParams().get("request"));
+		assertEquals(OGCServices.WFS.toString(), ogcRequest.getOgcParams().get("service"));
+		assertEquals("1.1.0", ogcRequest.getOgcParams().get("version"));
+
+		assertEquals(3, ogcRequest.getSearchParams().size());
+		assertEquals(Arrays.asList("US"), ogcRequest.getSearchParams().get("countrycode"));
+		assertEquals(Arrays.asList("US:55", "US:28", "US:32"), ogcRequest.getSearchParams().get("statecode"));
+		assertEquals(Arrays.asList("Atrazine"), ogcRequest.getSearchParams().get("characteristicName"));
+
+		assertEquals(OgcParserTest.wfs_minus_vendorParams, ogcRequest.getRequestBody());
+	}
 
 }
