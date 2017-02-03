@@ -46,6 +46,7 @@ import gov.usgs.wqp.ogcproxy.model.DynamicLayer;
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
 import gov.usgs.wqp.ogcproxy.model.ogc.parameters.WMSParameters;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
+import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
 import gov.usgs.wqp.ogcproxy.utils.CloseableHttpClientFactory;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
@@ -455,6 +456,8 @@ public class ProxyService {
 	protected byte[] inspectServerContent(HttpServletRequest clientRequest, HttpUriRequest serverRequest, OGCRequest ogcRequest,
 			byte[] serverContent, boolean contentCompressed) throws OGCProxyException {
 		String stringContent = "";
+		String request = ogcRequest.getRequestType();
+		
 		if (contentCompressed) {
 			stringContent = SystemUtils.uncompressGzipAsString(serverContent);
 		} else {
@@ -468,11 +471,15 @@ public class ProxyService {
 		// We now need to do some inspection on the data.  If the original OGC
 		// request is a GetCapabilities, we need to insert the service's specific
 		// information into the response.
-		if (ProxyUtil.OGC_GET_CAPABILITIES.equalsIgnoreCase(ogcRequest.getRequestType())) {
+		if (ProxyUtil.OGC_GET_CAPABILITIES.equalsIgnoreCase(request)) {
 			// This is a GetCapabilities call.  We need to include the service
 			// specific GetCapabilities information in the result so we conform
 			// to the OGC spec
-				stringContent = addGetCapabilitiesInfo(ogcRequest.getOgcService(), ogcRequest.getOgcParams().getOrDefault(WMSParameters.version.toString(), ""), stringContent);
+			stringContent = addGetCapabilitiesInfo(ogcRequest.getOgcService(), ogcRequest.getOgcParams().getOrDefault(WMSParameters.version.toString(), ""), stringContent);
+		} else if (ProxyUtil.OGC_DESCRIBE_FEATURE_TYPE.equalsIgnoreCase(request) && ProxyDataSourceParameter.WQP_SITES == ogcRequest.getDataSource()) {
+			// We need to replace the actual layer name with wqp_sites
+			stringContent = replaceDescribeFeatureType(stringContent);
+			
 		}
 
 		String serverHost = serverRequest.getURI().getHost();
@@ -547,8 +554,7 @@ public class ProxyService {
 			
 		}
 		return result;
-	};
-	
+	};	
 
 	public String addGetCapabilitiesInfo(OGCServices serviceType, String version, String serverContent) {
 		/*
@@ -579,5 +585,9 @@ public class ProxyService {
 			}
 		}
 		return newContent.toString();
+	}
+	
+	private String replaceDescribeFeatureType(String serverContent) {
+		return serverContent.replaceAll("dynamicSites_\\d+", ProxyDataSourceParameter.WQP_SITES.toString());
 	}
 }

@@ -41,6 +41,7 @@ public class ProxyUtil {
 	private static final Logger LOG = LoggerFactory.getLogger(ProxyUtil.class);
 
 	public static final String OGC_GET_CAPABILITIES = "GetCapabilities";
+	public static final String OGC_DESCRIBE_FEATURE_TYPE = "DescribeFeatureType";
 
 	public static final String OGC_SERVICE_PARAMETER = "service";
 
