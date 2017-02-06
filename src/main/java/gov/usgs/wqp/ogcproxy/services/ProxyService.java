@@ -478,7 +478,7 @@ public class ProxyService {
 			stringContent = addGetCapabilitiesInfo(ogcRequest.getOgcService(), ogcRequest.getOgcParams().getOrDefault(WMSParameters.version.toString(), ""), stringContent);
 		} else if (ProxyUtil.OGC_DESCRIBE_FEATURE_TYPE.equalsIgnoreCase(request) && ProxyDataSourceParameter.WQP_SITES == ogcRequest.getDataSource()) {
 			// We need to replace the actual layer name with wqp_sites
-			stringContent = replaceDescribeFeatureType(stringContent);
+			stringContent = stringContent.replaceAll("dynamicSites_\\d+", ProxyDataSourceParameter.WQP_SITES.toString());
 			
 		}
 
@@ -585,9 +585,5 @@ public class ProxyService {
 			}
 		}
 		return newContent.toString();
-	}
-	
-	private String replaceDescribeFeatureType(String serverContent) {
-		return serverContent.replaceAll("dynamicSites_\\d+", ProxyDataSourceParameter.WQP_SITES.toString());
 	}
 }

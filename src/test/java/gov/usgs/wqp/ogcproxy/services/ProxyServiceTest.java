@@ -217,6 +217,37 @@ public class ProxyServiceTest {
 		abc = service.inspectServerContent(request, serverRequest, ogcRequest, "</FeatureTypeList>".getBytes(), false);
 		assertEquals(ProxyService.WFS_GET_CAPABILITIES_1_0_0_CONTENT + "</FeatureTypeList>", new String(abc));
 	}
+	
+	@Test
+	public void inspectServerWFSDescribeFeatureTypeTest() throws OGCProxyException, URISyntaxException {
+		when(serverRequest.getURI()).thenReturn(new URI("https://owi.usgs.gov:8443/wow"));
+		when(request.getServerName()).thenReturn("gp.org");
+		when(request.getContextPath()).thenReturn("ac");
+		when(request.getLocalPort()).thenReturn(8080);
+		when(request.getScheme()).thenReturn("http");
+		when(ProxyUtil.getCaseSensitiveParameter(eq("typeName"), anySetOf(String.class)))
+			.thenReturn("typeName");
+		when(ProxyUtil.getCaseSensitiveParameter(eq("request"), anySetOf(String.class)))
+			.thenReturn("request");
+		
+		String responseWithDynamicSites = "<xsd:complexType name=\"dynamicSites_1879846045\"></xsd:complexType>";
+		String expectedResponseWithDynamicSites = "<xsd:complexType name=\"wqp_sites\"></xsd:complexType>";
+		String responseWithoutDynamicSites = "<xsd:complexType name=\"qw_portal_map:nwis_sites\"></xsd:complexType>";
+		Map<String, String> ogcParams = new HashMap<>();
+		
+		ogcParams.put(WMSParameters.version.toString(), "2.0.0");
+		ogcParams.put("request", ProxyUtil.OGC_DESCRIBE_FEATURE_TYPE);
+		ogcParams.put("service", "WFS");
+		ogcParams.put("typeName", "wqp_sites");
+		
+		OGCRequest ogcRequest = new OGCRequest(OGCServices.WFS, ogcParams, new SearchParameters<>(), null);
+		byte [] abc = service.inspectServerContent(request, serverRequest, ogcRequest, responseWithDynamicSites.getBytes(), false);
+		assertEquals(expectedResponseWithDynamicSites, new String(abc));
+		
+		ogcParams.put("typeName", "qw_portal_map:nwis_sites");
+		abc = service.inspectServerContent(request, serverRequest, ogcRequest, responseWithoutDynamicSites.getBytes(), false);
+		assertEquals(responseWithoutDynamicSites, new String(abc));
+	}
 
 	@Test
 	public void performRequestTest() {
