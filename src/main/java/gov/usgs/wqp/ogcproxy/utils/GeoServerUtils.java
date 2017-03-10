@@ -76,6 +76,10 @@ public class GeoServerUtils {
 		return geoserverDataStoreBase + "/" + layerName + "/file.shp";
 	}
 
+	public String buildResourceRestDelete() {
+		return String.join("/", geoserverBaseURI, GeoServerConfig.GEOSERVER_REST, GeoServerConfig.GEOSERVER_RESOURCE, GeoServerConfig.GEOSERVER_DATA, geoserverWorkspace);
+	}
+
 	public String buildWorkspaceRestDelete() {
 		return geoserverWorkspaceBase + "?recurse=true";
 	}

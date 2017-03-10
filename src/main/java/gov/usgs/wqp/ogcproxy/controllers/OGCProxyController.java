@@ -1,5 +1,10 @@
 package gov.usgs.wqp.ogcproxy.controllers;
 
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -23,14 +28,22 @@ import gov.usgs.wqp.ogcproxy.utils.ApplicationVersion;
 public class OGCProxyController {
 	private static final Logger LOG = LoggerFactory.getLogger(OGCProxyController.class);
 
+	private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
+	private final Lock readLock = readWriteLock.readLock();
+	private final Lock writeLock = readWriteLock.writeLock();
+
 	private ProxyService proxyService;
 	private RESTService restService;
+	protected Long readLockTimeout;
+	protected Long writeLockTimeout;
 
 	@Autowired
 	public OGCProxyController(ProxyService proxyService,
-			RESTService restService) {
+			RESTService restService, Long readLockTimeout, Long writeLockTimeout) {
 		this.proxyService = proxyService;
 		this.restService = restService;
+		this.readLockTimeout = readLockTimeout;
+		this.writeLockTimeout = writeLockTimeout;
 	}
 
 	/** 
@@ -51,7 +64,7 @@ public class OGCProxyController {
 	@GetMapping({"/schemas/**", "/ows/**"})
 	public void getSchemasAndOws(HttpServletRequest request, HttpServletResponse response) {
 		LOG.info("OGCProxyController.getSchemasAndOws() - Performing request.");
-		proxyService.performRequest(request, response, OGCServices.WMS);
+		doProxy(request, response, OGCServices.WMS);
 		LOG.info("OGCProxyController.getSchemasAndOws() - Done performing request.");
 	}
 
@@ -65,28 +78,41 @@ public class OGCProxyController {
 	@GetMapping("/wfs")
 	public void wfsProxyGet(HttpServletRequest request, HttpServletResponse response) {
 		LOG.info("OGCProxyController.wfsProxyGet() - Performing request.");
-		proxyService.performRequest(request, response, OGCServices.WFS);
+		doProxy(request, response, OGCServices.WFS);
 		LOG.info("OGCProxyController.wfsProxyGet() - Done performing request.");
 	}
 
 	@PostMapping("/wms")
 	public void wmsProxyPost(HttpServletRequest request, HttpServletResponse response) {
 		LOG.info("OGCProxyController.wmsProxyPost() INFO - Performing request.");
-		proxyService.performRequest(request, response, OGCServices.WMS);
+		doProxy(request, response, OGCServices.WMS);
 		LOG.info("OGCProxyController.wmsProxyPost() INFO - Done performing request.");
 	}
 
 	@PostMapping("/wfs")
 	public void wfsProxyPost(HttpServletRequest request, HttpServletResponse response) {
 		LOG.info("OGCProxyController.wfsProxyPost() - Performing request.");
-		proxyService.performRequest(request, response, OGCServices.WFS);
+		doProxy(request, response, OGCServices.WFS);
 		LOG.info("OGCProxyController.wfsProxyPost() - Done performing request.");
 	}
 
 	@GetMapping("/rest/cachestatus/{site}")
 	public ModelAndView restCacheStatus(@PathVariable String site) {
 		LOG.info("OGCProxyController.restCacheStatus() - Performing request.");
-		ModelAndView finalResult = restService.checkCacheStatus(site);
+		ModelAndView finalResult = new ModelAndView();
+		try {
+			if (readLock.tryLock(readLockTimeout, TimeUnit.SECONDS)) {
+				try {
+					finalResult = restService.checkCacheStatus(site);
+				} catch(Throwable t) {
+					LOG.error(t.getLocalizedMessage());
+				} finally {
+					readLock.unlock();
+				}
+			}
+		} catch (InterruptedException e) {
+			LOG.info("Unable to get read lock: " + e.getLocalizedMessage());
+		}
 		LOG.info("OGCProxyController.restCacheStatus() - Done performing request.");
 		return finalResult;
 	}
@@ -94,12 +120,45 @@ public class OGCProxyController {
 	@DeleteMapping("/rest/clearcache/{site}")
 	public void restClearCache(@PathVariable String site, HttpServletResponse response) {
 		LOG.info("OGCProxyController.restClearCache() - Performing request.");
-		if (restService.clearCacheBySite(site)) {
-			response.setStatus(HttpStatus.SC_OK);
-		} else {
-			response.setStatus(HttpStatus.SC_BAD_REQUEST);
+		try {
+			if (writeLock.tryLock(writeLockTimeout, TimeUnit.SECONDS)) {
+				try {
+					if (restService.clearCacheBySite(site)) {
+						response.setStatus(HttpStatus.SC_OK);
+					} else {
+						response.setStatus(HttpStatus.SC_BAD_REQUEST);
+					}
+				} catch(Throwable t) {
+					LOG.error(t.getLocalizedMessage());
+					response.setStatus(HttpStatus.SC_BAD_REQUEST);
+				} finally {
+					writeLock.unlock();
+				}
+			} else {
+				response.setStatus(HttpStatus.SC_BAD_REQUEST);
+			}
+		} catch (InterruptedException e) {
+			LOG.info("Unable to get read lock: " + e.getLocalizedMessage());
 		}
 		LOG.info("OGCProxyController.restClearCache() - Done performing request.");
 	}
 
+	public void doProxy(HttpServletRequest request, HttpServletResponse response, OGCServices ogcService) {
+		try {
+			if (readLock.tryLock(readLockTimeout, TimeUnit.SECONDS)) {
+				try {
+					proxyService.performRequest(request, response, ogcService);
+				} catch(Throwable t) {
+					LOG.error(t.getLocalizedMessage());
+				} finally {
+					readLock.unlock();
+				}
+			} else {
+				response.setStatus(HttpStatus.SC_BAD_REQUEST);
+			}
+		} catch (InterruptedException e) {
+			response.setStatus(HttpStatus.SC_BAD_REQUEST);
+			LOG.info("Unable to get read lock: " + e.getLocalizedMessage());
+		}
+	}
 }

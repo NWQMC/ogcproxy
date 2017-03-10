@@ -47,9 +47,9 @@ public class WQPDynamicLayerCachingService {
 	protected String geoserverWorkspace;
 	@Autowired
 	protected GeoServerUtils geoServerUtils;
-
 	@Autowired
 	protected Environment environment;
+
 	protected volatile boolean initialized;
 
 	private final GenericCache<String, DynamicLayer> requestToLayerCache = new GenericCache<>();
@@ -155,13 +155,37 @@ public class WQPDynamicLayerCachingService {
 
 	public int clearCache() {
 		/* 
-		 * First, drop the workspace in geoserver to clear it.
+		 * First, delete the files on the geoserver server in case the workspace drop would fail.
+		 */
+		deleteGeoserverResources();
+		/* 
+		 * Then drop the workspace in geoserver to clear it.
 		 */
 		clearGeoserverWorkspace();
 		/*
-		 * Then clear in-memory cache.
+		 * Finally, clear in-memory cache.
 		 */
 		return clearInMemoryCache();
+	}
+
+	protected void deleteGeoserverResources() {
+		String deleteUri = geoServerUtils.buildResourceRestDelete();
+		CloseableHttpResponse response = null;
+		try {
+			HttpClientContext localContext = geoServerUtils.buildLocalContext();
+			HttpDelete httpDelete = new HttpDelete(deleteUri);
+			response = httpClient.execute(httpDelete, localContext);
+		} catch (Exception e) {
+			LOG.error("Problems deleting resources in geoserver: " + e.getLocalizedMessage(), e);
+		} finally {
+			if (null != response) {
+				try {
+					response.close();
+				} catch (IOException e) {
+					LOG.error("Problems closing response for deleting resources in geoserver: " + e.getLocalizedMessage(), e);
+				}
+			}
+		}
 	}
 
 	protected void clearGeoserverWorkspace() {
@@ -178,7 +202,7 @@ public class WQPDynamicLayerCachingService {
 				try {
 					response.close();
 				} catch (IOException e) {
-					LOG.error("Problems closing repsonse for resetting workspace in geoserver: " + e.getLocalizedMessage(), e);
+					LOG.error("Problems closing response for resetting workspace in geoserver: " + e.getLocalizedMessage(), e);
 				}
 			}
 		}

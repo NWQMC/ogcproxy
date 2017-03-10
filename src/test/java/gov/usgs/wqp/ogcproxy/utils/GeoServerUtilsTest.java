@@ -114,6 +114,12 @@ public class GeoServerUtilsTest {
 	}
 
 	@Test
+	public void buildResourceRestDeleteTest() {
+		assertEquals("https://owi.usgs.gov:8444/geoserver/rest/resource/data/wqp_sites",
+			geoServerUtils.buildResourceRestDelete());
+	}
+
+	@Test
 	public void createWorkspaceTest() {
 		try {
 			when(httpClient.execute(any(HttpPost.class), any(HttpClientContext.class))).thenThrow(new IOException("Hi")).thenReturn(response);

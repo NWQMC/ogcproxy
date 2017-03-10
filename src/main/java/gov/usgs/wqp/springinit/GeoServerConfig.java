@@ -17,6 +17,8 @@ public class GeoServerConfig {
 	public static final String GEOSERVER_WORKSPACES = "workspaces";
 	public static final String GEOSERVER_NAMPESPACES = "namespaces";
 	public static final String GEOSERVER_DATASTORES = "datastores";
+	public static final String GEOSERVER_RESOURCE = "resource";
+	public static final String GEOSERVER_DATA = "data";
 
 	@Autowired
 	private Environment environment;
