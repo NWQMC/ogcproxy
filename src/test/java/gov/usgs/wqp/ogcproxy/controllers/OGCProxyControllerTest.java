@@ -50,7 +50,7 @@ public class OGCProxyControllerTest {
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
-		mvcService = new OGCProxyController(proxyService, restService);
+		mvcService = new OGCProxyController(proxyService, restService, Long.valueOf("10"), Long.valueOf("10"));
 		mockMvc = MockMvcBuilders.standaloneSetup(mvcService).build();
 	}
 

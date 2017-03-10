@@ -6,6 +6,9 @@
 
 package gov.usgs.wqp.springinit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +16,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.env.Environment;
 import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -40,6 +44,10 @@ import gov.usgs.wqp.ogcproxy.utils.CloseableHttpClientFactory;
 	@PropertySource(value="file:${catalina.base}/conf/ogcproxy.properties", ignoreResourceNotFound=true)
 })
 public class SpringConfig extends WebMvcConfigurerAdapter {
+	private static final Logger LOG = LoggerFactory.getLogger(SpringConfig.class);
+
+	@Autowired
+	private Environment environment;
 
 	/**
 	 * Expose the resources (properties defined above) as an Environment to all
@@ -102,6 +110,30 @@ public class SpringConfig extends WebMvcConfigurerAdapter {
 	@Bean
 	public CloseableHttpClientFactory closeableHttpClientFactory() {
 		return CloseableHttpClientFactory.getInstance();
+	}
+
+	@Bean
+	public Long readLockTimeout() {
+		long timeout = 30;
+		try {
+			timeout = Long.parseLong(environment.getProperty("proxy.readLock.timout"));
+		} catch (Exception e) {
+			LOG.error("Failed to parse property [proxy.readLock.timout] " +
+					  "- Keeping readLock timout at default of [" + timeout + "] seconds.\n" + e.getMessage() + "\n", e);
+		}
+		return timeout;
+	}
+
+	@Bean
+	public Long writeLockTimeout() {
+		long timeout = 120;
+		try {
+			timeout = Long.parseLong(environment.getProperty("proxy.writeLock.timout"));
+		} catch (Exception e) {
+			LOG.error("Failed to parse property [proxy.writeLock.timout] " +
+					  "- Keeping writeLock timout at default of [" + timeout + "] seconds.\n" + e.getMessage() + "\n", e);
+		}
+		return timeout;
 	}
 
 }

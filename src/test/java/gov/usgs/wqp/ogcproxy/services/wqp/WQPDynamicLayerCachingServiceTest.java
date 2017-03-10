@@ -86,6 +86,7 @@ public class WQPDynamicLayerCachingServiceTest {
 		when(geoServerUtils.buildAuthorizedClient()).thenReturn(httpClient);
 		when(geoServerUtils.buildDataStoreRestGet()).thenReturn("http://owi.usgs.gov/geoserver");
 		when(geoServerUtils.buildWorkspaceRestDelete()).thenReturn("http://owi.usgs.gov/geoserver");
+		when(geoServerUtils.buildResourceRestDelete()).thenReturn("http://owi.usgs.gov/geoserver");
 
 		service.geoServerUtils = geoServerUtils;
 		service.wqpLayerBuildingService = wqpLayerBuildingService;
@@ -97,15 +98,33 @@ public class WQPDynamicLayerCachingServiceTest {
 	@Test
 	public void clearCacheTest() {
 		int cnt = service.clearCache();
+		verify(service).deleteGeoserverResources();
 		verify(service).clearGeoserverWorkspace();
 		verify(service).clearInMemoryCache();
 
 		//Do it a second time to verify it really cleared the cache.
 		cnt = service.clearCache();
+		verify(service, times(2)).deleteGeoserverResources();
 		verify(service, times(2)).clearGeoserverWorkspace();
 		verify(service, times(2)).clearInMemoryCache();
 
 		assertEquals(0, cnt);
+	}
+
+	@Test
+	public void deleteGeoserverResourcesTest() {
+		try {
+			when(httpClient.execute(any(HttpDelete.class), any(HttpClientContext.class))).thenThrow(new IOException("Hi")).thenReturn(response);
+
+			service.deleteGeoserverResources();
+			verify(httpClient, times(1)).execute(any(HttpDelete.class), any(HttpClientContext.class));
+
+			service.deleteGeoserverResources();
+			verify(httpClient, times(2)).execute(any(HttpDelete.class), any(HttpClientContext.class));
+		} catch (Exception e) {
+			e.printStackTrace();
+			fail("shouldn't get here at this time");
+		}
 	}
 
 	@Test
