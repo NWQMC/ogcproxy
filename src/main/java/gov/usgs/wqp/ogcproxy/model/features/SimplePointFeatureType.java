@@ -28,6 +28,7 @@ public class SimplePointFeatureType {
 		builder.length(32).add(FeatureAttributeType.provider.toString(), String.class);
 		builder.length(32).add(FeatureAttributeType.sampleCnt.toString(), String.class);
 		builder.length(32).add(FeatureAttributeType.resultCnt.toString(), String.class);
+                builder.length(32).add(FeatureAttributeType.activityCn.toString(), String.class);
 
 		// build the type
 		FEATURETYPE = builder.buildFeatureType();

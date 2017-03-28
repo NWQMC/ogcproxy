@@ -40,21 +40,24 @@ public class SimplePointFeature {
 	private GeometryFactory geometryFactory;
 
 	public SimplePointFeature(JsonObject jsonFeature) {
-		this.provider = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.PROVIDER).getAsString();
-		this.orgId = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.ORG_ID).getAsString();
-		this.orgName = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.ORG_NAME).getAsString();
-		this.name = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.NAME).getAsString();
-		this.locationName = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.LOC_NAME).getAsString();
-		this.type = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.TYPE).getAsString();
-		this.searchType = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.SEARCH_TYPE).getAsString();
-		this.huc8 = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.HUC8).getAsString();
-		this.longitude = jsonFeature.getAsJsonObject("geometry").getAsJsonArray(GeoJSONAttributes.POINT).get(0).getAsDouble();
-		this.latitude = jsonFeature.getAsJsonObject("geometry").getAsJsonArray(GeoJSONAttributes.POINT).get(1).getAsDouble();
-		this.activityCount = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.ACTIVITY_COUNT).getAsString();
-		this.resultCount = jsonFeature.getAsJsonObject("properties").getAsJsonPrimitive(GeoJSONAttributes.RESULT_COUNT).getAsString();
+            JsonObject featureObject = jsonFeature.getAsJsonObject("properties");
+            
+            this.provider = featureObject.has(GeoJSONAttributes.PROVIDER) ? featureObject.getAsJsonPrimitive(GeoJSONAttributes.PROVIDER).getAsString() : "";
+            this.orgId = featureObject.has(GeoJSONAttributes.ORG_ID) ? featureObject.getAsJsonPrimitive(GeoJSONAttributes.ORG_ID).getAsString() : "";
+            this.orgName = featureObject.has(GeoJSONAttributes.ORG_NAME) ? featureObject.getAsJsonPrimitive(GeoJSONAttributes.ORG_NAME).getAsString() : "";
+            this.name = featureObject.has(GeoJSONAttributes.NAME) ? featureObject.getAsJsonPrimitive(GeoJSONAttributes.NAME).getAsString() : "";
+            this.locationName = featureObject.has(GeoJSONAttributes.LOC_NAME) ? featureObject.getAsJsonPrimitive(GeoJSONAttributes.LOC_NAME).getAsString() : "";
+            this.type = featureObject.has(GeoJSONAttributes.TYPE) ? featureObject.getAsJsonPrimitive(GeoJSONAttributes.TYPE).getAsString() : "";
+            this.searchType = featureObject.has(GeoJSONAttributes.SEARCH_TYPE) ? featureObject.getAsJsonPrimitive(GeoJSONAttributes.SEARCH_TYPE).getAsString() : "";
+            this.huc8 = featureObject.has(GeoJSONAttributes.HUC8) ? featureObject.getAsJsonPrimitive(GeoJSONAttributes.HUC8).getAsString() : "";
+            this.activityCount = featureObject.has(GeoJSONAttributes.ACTIVITY_COUNT) ? featureObject.getAsJsonPrimitive(GeoJSONAttributes.ACTIVITY_COUNT).getAsString() : "";
+            this.resultCount = featureObject.has(GeoJSONAttributes.RESULT_COUNT) ? featureObject.getAsJsonPrimitive(GeoJSONAttributes.RESULT_COUNT).getAsString() : "";
+            
+            this.longitude = jsonFeature.getAsJsonObject("geometry").getAsJsonArray(GeoJSONAttributes.POINT).get(0).getAsDouble();
+            this.latitude = jsonFeature.getAsJsonObject("geometry").getAsJsonArray(GeoJSONAttributes.POINT).get(1).getAsDouble();
 
-		this.geometryFactory = JTSFactoryFinder.getGeometryFactory();
-		this.point = this.geometryFactory.createPoint(new Coordinate(this.longitude, this.latitude));
+            this.geometryFactory = JTSFactoryFinder.getGeometryFactory();
+            this.point = this.geometryFactory.createPoint(new Coordinate(this.longitude, this.latitude));
 	}
 
 	public SimpleFeature getSimpleFeature(SimpleFeatureBuilder featureBuilder) {
