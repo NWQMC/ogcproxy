@@ -48,7 +48,6 @@ public class SimplePointFeatureTest {
         assertEquals(FeatureAttributeType.provider.toString(), featureType.getAttributeDescriptors().get(8).getName().getLocalPart());
         assertEquals(FeatureAttributeType.sampleCnt.toString(), featureType.getAttributeDescriptors().get(9).getName().getLocalPart());
         assertEquals(FeatureAttributeType.resultCnt.toString(), featureType.getAttributeDescriptors().get(10).getName().getLocalPart());
-        assertEquals(FeatureAttributeType.activityCn.toString(), featureType.getAttributeDescriptors().get(11).getName().getLocalPart());
 
         SimplePointFeature currentPointFeature = new SimplePointFeature((JsonObject) new JsonParser().parse(JSON_FEATURE));
 
@@ -65,7 +64,6 @@ public class SimplePointFeatureTest {
         assertEquals("UNKNOWN", generatedFeature.getAttribute(FeatureAttributeType.provider.toString()));
         assertEquals("", generatedFeature.getAttribute(FeatureAttributeType.sampleCnt.toString()));
         assertEquals("100", generatedFeature.getAttribute(FeatureAttributeType.resultCnt.toString()));
-        assertEquals(null, generatedFeature.getAttribute(FeatureAttributeType.activityCn.toString()));
     }
 
 }
