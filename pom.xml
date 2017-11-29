@@ -145,9 +145,9 @@
 	</repositories>
 
 	<scm>
-		<connection>git:https:internal.cida.usgs.gov/stash/scm/wqp/ogcproxy.git</connection>
-		<developerConnection>scm:git:ssh://git@cida-eros-stash.er.usgs.gov:7999/wqp/ogcproxy.git</developerConnection>
-		<url>https://internal.cida.usgs.gov/stash/projects/WQP/repos/ogcproxy/browse</url>
+		<connection>git:https://github.com/NWQMC/ogcproxy.git</connection>
+		<developerConnection>scm:git:git@github.com:NWQMC/ogcproxy.git</developerConnection>
+		<url>https://github.com/NWQMC/ogcproxy</url>
 		<tag>HEAD</tag>
 	</scm>
 
