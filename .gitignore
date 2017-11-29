@@ -5,3 +5,4 @@ save.classpath
 /target
 *.log
 /src/main/webapp/META-INF
+/bin
