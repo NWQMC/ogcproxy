@@ -5,7 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,7 +34,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
-import org.springframework.core.env.Environment;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 
@@ -50,6 +49,7 @@ import gov.usgs.wqp.ogcproxy.model.DynamicLayer;
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
+import gov.usgs.wqp.ogcproxy.services.ConfigurationService;
 import gov.usgs.wqp.ogcproxy.utils.GeoServerUtils;
 
 @DirtiesContext(classMode=ClassMode.AFTER_CLASS)
@@ -60,7 +60,7 @@ public class WQPDynamicLayerCachingServiceTest {
 	@Mock
 	private HttpClientBuilder httpClientBuilder;
 	@Mock
-	private Environment environment;
+	private ConfigurationService configurationService;
 	@Mock
 	private GeoServerUtils geoServerUtils;
 	@Mock
@@ -87,12 +87,13 @@ public class WQPDynamicLayerCachingServiceTest {
 		when(geoServerUtils.buildDataStoreRestGet()).thenReturn("http://owi.usgs.gov/geoserver");
 		when(geoServerUtils.buildWorkspaceRestDelete()).thenReturn("http://owi.usgs.gov/geoserver");
 		when(geoServerUtils.buildResourceRestDelete()).thenReturn("http://owi.usgs.gov/geoserver");
+		when(configurationService.getGeoserverWorkspace()).thenReturn(WQP_WORKSPACE);
 
 		service.geoServerUtils = geoServerUtils;
 		service.wqpLayerBuildingService = wqpLayerBuildingService;
 
 		service.httpClient = httpClient;
-		service.geoserverWorkspace = WQP_WORKSPACE;
+		service.configurationService = configurationService;
 	}
 
 	@Test
@@ -235,25 +236,25 @@ public class WQPDynamicLayerCachingServiceTest {
 	
 	@Test
 	public void initializeTest() {
-		when(environment.getProperty("proxy.thread.sleep")).thenReturn("", "456");
+		when(configurationService.getThreadSleep()).thenReturn(Long.valueOf("500"), Long.valueOf("456"));
 
-		service.environment = environment;
+		service.configurationService = configurationService;
 		service.initialize();
 
-		//defaults since all are empty string
+		//should be 500
 		assertEnvironmentDefaults();
-		verify(environment, times(1)).getProperty("proxy.thread.sleep");
+		verify(configurationService, times(1)).getThreadSleep();
 
-		//still defaults because already initialized...
+		//still 500 because already initialized...
 		service.initialize();
 		assertEnvironmentDefaults();
-		verify(environment, times(1)).getProperty("proxy.thread.sleep");
+		verify(configurationService, times(1)).getThreadSleep();
 
-		//start over and apply some.
+		//start over and make 456.
 		service.initialized = false;
 		service.initialize();
 		assertEquals(456, service.threadSleep);
-		verify(environment, times(2)).getProperty("proxy.thread.sleep");
+		verify(configurationService, times(2)).getThreadSleep();
 	}
 
 	@Test

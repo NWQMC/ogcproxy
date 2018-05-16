@@ -30,7 +30,6 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -42,6 +41,7 @@ import gov.usgs.wqp.ogcproxy.model.DynamicLayer;
 import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeature;
 import gov.usgs.wqp.ogcproxy.model.features.SimplePointFeatureType;
 import gov.usgs.wqp.ogcproxy.model.parameters.SearchParameters;
+import gov.usgs.wqp.ogcproxy.services.ConfigurationService;
 import gov.usgs.wqp.ogcproxy.utils.CloseableHttpClientFactory;
 import gov.usgs.wqp.ogcproxy.utils.GeoServerUtils;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
@@ -55,14 +55,7 @@ public class WQPLayerBuildingService {
 	@Autowired
 	private GeoServerUtils geoServerUtils;
 	@Autowired
-	@Qualifier("layerbuilderBaseURI")
-	private String layerbuilderBaseURI;
-	@Autowired
-	@Qualifier("workingDirectory")
-	private String workingDirectory;
-	@Autowired
-	@Qualifier("shapefileDirectory")
-	private String shapefileDirectory;
+	private ConfigurationService configurationService;
 
 	private volatile boolean initialized;
 
@@ -148,7 +141,7 @@ public class WQPLayerBuildingService {
 		 * Create the shapefile
 		 */
 		LOG.debug("WQPLayerBuildingService.buildDynamicLayer() INFO: o ----- Creating Shapefile (" + layerName + ")");
-		if ( ! createShapeFile(shapefileDirectory, layerName, true, features) ) {
+		if ( ! createShapeFile(configurationService.getShapefileDirectory(), layerName, true, features) ) {
 			// we force zip file as GeoServer requires it
 			String msg = "WQPLayerBuildingService.buildDynamicLayer() EXCEPTION : Creating the shapefile failed.  Throwing Exception...";
 			LOG.error(msg);
@@ -160,7 +153,7 @@ public class WQPLayerBuildingService {
 		/* 
 		 * Upload the shapefile to geoserver
 		 */
-		geoServerUtils.uploadShapefile(geoserverClient, shapefileDirectory, layerName);
+		geoServerUtils.uploadShapefile(geoserverClient, configurationService.getShapefileDirectory(), layerName);
 
 		LOG.info(layerName + " created in " + ((System.nanoTime() - startTime) / 1000000000d) + " seconds");
 
@@ -169,7 +162,7 @@ public class WQPLayerBuildingService {
 
 	private File getGeoJsonData(SearchParameters<String, List<String>> searchParams, String layerName) throws OGCProxyException {
 
-		String dataFilename = WQPUtils.retrieveSearchParamData(wqpClient, searchParams, layerbuilderBaseURI, workingDirectory, layerName);
+		String dataFilename = WQPUtils.retrieveSearchParamData(wqpClient, searchParams, configurationService.getLayerbuilderBaseURI(), configurationService.getWorkingDirectory(), layerName);
 
 		if (isEmpty(dataFilename)) {
 			/*

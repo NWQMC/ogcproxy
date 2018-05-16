@@ -1,8 +1,9 @@
 package gov.usgs.wqp.ogcproxy.utils;
 
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -30,10 +31,13 @@ import org.powermock.modules.junit4.PowerMockRunner;
 
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
+import gov.usgs.wqp.ogcproxy.services.ConfigurationService;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(GeoServerUtils.class)
 public class GeoServerUtilsUploadShapefileTest {
+
+	private ConfigurationService configurationService = new ConfigurationService();
 
 	@Mock
 	private CloseableHttpClient httpClient;
@@ -46,7 +50,7 @@ public class GeoServerUtilsUploadShapefileTest {
 	@Mock
 	CloseableHttpClientFactory factory;
 	@Spy
-	GeoServerUtils geoServerUtils = new GeoServerUtils();
+	GeoServerUtils geoServerUtils = new GeoServerUtils(factory, configurationService);
 
 	private File file;
 
@@ -61,7 +65,7 @@ public class GeoServerUtilsUploadShapefileTest {
 	public void uploadShapefileHappyPathTest() {
 		try {
 			whenNew(File.class).withAnyArguments().thenReturn(file);
-			when(factory.getPreemptiveAuthContext(anyString(), anyString(), anyString())).thenReturn(localContext);
+			when(factory.getPreemptiveAuthContext(isNull(), isNull(), isNull())).thenReturn(localContext);
 			when(httpClient.execute(any(HttpGet.class), any(HttpClientContext.class))).thenReturn(response);
 			when(httpClient.execute(any(HttpPut.class), any(HttpClientContext.class))).thenReturn(response);
 			when(file.exists()).thenReturn(true);
@@ -123,8 +127,8 @@ public class GeoServerUtilsUploadShapefileTest {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}
-			verify(geoServerUtils).verifyWorkspaceExists(any(CloseableHttpClient.class), any(HttpClientContext.class));
-			verify(geoServerUtils, never()).putShapefile(any(CloseableHttpClient.class), any(HttpClientContext.class), anyString(), anyString(), any(File.class));
+			verify(geoServerUtils).verifyWorkspaceExists(any(CloseableHttpClient.class), isNull());
+			verify(geoServerUtils, never()).putShapefile(any(CloseableHttpClient.class), isNull(), anyString(), anyString(), any(File.class));
 			verify(file).exists();
 			verify(file).delete();
 		} catch (Exception e) {

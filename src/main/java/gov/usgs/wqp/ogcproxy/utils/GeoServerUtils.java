@@ -18,84 +18,58 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyExceptionID;
-import gov.usgs.wqp.springinit.GeoServerConfig;
+import gov.usgs.wqp.ogcproxy.services.ConfigurationService;
 
 @Component
 public class GeoServerUtils {
 	private static final Logger LOG = LoggerFactory.getLogger(GeoServerUtils.class);
-
-	@Autowired
-	CloseableHttpClientFactory closeableHttpClientFactory;
-	@Autowired
-	@Qualifier("geoserverBaseURI")
-	private String geoserverBaseURI;
-	@Autowired
-	@Qualifier("geoserverWorkspace")
-	private String geoserverWorkspace;
-	@Autowired
-	@Qualifier("geoserverWorkspaceBase")
-	private String geoserverWorkspaceBase;
-	@Autowired
-	@Qualifier("geoserverDataStoreBase")
-	private String geoserverDataStoreBase;
-	@Autowired
-	@Qualifier("geoserverHost")
-	private String geoserverHost;
-	@Autowired
-	@Qualifier("geoserverPort")
-	private String geoserverPort;
-	@Autowired
-	@Qualifier("geoserverUser")
-	private String geoserverUser;
-	@Autowired
-	@Qualifier("geoserverPass")
-	private String geoserverPass;
-	@Autowired
-	@Qualifier("geoserverProtocol")
-	private String geoserverProtocol;
-	@Autowired
-	@Qualifier("geoserverCatchupTime")
-	private long geoserverCatchupTime;
-
 	public static String JSON_EXT = ".json";
 
+	protected CloseableHttpClientFactory closeableHttpClientFactory;
+	protected ConfigurationService configurationService;
+
+	@Autowired
+	public GeoServerUtils(CloseableHttpClientFactory closeableHttpClientFactory, ConfigurationService configurationService) {
+		this.closeableHttpClientFactory = closeableHttpClientFactory;
+		this.configurationService = configurationService;
+	}
+
 	public String buildNamespacePost() {
-		return String.join("/", geoserverBaseURI, GeoServerConfig.GEOSERVER_REST, GeoServerConfig.GEOSERVER_NAMPESPACES);
+		return String.join("/", configurationService.getGeoserverBaseURI(), ConfigurationService.GEOSERVER_REST, ConfigurationService.GEOSERVER_NAMPESPACES);
 	}
 
 	public String buildDataStoreRestGet() {
-		return geoserverDataStoreBase + JSON_EXT;
+		return configurationService.getGeoserverDataStoreBase() + JSON_EXT;
 	}
 
 	public String buildShapeFileRestPut(String layerName) {
-		return geoserverDataStoreBase + "/" + layerName + "/file.shp";
+		return configurationService.getGeoserverDataStoreBase() + "/" + layerName + "/file.shp";
 	}
 
 	public String buildResourceRestDelete() {
-		return String.join("/", geoserverBaseURI, GeoServerConfig.GEOSERVER_REST, GeoServerConfig.GEOSERVER_RESOURCE, GeoServerConfig.GEOSERVER_DATA, geoserverWorkspace);
+		return String.join("/", configurationService.getGeoserverBaseURI(), ConfigurationService.GEOSERVER_REST, ConfigurationService.GEOSERVER_RESOURCE, ConfigurationService.GEOSERVER_DATA, configurationService.getGeoserverWorkspace());
 	}
 
 	public String buildWorkspaceRestDelete() {
-		return geoserverWorkspaceBase + "?recurse=true";
+		return configurationService.getGeoserverWorkspaceBase() + "?recurse=true";
 	}
 
 	public String buildWorkspacesRestGet() {
-		return geoserverWorkspaceBase + JSON_EXT;
+		return configurationService.getGeoserverWorkspaceBase() + JSON_EXT;
 	}
 
 	public CloseableHttpClient buildAuthorizedClient() {
 		CredentialsProvider credentialsProvider =
-				closeableHttpClientFactory.getCredentialsProvider(geoserverHost, geoserverPort, geoserverUser, geoserverPass);
+				closeableHttpClientFactory.getCredentialsProvider(configurationService.getGeoserverHost(), configurationService.getGeoserverPort(), configurationService.getGeoserverUser(), configurationService.getGeoserverPass());
 		return closeableHttpClientFactory.getAuthorizedCloseableHttpClient(credentialsProvider);
 	}
 
 	public HttpClientContext buildLocalContext() {
-		return closeableHttpClientFactory.getPreemptiveAuthContext(geoserverHost, geoserverPort, geoserverProtocol);
+		return closeableHttpClientFactory.getPreemptiveAuthContext(configurationService.getGeoserverHost(), configurationService.getGeoserverPort(), configurationService.getGeoserverProtocol());
 	}
 
 	public void uploadShapefile(CloseableHttpClient geoserverClient, String shapefileDirectory, String layerName) throws OGCProxyException {
@@ -138,7 +112,7 @@ public class GeoServerUtils {
 		 * 		we mark the layer AVAILABLE.
 		 */
 		try {
-			Thread.sleep(geoserverCatchupTime);
+			Thread.sleep(configurationService.getGeoserverCatchupTime());
 		} catch (InterruptedException e) {
 			LOG.warn("GeoServerUtils.uploadShapefile() caught InterruptedException when running the GeoServer Catchup Time sleep.  Continuing...", e);
 		}
@@ -216,7 +190,7 @@ public class GeoServerUtils {
 		 * We will actually try to create a namespace (which will automatically create the workspace)
 		 */
 		String mediaType = "text/xml";
-		String object = "<namespace><prefix>" + geoserverWorkspace
+		String object = "<namespace><prefix>" + configurationService.getGeoserverWorkspace()
 				+ "</prefix><uri>http://www.waterqualitydata.us/ogcservices</uri></namespace>";
 		int statusCode = -1;
 		CloseableHttpResponse response = null;

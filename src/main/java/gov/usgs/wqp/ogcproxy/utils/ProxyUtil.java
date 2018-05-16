@@ -91,7 +91,7 @@ public class ProxyUtil {
 	 * @return OGCRequest
 	 */
 	public static OGCRequest separateParameters(HttpServletRequest request, OGCServices ogcService) {
-		Map<String, String[]> requestParams = new HashMap();
+		Map<String, String[]> requestParams = new HashMap<>();
 		requestParams.putAll(request.getParameterMap());
 		
 		String requestBody = ""; 

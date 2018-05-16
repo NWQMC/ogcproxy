@@ -16,12 +16,10 @@ public class ApplicationVersion implements ServletContextAware {
 
 	private static ServletContext servletContext;
 
-	public static final String PROJECT_VERSION = "Project-Version";
-	public static final String BUILD_TIME = "BuildTime";
-	public static final String IMPLEMENTATION_BUILD = "Implementation-Build";
+	public static final String PROJECT_VERSION = "Implementation-Version";
 
 	public static String getVersion() {
-		StringBuilder currentVersion = new StringBuilder("Application Version: ");
+		StringBuilder currentVersion = new StringBuilder("v");
 		try {
 			String name = "/META-INF/MANIFEST.MF";
 			Properties props = new Properties();
@@ -31,10 +29,6 @@ public class ApplicationVersion implements ServletContextAware {
 				currentVersion.append("Unavailable");
 			} else {
 				currentVersion.append(projectVersion);
-				if (projectVersion.endsWith("-SNAPSHOT")) {
-					currentVersion.append(" Built at: " + (String) props.get(BUILD_TIME));
-					currentVersion.append(" From commit: " + (String) props.get(IMPLEMENTATION_BUILD));
-				}
 			}
 		} catch (Exception e) {
 			LOG.info("unable to get application version", e);

@@ -61,7 +61,7 @@ public class ProxyService {
 	@Autowired
 	protected WQPDynamicLayerCachingService layerCachingService;
 	@Autowired
-	private String geoserverBaseURI;
+	protected ConfigurationService configurationService;
 
 	private CloseableHttpClient serverClient;
 
@@ -208,7 +208,7 @@ public class ProxyService {
 		try {
 			// 1) Generate Server URI
 			String serverRequestURIAsString = ProxyUtil.getServerRequestURIAsString(clientRequest, ogcRequest.getOgcParams(),
-					geoserverBaseURI);
+					configurationService.getGeoserverBaseURI());
 			String clientRequestMethod = clientRequest.getMethod().toUpperCase();
 
 			LOG.trace("Request to GeoServer is: [\n" + serverRequestURIAsString + "]");
