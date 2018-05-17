@@ -52,8 +52,6 @@ import gov.usgs.wqp.ogcproxy.utils.CloseableHttpClientFactory;
 import gov.usgs.wqp.ogcproxy.utils.ProxyUtil;
 import gov.usgs.wqp.ogcproxy.utils.SystemUtils;
 
-
-
 public class ProxyService {
 
 	@Autowired
@@ -346,9 +344,6 @@ public class ProxyService {
 		HttpEntity methodEntity = serverResponse.getEntity();
 		if (methodEntity != null) {
 
-			InputStream  is = null;
-			OutputStream os = null;
-
 			boolean contentCompressed = false;
 
 			if (methodEntity.getContentEncoding() != null) {
@@ -360,28 +355,10 @@ public class ProxyService {
 
 			long responseBytes = 0;
 
-			try {
+			try (InputStream is = methodEntity.getContent();
+					OutputStream os = clientResponse.getOutputStream()) {
 				// !!! Are you here to edit this to enable response body content rewrite?
 				// You may want to remove or edit the "Content-Length" header !!!
-				try {
-					is = methodEntity.getContent();
-				} catch (IOException e) {
-					String msg = "Error obtaining input stream for server response [" + e.getMessage() + "]";
-					LOG.error(msg, e);
-
-					OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_RESPONSE_INPUT_STREAM_ERROR;
-					throw new OGCProxyException(id, CLASSNAME, methodName, msg);
-				}
-
-				try {
-					os = clientResponse.getOutputStream();
-				} catch (IOException e) {
-					String msg = "Error obtaining output stream for client response [" + e.getMessage() + "]";
-					LOG.error(msg, e);
-
-					OGCProxyExceptionID id = OGCProxyExceptionID.CLIENT_RESPONSE_OUTPUT_STREAM_ERROR;
-					throw new OGCProxyException(id, CLASSNAME, methodName, msg);
-				}
 
 				byte[] serverContent;
 				try {
@@ -393,7 +370,7 @@ public class ProxyService {
 					OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_TO_CLIENT_RESPONSE_ERROR;
 					throw new OGCProxyException(id, CLASSNAME, methodName, msg);
 				}
-				
+
 				// Now, if the server response is xml we need to inspect it and
 				// modify depending on a couple logic steps.
 				//
@@ -407,7 +384,7 @@ public class ProxyService {
 				String contentType = null == methodEntity.getContentType() ? null : methodEntity.getContentType().getValue();
 				if ((contentType != null) && (contentType.toLowerCase().contains("xml"))) {
 					inspectedBytes = inspectServerContent(clientRequest, serverRequest, ogcRequest, serverContent, contentCompressed);
-					
+
 					// We must set the content-length here for the possible change
 					// in content from the inspection
 					clientResponse.setContentLength(inspectedBytes.length);
@@ -424,6 +401,13 @@ public class ProxyService {
 					OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_TO_CLIENT_RESPONSE_ERROR;
 					throw new OGCProxyException(id, CLASSNAME, methodName, msg);
 				}
+
+				} catch (IOException e) {
+				String msg = "Error obtaining input stream for server response or output stream for client response [" + e.getMessage() + "]";
+				LOG.error(msg, e);
+
+				OGCProxyExceptionID id = OGCProxyExceptionID.SERVER_RESPONSE_INPUT_STREAM_ERROR;
+				throw new OGCProxyException(id, CLASSNAME, methodName, msg);
 
 			} finally {
 				LOG.debug("Copied "
@@ -442,8 +426,6 @@ public class ProxyService {
 							+ " to "
 							+ serverRequestURLAsString, e);
 				}
-				IOUtils.closeQuietly(is);
-				IOUtils.closeQuietly(os);
 			}
 		} else {
 			LOG.warn("Server response was empty for proxy response from "
