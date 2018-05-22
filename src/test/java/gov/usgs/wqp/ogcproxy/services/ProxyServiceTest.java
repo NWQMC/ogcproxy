@@ -1,10 +1,10 @@
 package gov.usgs.wqp.ogcproxy.services;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anySetOf;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -81,8 +81,8 @@ public class ProxyServiceTest {
 
 	@Test
 	public void convertVendorParmsTest() {
-		when(ProxyUtil.getCaseSensitiveParameter(eq("request"), anySetOf(String.class))).thenReturn("ReQuEsT");
-		when(ProxyUtil.getCaseSensitiveParameter(eq("layer"), anySetOf(String.class))).thenReturn(WMSParameters.layer.toString());
+		when(ProxyUtil.getCaseSensitiveParameter(eq("request"), anySet())).thenReturn("ReQuEsT");
+		when(ProxyUtil.getCaseSensitiveParameter(eq("layer"), anySet())).thenReturn(WMSParameters.layer.toString());
 		Map<String, String> ogcParams = new HashMap<>();
 		ogcParams.put(WMSParameters.layer.toString(), ProxyDataSourceParameter.WQP_SITES.toString());
 		ogcParams.put("ReQuEsT", OGCRequest.GET_LEGEND_GRAPHIC);
@@ -98,14 +98,14 @@ public class ProxyServiceTest {
 		OGCRequest ogcRequest = service.convertVendorParms(request, OGCServices.WMS);
 		assertEquals(notVendor, ogcRequest);
 		verify(cachingService, never()).getDynamicLayer(any(OGCRequest.class));
-		verifyStatic();
+		verifyStatic(ProxyUtil.class);
 		ProxyUtil.separateParameters(any(HttpServletRequest.class), any(OGCServices.class));
 
 		ogcRequest = service.convertVendorParms(request, OGCServices.WMS);
 		assertEquals(vendor, ogcRequest);
 		assertEquals("thisIsALayer", ogcRequest.getOgcParams().get(WMSParameters.layer.toString()));
 		verify(cachingService).getDynamicLayer(any(OGCRequest.class));
-		verifyStatic(times(2));
+		verifyStatic(ProxyUtil.class, times(2));
 		ProxyUtil.separateParameters(any(HttpServletRequest.class), any(OGCServices.class));
 	}
 
@@ -142,7 +142,7 @@ public class ProxyServiceTest {
 		byte[] abc = service.inspectServerContent(request, serverRequest, ogcRequest, serverContent, false);
 		assertEquals("ReQuEsT", new String(abc));
 
-		verifyStatic();
+		verifyStatic(ProxyUtil.class);
 		ProxyUtil.redirectContentToProxy(eq("https://owi.usgs.gov:8443/wow?cool=beans"),
 				eq("https"), eq("http"),
 				eq("owi.usgs.gov"), eq("gp.org"),
@@ -166,11 +166,11 @@ public class ProxyServiceTest {
 		when(request.getContextPath()).thenReturn("ac");
 		when(request.getLocalPort()).thenReturn(8080);
 		when(request.getScheme()).thenReturn("http");
-		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySetOf(String.class)))
+		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySet()))
 			.thenReturn("request");
-		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySetOf(String.class)))
+		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySet()))
 			.thenReturn("request");
-		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySetOf(String.class)))
+		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySet()))
 			.thenReturn("request");
 		
 		//verify that addGetCapabilitesInfo is called
@@ -199,9 +199,9 @@ public class ProxyServiceTest {
 		when(request.getContextPath()).thenReturn("ac");
 		when(request.getLocalPort()).thenReturn(8080);
 		when(request.getScheme()).thenReturn("http");
-		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySetOf(String.class)))
+		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySet()))
 			.thenReturn("request");
-		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySetOf(String.class)))
+		when(ProxyUtil.getCaseSensitiveParameter(anyString(), anySet()))
 			.thenReturn("request");
 		
 		//verify that addGetCapabilitesInfo is called
@@ -225,9 +225,9 @@ public class ProxyServiceTest {
 		when(request.getContextPath()).thenReturn("ac");
 		when(request.getLocalPort()).thenReturn(8080);
 		when(request.getScheme()).thenReturn("http");
-		when(ProxyUtil.getCaseSensitiveParameter(eq("typeName"), anySetOf(String.class)))
+		when(ProxyUtil.getCaseSensitiveParameter(eq("typeName"), anySet()))
 			.thenReturn("typeName");
-		when(ProxyUtil.getCaseSensitiveParameter(eq("request"), anySetOf(String.class)))
+		when(ProxyUtil.getCaseSensitiveParameter(eq("request"), anySet()))
 			.thenReturn("request");
 		
 		String responseWithDynamicSites = "<xsd:complexType name=\"dynamicSites_1879846045\"></xsd:complexType>";

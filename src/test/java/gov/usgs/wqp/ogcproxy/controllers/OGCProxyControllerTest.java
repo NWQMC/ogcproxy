@@ -2,9 +2,9 @@ package gov.usgs.wqp.ogcproxy.controllers;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.powermock.reflect.Whitebox;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -32,6 +33,7 @@ import org.springframework.web.servlet.ModelAndView;
 import gov.usgs.wqp.ogcproxy.model.DynamicLayer;
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
+import gov.usgs.wqp.ogcproxy.services.ConfigurationService;
 import gov.usgs.wqp.ogcproxy.services.ProxyService;
 import gov.usgs.wqp.ogcproxy.services.RESTService;
 
@@ -45,12 +47,16 @@ public class OGCProxyControllerTest {
 	@Mock
 	private RESTService restService;
 
+	private ConfigurationService configurationService;
 	private OGCProxyController mvcService;
 
 	@Before
 	public void setup() {
 		MockitoAnnotations.initMocks(this);
-		mvcService = new OGCProxyController(proxyService, restService, Long.valueOf("10"), Long.valueOf("10"));
+		configurationService = new ConfigurationService();
+		Whitebox.setInternalState(configurationService, "readLockTimeout", Long.valueOf("10"));
+		Whitebox.setInternalState(configurationService, "writeLockTimeout", Long.valueOf("10"));
+		mvcService = new OGCProxyController(proxyService, restService, configurationService);
 		mockMvc = MockMvcBuilders.standaloneSetup(mvcService).build();
 	}
 
@@ -106,7 +112,7 @@ public class OGCProxyControllerTest {
 		assertEquals(1, rtn.getModelAndView().getModelMap().size());
 		assertTrue(rtn.getModelAndView().getModelMap().containsKey("version"));
 		//We get this error because the test does not run in a Spring context.
-		assertEquals("Application Version:  Error Encountered", rtn.getModelAndView().getModelMap().get("version"));
+		assertEquals("v Error Encountered", rtn.getModelAndView().getModelMap().get("version"));
 	}
 
 	@Test

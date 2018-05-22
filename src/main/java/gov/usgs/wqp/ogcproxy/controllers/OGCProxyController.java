@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
+import gov.usgs.wqp.ogcproxy.services.ConfigurationService;
 import gov.usgs.wqp.ogcproxy.services.ProxyService;
 import gov.usgs.wqp.ogcproxy.services.RESTService;
 import gov.usgs.wqp.ogcproxy.utils.ApplicationVersion;
@@ -34,16 +35,14 @@ public class OGCProxyController {
 
 	private ProxyService proxyService;
 	private RESTService restService;
-	protected Long readLockTimeout;
-	protected Long writeLockTimeout;
+	protected ConfigurationService configurationService;
 
 	@Autowired
 	public OGCProxyController(ProxyService proxyService,
-			RESTService restService, Long readLockTimeout, Long writeLockTimeout) {
+			RESTService restService, ConfigurationService configurationService) {
 		this.proxyService = proxyService;
 		this.restService = restService;
-		this.readLockTimeout = readLockTimeout;
-		this.writeLockTimeout = writeLockTimeout;
+		this.configurationService = configurationService;
 	}
 
 	/** 
@@ -54,7 +53,7 @@ public class OGCProxyController {
 	@GetMapping("/")
 	public ModelAndView entry() {
 		LOG.info("OGCProxyController.entry() called");
-		
+
 		ModelAndView mv = new ModelAndView("index.jsp");
 		mv.addObject("version", ApplicationVersion.getVersion());
 
@@ -101,7 +100,7 @@ public class OGCProxyController {
 		LOG.info("OGCProxyController.restCacheStatus() - Performing request.");
 		ModelAndView finalResult = new ModelAndView();
 		try {
-			if (readLock.tryLock(readLockTimeout, TimeUnit.SECONDS)) {
+			if (readLock.tryLock(configurationService.getReadLockTimeout(), TimeUnit.SECONDS)) {
 				try {
 					finalResult = restService.checkCacheStatus(site);
 				} catch(Throwable t) {
@@ -121,7 +120,7 @@ public class OGCProxyController {
 	public void restClearCache(@PathVariable String site, HttpServletResponse response) {
 		LOG.info("OGCProxyController.restClearCache() - Performing request.");
 		try {
-			if (writeLock.tryLock(writeLockTimeout, TimeUnit.SECONDS)) {
+			if (writeLock.tryLock(configurationService.getWriteLockTimeout(), TimeUnit.SECONDS)) {
 				try {
 					if (restService.clearCacheBySite(site)) {
 						response.setStatus(HttpStatus.SC_OK);
@@ -145,7 +144,7 @@ public class OGCProxyController {
 
 	public void doProxy(HttpServletRequest request, HttpServletResponse response, OGCServices ogcService) {
 		try {
-			if (readLock.tryLock(readLockTimeout, TimeUnit.SECONDS)) {
+			if (readLock.tryLock(configurationService.getWriteLockTimeout(), TimeUnit.SECONDS)) {
 				try {
 					proxyService.performRequest(request, response, ogcService);
 				} catch(Throwable t) {

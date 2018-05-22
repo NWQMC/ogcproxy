@@ -2,9 +2,10 @@ package gov.usgs.wqp.ogcproxy.utils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -12,44 +13,26 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.io.IOException;
 
-import javax.annotation.Resource;
-
-import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
-import org.apache.http.auth.AuthScheme;
-import org.apache.http.client.AuthCache;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.Spy;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestExecutionListeners;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
-import org.springframework.test.context.web.WebAppConfiguration;
+import org.powermock.reflect.Whitebox;
 
-import gov.usgs.ogcproxy.springinit.TestSpringConfig;
 import gov.usgs.wqp.ogcproxy.exceptions.OGCProxyException;
-import gov.usgs.wqp.springinit.SpringConfig;
+import gov.usgs.wqp.ogcproxy.services.ConfigurationService;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@WebAppConfiguration
-@ContextConfiguration(classes={SpringConfig.class, TestSpringConfig.class})
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class})
 public class GeoServerUtilsTest {
 
-	@Resource
-	@Spy
 	GeoServerUtils geoServerUtils;
 
 	@Mock
@@ -61,32 +44,43 @@ public class GeoServerUtilsTest {
 	@Mock
 	private StatusLine statusLine;
 	@Mock
+	CloseableHttpClientFactory factory;
+	@Mock
 	private File file;
+	@Mock
+	CredentialsProvider credentialsProvider;
+
+	ConfigurationService configurationService;
 
 	@Before
 	public void beforeTest() {
 		MockitoAnnotations.initMocks(this);
+		configurationService = new ConfigurationService();
+		geoServerUtils = new GeoServerUtils(factory, configurationService);
+		Whitebox.setInternalState(configurationService, "geoserverProtocol", "https");
+		Whitebox.setInternalState(configurationService, "geoserverHost", "owi.usgs.gov");
+		Whitebox.setInternalState(configurationService, "geoserverPort", "8444");
+		Whitebox.setInternalState(configurationService, "geoserverContext", "geoserver");
+		Whitebox.setInternalState(configurationService, "geoserverWorkspace", "wqp_sites");
+		Whitebox.setInternalState(configurationService, "geoserverUser", "username");
+		Whitebox.setInternalState(configurationService, "geoserverPass", "pwd");
 	}
 
 	@Test
 	public void buildAuthorizedClientTest() {
-		//We can't really test anything other than that a CloseableHttpClient is returned.
+		when(factory.getCredentialsProvider(anyString(), anyString(), anyString(), anyString())).thenReturn(credentialsProvider);
+		when(factory.getAuthorizedCloseableHttpClient(any(CredentialsProvider.class))).thenReturn(httpClient);
 		CloseableHttpClient client = geoServerUtils.buildAuthorizedClient();
 		assertNotNull(client);
+		verify(factory).getCredentialsProvider("owi.usgs.gov", "8444", "username", "pwd");
 	}
 
 	@Test
 	public void buildLocalContextTest() {
+		when(factory.getPreemptiveAuthContext(anyString(), anyString(), anyString())).thenReturn(localContext);
 		HttpClientContext context = geoServerUtils.buildLocalContext();
 		assertNotNull(context);
-		AuthCache authCache = context.getAuthCache();
-		assertNotNull(authCache);
-		assertTrue(authCache instanceof BasicAuthCache);
-		HttpHost host = new HttpHost(CloseableHttpClientFactoryTest.TEST_HOST, Integer.parseInt(CloseableHttpClientFactoryTest.TEST_PORT),
-				CloseableHttpClientFactoryTest.TEST_PROTOCOL);
-		AuthScheme authScheme = authCache.get(host);
-		assertNotNull(authScheme);
-		assertEquals("basic", authScheme.getSchemeName());
+		verify(factory).getPreemptiveAuthContext("owi.usgs.gov", "8444", "https");
 	}
 
 	@Test
@@ -201,7 +195,9 @@ public class GeoServerUtilsTest {
 	@Test
 	public void verifyWorkspaceExistsTest() {
 		try {
+			when(factory.getPreemptiveAuthContext(isNull(), isNull(), isNull())).thenReturn(localContext);
 			when(httpClient.execute(any(HttpGet.class), any(HttpClientContext.class))).thenThrow(new IOException("Hi")).thenReturn(response);
+			when(httpClient.execute(any(HttpPost.class), any(HttpClientContext.class))).thenReturn(response);
 			when(response.getStatusLine()).thenReturn(statusLine);
 			when(statusLine.getStatusCode()).thenReturn(HttpStatus.SC_OK, HttpStatus.SC_NOT_FOUND, HttpStatus.SC_OK);
 
@@ -230,8 +226,8 @@ public class GeoServerUtilsTest {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}
-			verify(httpClient, times(4)).execute(any(HttpGet.class), any(HttpClientContext.class));
-			verify(geoServerUtils).createWorkspace(any(CloseableHttpClient.class), any(HttpClientContext.class));
+			verify(httpClient, times(3)).execute(any(HttpGet.class), any(HttpClientContext.class));
+			verify(httpClient).execute(any(HttpPost.class), any(HttpClientContext.class));
 		} catch (Exception e) {
 			e.printStackTrace();
 			fail(e.getLocalizedMessage());

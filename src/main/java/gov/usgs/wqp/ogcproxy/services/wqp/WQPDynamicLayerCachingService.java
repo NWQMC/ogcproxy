@@ -22,7 +22,6 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -33,6 +32,7 @@ import gov.usgs.wqp.ogcproxy.geo.JsonObjectResponseHandler;
 import gov.usgs.wqp.ogcproxy.model.DynamicLayer;
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
 import gov.usgs.wqp.ogcproxy.model.cache.GenericCache;
+import gov.usgs.wqp.ogcproxy.services.ConfigurationService;
 import gov.usgs.wqp.ogcproxy.utils.GeoServerUtils;
 
 public class WQPDynamicLayerCachingService {
@@ -44,11 +44,9 @@ public class WQPDynamicLayerCachingService {
 	@Autowired
 	protected WQPLayerBuildingService wqpLayerBuildingService;
 	@Autowired
-	protected String geoserverWorkspace;
-	@Autowired
 	protected GeoServerUtils geoServerUtils;
 	@Autowired
-	protected Environment environment;
+	protected ConfigurationService configurationService;
 
 	protected volatile boolean initialized;
 
@@ -95,12 +93,7 @@ public class WQPDynamicLayerCachingService {
 			}
 			initialized = true;
 
-			try {
-				threadSleep = Long.parseLong(environment.getProperty("proxy.thread.sleep"));
-			} catch (Exception e) {
-				LOG.error("Failed to parse property [proxy.thread.sleep] " +
-						  "- Keeping thread sleep default to [" + threadSleep + "].\n" + e.getMessage() + "\n", e);
-			}
+			threadSleep = configurationService.getThreadSleep();
 
 			httpClient = geoServerUtils.buildAuthorizedClient();
 
@@ -127,7 +120,7 @@ public class WQPDynamicLayerCachingService {
 	public String getDynamicLayer(OGCRequest ogcRequest) {
 		String layerName = "";
 		try {
-			layerName = getLayer(new DynamicLayer(ogcRequest, geoserverWorkspace)).getQualifiedLayerName();
+			layerName = getLayer(new DynamicLayer(ogcRequest, configurationService.getGeoserverWorkspace())).getQualifiedLayerName();
 		} catch (Exception e) {
 			//TODO Bubble this error up to the client!!
 			LOG.error("Layer was not created for search parameters.", e);
@@ -227,7 +220,7 @@ public class WQPDynamicLayerCachingService {
 			while (i.hasNext()) {
 				JsonObject layer = i.next().getAsJsonObject();
 				LOG.trace("With [" + layer.get("name").getAsString() + "]");
-				DynamicLayer dynamiclayer = new DynamicLayer(layer.get("name").getAsString(), geoserverWorkspace);
+				DynamicLayer dynamiclayer = new DynamicLayer(layer.get("name").getAsString(), configurationService.getGeoserverWorkspace());
 				requestToLayerCache.setValueIfAbsent(dynamiclayer.getLayerName(), dynamiclayer);
 			}
 		} catch (Exception e) {

@@ -1,300 +1,250 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
 
-	<groupId>gov.usgs.cida.wqp</groupId>
-	<artifactId>ogcproxy</artifactId>
-	<version>0.10.0-SNAPSHOT</version>
-	<packaging>war</packaging>
+    <groupId>gov.usgs.cida.wqp</groupId>
+    <artifactId>ogcproxy</artifactId>
+    <version>0.10.0-SNAPSHOT</version>
+    <packaging>war</packaging>
 
-	<name>ogcproxy</name>
-	<url>https://cida.usgs.gov/</url>
+    <name>ogcproxy</name>
+    <url>https://cida.usgs.gov/</url>
 
-	<inceptionYear>2014</inceptionYear>
-	<organization>
-		<name>Center for Integrated Data Analytics</name>
-		<url>https://cida.usgs.gov</url>
-	</organization>
+    <inceptionYear>2014</inceptionYear>
+    <organization>
+        <name>Center for Integrated Data Analytics</name>
+        <url>https://cida.usgs.gov</url>
+    </organization>
 
-	<licenses>
-		<license>
-			<name>Public Domain</name>
-			<url>https://water.usgs.gov/software/help/notice/</url>
-			<comments>
-							U.S.Geological Survey Software User Rights Notice
-							Copied from https://water.usgs.gov/software/help/notice/ on December 6, 2013.  Please check webpage for updates.
+    <licenses>
+        <license>
+            <name>Public Domain</name>
+            <url>https://water.usgs.gov/software/help/notice/</url>
+            <comments>
+                U.S.Geological Survey Software User Rights Notice
+                Copied from https://water.usgs.gov/software/help/notice/ on December 6, 2013.  Please check webpage for updates.
 
-							Software and related material (data and (or) documentation), contained in or furnished in connection with a software distribution, are made available by the U.S. Geological Survey (USGS) to be used in the public interest and in the advancement of science. You may, without any fee or cost, use, copy, modify, or distribute this software, and any derivative works thereof, and its supporting documentation, subject to the following restrictions and understandings.
+                Software and related material (data and (or) documentation), contained in or furnished in connection with a software distribution, are made available by the U.S. Geological Survey (USGS) to be used in the public interest and in the advancement of science. You may, without any fee or cost, use, copy, modify, or distribute this software, and any derivative works thereof, and its supporting documentation, subject to the following restrictions and understandings.
 
-							If you distribute copies or modifications of the software and related material, make sure the recipients receive a copy of this notice and receive or can get a copy of the original distribution. If the software and (or) related material are modified and distributed, it must be made clear that the recipients do not have the original and they must be informed of the extent of the modifications. For example, modified files must include a prominent notice stating the modifications made, the author of the modifications, and the date the modifications were made. This restriction is necessary to guard against problems introduced in the software by others, reflecting negatively on the reputation of the USGS.
+                If you distribute copies or modifications of the software and related material, make sure the recipients receive a copy of this notice and receive or can get a copy of the original distribution. If the software and (or) related material are modified and distributed, it must be made clear that the recipients do not have the original and they must be informed of the extent of the modifications. For example, modified files must include a prominent notice stating the modifications made, the author of the modifications, and the date the modifications were made. This restriction is necessary to guard against problems introduced in the software by others, reflecting negatively on the reputation of the USGS.
 
-							The software is public property and you therefore have the right to the source code, if desired.
+                The software is public property and you therefore have the right to the source code, if desired.
 
-							You may charge fees for distribution, warranties, and services provided in connection with the software or derivative works thereof. The name USGS can be used in any advertising or publicity to endorse or promote any products or commercial entity using this software if specific written permission is obtained from the USGS.
+                You may charge fees for distribution, warranties, and services provided in connection with the software or derivative works thereof. The name USGS can be used in any advertising or publicity to endorse or promote any products or commercial entity using this software if specific written permission is obtained from the USGS.
 
-							The user agrees to appropriately acknowledge the authors and the USGS in publications that result from the use of this software or in products that include this software in whole or in part.
+                The user agrees to appropriately acknowledge the authors and the USGS in publications that result from the use of this software or in products that include this software in whole or in part.
 
-							Because the software and related material are free (other than nominal materials and handling fees) and provided "as is," the authors, the USGS, and the United States Government have made no warranty, express or implied, as to accuracy or completeness and are not obligated to provide the user with any support, consulting, training or assistance of any kind with regard to the use, operation, and performance of this software nor to provide the user with any updates, revisions, new versions or "bug fixes".
+                Because the software and related material are free (other than nominal materials and handling fees) and provided "as is," the authors, the USGS, and the United States Government have made no warranty, express or implied, as to accuracy or completeness and are not obligated to provide the user with any support, consulting, training or assistance of any kind with regard to the use, operation, and performance of this software nor to provide the user with any updates, revisions, new versions or "bug fixes".
 
-							The user assumes all risk for any damages whatsoever resulting from loss of use, data, or profits arising in connection with the access, use, quality, or performance of this software.
+                The user assumes all risk for any damages whatsoever resulting from loss of use, data, or profits arising in connection with the access, use, quality, or performance of this software.
 
-			</comments>
-		</license>
-	</licenses>
+            </comments>
+        </license>
+    </licenses>
 
-	<developers>
-		<developer>
-			<id>prusso</id>
-			<name>Philip Russo</name>
-			<email>prusso@usgs.gov</email>
-			<organization>Center for Integrated Data Analytics</organization>
-			<organizationUrl>https://cida.usgs.gov</organizationUrl>
-			<timezone>-6</timezone>
-		</developer>
-	</developers>
+    <developers>
+        <developer>
+            <id>prusso</id>
+            <name>Philip Russo</name>
+            <email>prusso@usgs.gov</email>
+            <organization>Center for Integrated Data Analytics</organization>
+            <organizationUrl>https://cida.usgs.gov</organizationUrl>
+            <timezone>-6</timezone>
+        </developer>
+    </developers>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<spring.version>4.3.4.RELEASE</spring.version>
-		<gt.version>15.1</gt.version>
-		<powermock.version>1.6.5</powermock.version> <!-- Do not update to 1.6.6, it is unable to handle the CloseableHttpResponse.close() method. Possibly related to https://github.com/powermock/powermock/issues/717 -->
-		<logback-classic-version>1.1.8</logback-classic-version>
-		<warName>ogcproxy</warName>
-		<cida.maven.url>https://internal.cida.usgs.gov/maven</cida.maven.url>
-		<additionalparam>-Xdoclint:none</additionalparam>
-	</properties>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.0.1.RELEASE</version>
+    </parent>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.5.1</version>
-				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>buildnumber-maven-plugin</artifactId>
-				<version>1.4</version>
-				<executions>
-					<execution>
-						<phase>validate</phase>
-						<goals>
-							<goal>create</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<doCheck>false</doCheck>
-					<doUpdate>false</doUpdate>
-					<providerImplementations>
-						<svn>javasvn</svn>
-					</providerImplementations>
-					<revisionOnScmFailure>unknown</revisionOnScmFailure>
-					<shortRevisionLength>7</shortRevisionLength>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-war-plugin</artifactId>
-				<version>3.0.0</version>
-				<configuration>
-					<failOnMissingWebXml>false</failOnMissingWebXml>
-					<archive>
-						<manifest>
-							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-						</manifest>
-						<manifestEntries>
-							<Implementation-Build>${buildNumber}</Implementation-Build>
- 							<!-- The following are non-standard manifest entries. Tag names have 
-								 been styled according to Manifest conventions -->
-							<BuildTime>${maven.build.timestamp}</BuildTime>
-							<Project-GroupId>${project.groupId}</Project-GroupId>
-							<Project-ArtifactId>${project.artifactId}</Project-ArtifactId>
-							<Project-Version>${project.version}</Project-Version>
-							<SCM-Url>${project.scm.developerConnection}</SCM-Url>
-							<IssueManagement-Url>${project.issueManagement.url}</IssueManagement-Url>
-						</manifestEntries>
-					</archive>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <cida.maven.url>https://internal.cida.usgs.gov/maven</cida.maven.url>
+        <additionalparam>-Xdoclint:none</additionalparam>
 
-	<repositories>
-		<repository>
-			<id>osgeo</id>
-			<name>Open Source Geospatial Foundation Repository</name>
-			<url>http://download.osgeo.org/webdav/geotools/</url>
-		</repository>
-		<repository>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
-			<id>opengeo</id>
-			<name>OpenGeo Maven Repository</name>
-			<url>https://repo.boundlessgeo.com/main/</url>
-		</repository>
-		<repository>
-			<id>nexus-public</id>
-			<name>CIDA Nexus</name>
-			<url>${cida.maven.url}/content/groups/public/</url>
-		</repository>
-	</repositories>
+        <gt.version>15.1</gt.version>
+        <powermock.version>2.0.0-beta.5</powermock.version>
+    </properties>
 
-	<scm>
-		<connection>git:https://github.com/NWQMC/ogcproxy.git</connection>
-		<developerConnection>scm:git:git@github.com:NWQMC/ogcproxy.git</developerConnection>
-		<url>https://github.com/NWQMC/ogcproxy</url>
-		<tag>HEAD</tag>
-	</scm>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build-info</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>osgeo</id>
+            <name>Open Source Geospatial Foundation Repository</name>
+            <url>http://download.osgeo.org/webdav/geotools/</url>
+        </repository>
+        <repository>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <id>opengeo</id>
+            <name>OpenGeo Maven Repository</name>
+            <url>https://repo.boundlessgeo.com/main/</url>
+        </repository>
+        <repository>
+            <id>nexus-public</id>
+            <name>CIDA Nexus</name>
+            <url>${cida.maven.url}/content/groups/public/</url>
+        </repository>
+    </repositories>
+
+    <scm>
+        <connection>git:https://github.com/NWQMC/ogcproxy.git</connection>
+        <developerConnection>scm:git:git@github.com:NWQMC/ogcproxy.git</developerConnection>
+        <url>https://github.com/NWQMC/ogcproxy</url>
+        <tag>HEAD</tag>
+    </scm>
 
 
-	<distributionManagement>
-		<repository>
-			<id>cida-releases</id>
-			<name>CIDA Releases</name>
-			<url>${cida.maven.url}/content/repositories/cida-releases</url>
-		</repository>
-		<snapshotRepository>
-			<id>cida-snapshots</id>
-			<name>CIDA Snapshots</name>
-			<url>${cida.maven.url}/content/repositories/cida-snapshots</url>
-		</snapshotRepository>
-	</distributionManagement>
+    <distributionManagement>
+        <repository>
+            <id>cida-releases</id>
+            <name>CIDA Releases</name>
+            <url>${cida.maven.url}/content/repositories/cida-releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>cida-snapshots</id>
+            <name>CIDA Snapshots</name>
+            <url>${cida.maven.url}/content/repositories/cida-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 
-	<dependencyManagement>
-		<dependencies>
-			<dependency>
-				<groupId>org.springframework</groupId>
-				<artifactId>spring-framework-bom</artifactId>
-				<version>${spring.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
+    <dependencies>
+        <!-- ================================================================== -->
+        <!-- GeoTools dependencies -->
+        <!-- ================================================================== -->
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-shapefile</artifactId>
+            <version>${gt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-epsg-hsql</artifactId>
+            <version>${gt.version}</version>
+        </dependency>
+        <!-- ================================================================== -->
+        <!-- Spring 4 dependencies -->
+        <!-- ================================================================== -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-webmvc</artifactId>
+        </dependency>
 
-	<dependencies>
-		<!-- JUnit dependencies -->
-		<!-- ================================================================== -->
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.12</version>
-			<scope>test</scope>
-		</dependency>
-		<!-- ================================================================== -->
-		<!-- Mockito dependencies for mocking classes -->
-		<!-- ================================================================== -->
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-all</artifactId>
-			<version>1.10.19</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-module-junit4</artifactId>
-			<version>${powermock.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.powermock</groupId>
-			<artifactId>powermock-api-mockito</artifactId>
-			<version>${powermock.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<!-- ================================================================== -->
-		<!-- Hamcrest dependencies for instanceOf on classes -->
-		<!-- ================================================================== -->
-		<dependency>
-			<groupId>org.hamcrest</groupId>
-			<artifactId>hamcrest-core</artifactId>
-			<version>1.3</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.hamcrest</groupId>
-			<artifactId>hamcrest-library</artifactId>
-			<version>1.3</version>
-			<scope>test</scope>
-		</dependency>
-		<!-- ================================================================== -->
-		<!-- Logging dependencies -->
-		<!-- ================================================================== -->
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>${logback-classic-version}</version>
-		</dependency>
-		<!-- ================================================================== -->
-		<!-- GeoTools dependencies -->
-		<!-- ================================================================== -->
-		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-shapefile</artifactId>
-			<version>${gt.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-epsg-hsql</artifactId>
-			<version>${gt.version}</version>
-		</dependency>
-		<!-- ================================================================== -->
-		<!-- Spring 4 dependencies -->
-		<!-- ================================================================== -->
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-webmvc</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>org.springframework</groupId>
-			<artifactId>spring-test</artifactId>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>javax.servlet-api</artifactId>
-			<version>3.1.0</version>
-			<scope>provided</scope>
-		</dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+        </dependency>
 
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>jstl</artifactId>
-			<version>1.2</version>
-		</dependency>
+        <!-- ================================================================== -->
+        <!-- Apache HTTP Components dependencies -->
+        <!-- ================================================================== -->
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <scope>compile</scope>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-logging</artifactId>
+                    <groupId>commons-logging</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.5</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+        </dependency>
 
-		<!-- ================================================================== -->
-		<!-- Apache HTTP Components dependencies -->
-		<!-- ================================================================== -->
-		<dependency>
-			<groupId>org.apache.httpcomponents</groupId>
-			<artifactId>httpclient</artifactId>
-			<version>4.5.2</version>
-			<scope>compile</scope>
-			<exclusions>
-				<exclusion>
-					<artifactId>commons-logging</artifactId>
-					<groupId>commons-logging</groupId>
-				</exclusion>
-			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>commons-io</groupId>
-			<artifactId>commons-io</artifactId>
-			<version>2.5</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.8.0</version>
-		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito2</artifactId>
+            <version>${powermock.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-library</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>
