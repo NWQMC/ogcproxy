@@ -16,6 +16,7 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.geotools.data.DefaultTransaction;
 import org.geotools.data.Transaction;
@@ -30,6 +31,11 @@ import org.opengis.feature.simple.SimpleFeature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationDetails;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -56,6 +62,8 @@ public class WQPLayerBuildingService {
 	private GeoServerUtils geoServerUtils;
 	@Autowired
 	private ConfigurationService configurationService;
+	@Autowired
+	private Environment environment;
 
 	private volatile boolean initialized;
 
@@ -161,8 +169,17 @@ public class WQPLayerBuildingService {
 	}
 
 	private File getGeoJsonData(SearchParameters<String, List<String>> searchParams, String layerName) throws OGCProxyException {
+		String tokenValue = "";
 
-		String dataFilename = WQPUtils.retrieveSearchParamData(wqpClient, searchParams, configurationService.getLayerbuilderBaseURI(), configurationService.getWorkingDirectory(), layerName);
+		if (ArrayUtils.contains(environment.getActiveProfiles(), "internal")) {
+			//Add in the token for WQP Internal
+			Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+			if (auth instanceof OAuth2Authentication) {
+				tokenValue = "Bearer " + ((OAuth2AuthenticationDetails)((OAuth2Authentication)auth).getDetails()).getTokenValue();
+			}
+		}
+
+		String dataFilename = WQPUtils.retrieveSearchParamData(wqpClient, searchParams, configurationService.getLayerbuilderBaseURI(), configurationService.getWorkingDirectory(), layerName, tokenValue);
 
 		if (isEmpty(dataFilename)) {
 			/*

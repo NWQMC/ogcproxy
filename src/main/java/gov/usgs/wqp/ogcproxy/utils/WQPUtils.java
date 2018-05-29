@@ -16,6 +16,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
@@ -179,10 +180,14 @@ public class WQPUtils {
 		return request;
 	}
 
-	public static String retrieveSearchParamData(CloseableHttpClient httpClient, SearchParameters<String, List<String>> searchParams, String simpleStationURL, String workingDirectory, String layerName) throws OGCProxyException {
+	public static String retrieveSearchParamData(CloseableHttpClient httpClient, SearchParameters<String, List<String>> searchParams, String simpleStationURL, String workingDirectory, String layerName, String accessToken) throws OGCProxyException {
 		List<String> multiparams = new ArrayList<String>();
 		multiparams.add("providers");
 		HttpUriRequest serverRequest = WQPUtils.generateSimpleStationRequest(searchParams, simpleStationURL, multiparams);
+
+		if (StringUtils.isNotEmpty(accessToken)) {
+			serverRequest.setHeader("Authorization", accessToken);
+		}
 
 		CloseableHttpResponse methodResponse = null;
 		HttpContext localContext = new BasicHttpContext();

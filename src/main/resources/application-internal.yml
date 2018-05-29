@@ -1,0 +1,11 @@
+
+security:
+  require-ssl: true
+  basic:
+    enabled: false
+  oauth2:
+    resource:
+      filter-order: 3
+      id: ${oauthResourceId:oauth2-resource}
+      jwt:
+        keyUri: ${oauthResourceKeyUri}
