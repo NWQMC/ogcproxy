@@ -4,7 +4,7 @@
     <groupId>gov.usgs.cida.wqp</groupId>
     <artifactId>ogcproxy</artifactId>
     <version>0.10.0-SNAPSHOT</version>
-    <packaging>war</packaging>
+    <packaging>jar</packaging>
 
     <name>ogcproxy</name>
     <url>https://cida.usgs.gov/</url>
