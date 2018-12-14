@@ -6,10 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.ModelAndView;
 
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 public class RESTService {
@@ -22,15 +23,14 @@ public class RESTService {
 		this.layerCachingService = layerCachingService;
 	}
 
-	public ModelAndView checkCacheStatus(String site) {
-		ModelAndView mv = new ModelAndView();
+	public Object checkCacheStatus(String site) {
+		Map<String, Object> mv = new HashMap<>();
 		// Depending on the value of the site we will call the correct service.
 		if (ProxyDataSourceParameter.getTypeFromString(site) == ProxyDataSourceParameter.WQP_SITES) {
 			LOG.trace("Checking cache status for site [" + site + "]");
-			mv.setViewName("wqp_cache_status.jsp");
-			mv.addObject("site", "WQP Layer Building Service");
+			mv.put("site", "WQP Layer Building Service");
 			try {
-				mv.addObject("cache", layerCachingService.getCacheValues());
+				mv.put("cache", layerCachingService.getCacheValues());
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -40,8 +40,8 @@ public class RESTService {
 			}
 		} else {
 			// Or return an error
-			mv.setViewName("invalid_site.jsp");
-			mv.addObject("site", site);
+			// TODO: mv.setViewName("invalid_site.jsp");
+			mv.put("site", site);
 		}
 		return mv;
 	}

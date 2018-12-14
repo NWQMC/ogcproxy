@@ -36,7 +36,7 @@ public class ApplicationVersion implements ServletContextAware {
 		}
 		return currentVersion.toString();
 	}
-
+	
 	public void setServletContext(final ServletContext inServletContext) {
 		servletContext = inServletContext;
 	}

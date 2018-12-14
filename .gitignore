@@ -6,3 +6,4 @@ save.classpath
 *.log
 /src/main/webapp/META-INF
 /bin
+/application.properties

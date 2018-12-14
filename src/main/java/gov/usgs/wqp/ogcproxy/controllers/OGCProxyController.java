@@ -24,6 +24,7 @@ import gov.usgs.wqp.ogcproxy.services.ConfigurationService;
 import gov.usgs.wqp.ogcproxy.services.ProxyService;
 import gov.usgs.wqp.ogcproxy.services.RESTService;
 import gov.usgs.wqp.ogcproxy.utils.ApplicationVersion;
+import org.springframework.http.MediaType;
 
 @RestController
 public class OGCProxyController {
@@ -95,10 +96,10 @@ public class OGCProxyController {
 		LOG.info("OGCProxyController.wfsProxyPost() - Done performing request.");
 	}
 
-	@GetMapping("/rest/cachestatus/{site}")
-	public ModelAndView restCacheStatus(@PathVariable String site) {
+	@GetMapping(produces=MediaType.APPLICATION_JSON_VALUE, value="/rest/cachestatus/{site}")
+	public Object restCacheStatus(@PathVariable String site) {
 		LOG.info("OGCProxyController.restCacheStatus() - Performing request.");
-		ModelAndView finalResult = new ModelAndView();
+		Object finalResult = new Object();
 		try {
 			if (readLock.tryLock(configurationService.getReadLockTimeout(), TimeUnit.SECONDS)) {
 				try {

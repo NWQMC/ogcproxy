@@ -35,28 +35,6 @@ public class RESTServiceTest {
 	}
 
 	@Test
-	public void checkCacheStatusOkTest() throws InterruptedException, ExecutionException {
-		Collection<DynamicLayer> cache = new ArrayList<>();
-		cache.add(new DynamicLayer(new OGCRequest(OGCServices.WMS), "abcWorkspace"));
-		when(layerCachingService.getCacheValues()).thenReturn(cache);
-
-		ModelAndView mv = service.checkCacheStatus(ProxyDataSourceParameter.WQP_SITES.toString());
-		assertEquals("wqp_cache_status.jsp", mv.getViewName());
-		assertTrue(mv.getModelMap().containsKey("site"));
-		assertEquals("WQP Layer Building Service", mv.getModelMap().get("site"));
-		assertTrue(mv.getModelMap().containsKey("cache"));
-		assertEquals(cache, mv.getModelMap().get("cache"));
-	}
-
-	@Test
-	public void checkCacheStatusBadTest() {
-		ModelAndView mv = service.checkCacheStatus("no_sites_here");
-		assertEquals("invalid_site.jsp", mv.getViewName());
-		assertTrue(mv.getModelMap().containsKey("site"));
-		assertEquals("no_sites_here", mv.getModelMap().get("site"));
-	}
-
-	@Test
 	public void clearCacheBySiteOkTest() {
 		when(layerCachingService.clearCache()).thenReturn(5);
 
