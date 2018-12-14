@@ -1,23 +1,11 @@
 ---
-  version: '3.3'
+version: '3.6'
 
-  secrets:
-    tomcat_ssl_crt:
-      file: ./certificates/tomcat/tomcat-wildcard-dev.crt
-    tomcat_ssl_key:
-      file: ./certificates/tomcat/tomcat-wildcard-dev.key
-
-  services:
-    nldi-services:
-      build: .
-      image: ogcproxy
-      ports:
-        - "8080:8080"
-      secrets:
-        - source: tomcat_ssl_crt
-          target: /home/spring/tomcat-wildcard-ssl.crt
-        - source: tomcat_ssl_key
-          target: /home/spring/tomcat-wildcard-ssl.key
-      env_file:
-        - config.env
-        - secrets.env
+services:
+  ogcproxy:
+    build: .
+    image: ogcproxy
+    ports:
+      - "8080:8080"
+    environment:
+      - wqpGeoserverPassword=${wqpGeoserverPassword}
