@@ -13,7 +13,7 @@ RUN ${BUILD_COMMAND}
 
 FROM usgswma/wma-spring-boot-base
 
-LABEL maintainer="gs-w_eto_eb_federal_employees@usgs.gov"
+LABEL maintainer="gs-w_eto@usgs.gov"
 
 ENV HEALTHY_RESPONSE_CONTAINS='{"status":"UP"}'
 COPY --chown=1000:1000 docker-entrypoint.sh docker-entrypoint.sh

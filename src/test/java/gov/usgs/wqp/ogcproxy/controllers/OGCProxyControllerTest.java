@@ -121,15 +121,19 @@ public class OGCProxyControllerTest {
 		cache.put("abc", new DynamicLayer(new OGCRequest(OGCServices.WMS), "abcWorkspace"));
 		when(restService.checkCacheStatus(anyString())).thenReturn(getBadCacheStatus(), getOkCacheStatus(cache));
 
+		// just get and compare the json response - don't think about the jsps
+		// use https://github.com/NWQMC/qw_portal_services/blob/master/src/test/java/gov/usgs/cida/qw/codes/webservices/BaseCodesRestControllerTest.java as a sample
 		mockMvc.perform(get("/rest/cachestatus/wqp_sites"))
 				.andExpect(status().isOk())
-				.andExpect(forwardedUrl("invalid_site.jsp"))
+				//TODO .andExpect(forwardedUrl("invalid_site.jsp"))
 				.andExpect(model().attributeExists("site"))
 				.andExpect(model().attribute("site", "BadSite"));
-
+		
+		// just get and compare the json response - don't think about the jsps
+		// use https://github.com/NWQMC/qw_portal_services/blob/master/src/test/java/gov/usgs/cida/qw/codes/webservices/BaseCodesRestControllerTest.java as a sample
 		mockMvc.perform(get("/rest/cachestatus/wqp_sites"))
 				.andExpect(status().isOk())
-				.andExpect(forwardedUrl("wqp_cache_status.jsp"))
+				//TODO .andExpect(forwardedUrl("wqp_cache_status.jsp"))
 				.andExpect(model().attributeExists("site"))
 				.andExpect(model().attribute("site", "WQP Layer Building Service"))
 				.andExpect(model().attributeExists("cache"))
@@ -149,16 +153,16 @@ public class OGCProxyControllerTest {
 				.andExpect(status().isOk());
 	}
 
-	protected ModelAndView getOkCacheStatus(Map<String, DynamicLayer> cache) {
-		ModelAndView mv = new ModelAndView("wqp_cache_status.jsp");
-		mv.addObject("site", "WQP Layer Building Service");
-		mv.addObject("cache", cache.values());
+	protected Map<String, Object> getOkCacheStatus(Map<String, DynamicLayer> cache) {
+		Map<String, Object> mv = new HashMap<>();//TODO ("wqp_cache_status.jsp");
+		mv.put("site", "WQP Layer Building Service");
+		mv.put("cache", cache.values());
 		return mv;
 	}
 
-	protected ModelAndView getBadCacheStatus() {
-		ModelAndView mv = new ModelAndView("invalid_site.jsp");
-		mv.addObject("site", "BadSite");
+	protected Map<String, Object> getBadCacheStatus() {
+		Map<String, Object> mv = new HashMap<>();//TODO ("invalid_site.jsp");
+		mv.put("site", "BadSite");
 		return mv;
 	}
 

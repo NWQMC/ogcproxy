@@ -1,5 +1,4 @@
 ---
-# This file must be placed in ${catalina.base}/conf/ogcproxy.properties
 spring:
   config:
     name: ogcproxy.properties
@@ -31,11 +30,8 @@ wqp:
     context: wqp
     path: Station/search
 
-# Layer Builder Service Properties
 layerbuilder:
   dir:
-#    working: ${catalina.base}/temp/ogcproxy/working
-#    shapefiles: ${catalina.base}/temp/ogcproxy/shapefiles
     working: /home/spring
     shapefiles: /home/spring
 
