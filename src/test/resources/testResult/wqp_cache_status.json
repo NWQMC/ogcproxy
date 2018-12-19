@@ -1,0 +1,10 @@
+{
+	"site": "WQP Layer Building Service",
+	"cache": 
+			[{
+				"dateCreated":"[ACTUAL_TIME]",
+				"qualifiedLayerName":"abcWorkspace:dynamicSites_1",
+				"layerName":"dynamicSites_1","searchParameters":{},
+				"originatingService":"WMS"
+			}]
+}

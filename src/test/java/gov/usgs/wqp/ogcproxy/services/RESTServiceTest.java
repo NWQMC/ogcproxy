@@ -20,6 +20,7 @@ import gov.usgs.wqp.ogcproxy.model.OGCRequest;
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.model.parameters.ProxyDataSourceParameter;
 import gov.usgs.wqp.ogcproxy.services.wqp.WQPDynamicLayerCachingService;
+import java.util.Map;
 
 public class RESTServiceTest {
 
@@ -40,20 +41,20 @@ public class RESTServiceTest {
 		cache.add(new DynamicLayer(new OGCRequest(OGCServices.WMS), "abcWorkspace"));
 		when(layerCachingService.getCacheValues()).thenReturn(cache);
 
-		ModelAndView mv = service.checkCacheStatus(ProxyDataSourceParameter.WQP_SITES.toString());
-		assertEquals("wqp_cache_status.jsp", mv.getViewName());
-		assertTrue(mv.getModelMap().containsKey("site"));
-		assertEquals("WQP Layer Building Service", mv.getModelMap().get("site"));
-		assertTrue(mv.getModelMap().containsKey("cache"));
-		assertEquals(cache, mv.getModelMap().get("cache"));
+		Map<String, Object> mv = service.checkCacheStatus(ProxyDataSourceParameter.WQP_SITES.toString());
+		// TODO assertEquals("wqp_cache_status.jsp", mv.getViewName());
+		assertTrue(mv.containsKey("site"));
+		assertEquals("WQP Layer Building Service", mv.get("site"));
+		assertTrue(mv.containsKey("cache"));
+		assertEquals(cache, mv.get("cache"));
 	}
 
 	@Test
 	public void checkCacheStatusBadTest() {
-		ModelAndView mv = service.checkCacheStatus("no_sites_here");
-		assertEquals("invalid_site.jsp", mv.getViewName());
-		assertTrue(mv.getModelMap().containsKey("site"));
-		assertEquals("no_sites_here", mv.getModelMap().get("site"));
+		Map<String, Object> mv = service.checkCacheStatus("no_sites_here");
+		// TODO assertEquals("invalid_site.jsp", mv.getViewName());
+		assertTrue(mv.containsKey("site"));
+		assertEquals("no_sites_here", mv.get("site"));
 	}
 
 	@Test

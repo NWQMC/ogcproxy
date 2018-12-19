@@ -3,7 +3,7 @@ package gov.usgs.wqp.ogcproxy.model.features;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.opengis.feature.simple.SimpleFeatureType;
 
-import com.vividsolutions.jts.geom.Point;
+import org.locationtech.jts.geom.Point;
 
 import gov.usgs.wqp.ogcproxy.model.attributes.FeatureAttributeType;
 

@@ -1,0 +1,45 @@
+---
+spring:
+  config:
+    name: ogcproxy.properties
+  application:
+    name: ogcproxy
+  jmx:
+    default-domain: ogcproxy
+management:
+  info:
+    git:
+      mode: full
+
+# WQP GeoServer settings
+wqp:
+  geoserver:
+    proto: http
+    host: cida-eros-wqpgsdev.er.usgs.gov
+    port: 8080
+    context: geoserver
+    workspace: wqp_sites
+    user: admin
+    pass: ${wqpGeoserverPassword}
+    catchup:
+      time: 1000
+  layerbuilder:
+    proto: http
+    host: cida-eros-wqpdev.er.usgs.gov
+    port: 8080
+    context: wqp
+    path: Station/search
+
+layerbuilder:
+  dir:
+    working: /home/spring
+    shapefiles: /home/spring
+
+# Proxy Service Properties
+proxy:
+  thread:
+    sleep: 500
+  readLock:
+    timout: 30
+  writedLock:
+    timout: 120

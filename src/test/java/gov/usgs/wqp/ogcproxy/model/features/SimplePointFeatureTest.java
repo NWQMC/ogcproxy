@@ -12,7 +12,7 @@ import org.opengis.feature.simple.SimpleFeatureType;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.vividsolutions.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Coordinate;
 
 import gov.usgs.wqp.ogcproxy.model.attributes.FeatureAttributeType;
 
