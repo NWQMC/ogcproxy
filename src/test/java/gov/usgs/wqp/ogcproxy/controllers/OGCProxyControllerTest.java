@@ -10,8 +10,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.HashMap;
@@ -28,7 +26,8 @@ import org.powermock.reflect.Whitebox;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.servlet.ModelAndView;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static uk.co.datumedge.hamcrest.json.SameJSONAs.sameJSONObjectAs;
 
 import gov.usgs.wqp.ogcproxy.model.DynamicLayer;
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
@@ -36,6 +35,12 @@ import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.services.ConfigurationService;
 import gov.usgs.wqp.ogcproxy.services.ProxyService;
 import gov.usgs.wqp.ogcproxy.services.RESTService;
+import java.io.IOException;
+import java.util.Date;
+import org.json.JSONObject;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.FileCopyUtils;
+
 
 public class OGCProxyControllerTest {
 
@@ -49,6 +54,7 @@ public class OGCProxyControllerTest {
 
 	private ConfigurationService configurationService;
 	private OGCProxyController mvcService;
+	private long timeInMilli;
 
 	@Before
 	public void setup() {
@@ -58,6 +64,7 @@ public class OGCProxyControllerTest {
 		Whitebox.setInternalState(configurationService, "writeLockTimeout", Long.valueOf("10"));
 		mvcService = new OGCProxyController(proxyService, restService, configurationService);
 		mockMvc = MockMvcBuilders.standaloneSetup(mvcService).build();
+		timeInMilli = new Date().getTime();
 	}
 
 	@Test
@@ -120,24 +127,25 @@ public class OGCProxyControllerTest {
 		Map<String, DynamicLayer> cache = new HashMap<>();
 		cache.put("abc", new DynamicLayer(new OGCRequest(OGCServices.WMS), "abcWorkspace"));
 		when(restService.checkCacheStatus(anyString())).thenReturn(getBadCacheStatus(), getOkCacheStatus(cache));
-
-		// just get and compare the json response - don't think about the jsps
-		// use https://github.com/NWQMC/qw_portal_services/blob/master/src/test/java/gov/usgs/cida/qw/codes/webservices/BaseCodesRestControllerTest.java as a sample
-		mockMvc.perform(get("/rest/cachestatus/wqp_sites"))
+		MvcResult rtn = mockMvc.perform(get("/rest/cachestatus/wqp_sites"))
 				.andExpect(status().isOk())
-				//TODO .andExpect(forwardedUrl("invalid_site.jsp"))
-				.andExpect(model().attributeExists("site"))
-				.andExpect(model().attribute("site", "BadSite"));
+				.andReturn();
 		
-		// just get and compare the json response - don't think about the jsps
-		// use https://github.com/NWQMC/qw_portal_services/blob/master/src/test/java/gov/usgs/cida/qw/codes/webservices/BaseCodesRestControllerTest.java as a sample
-		mockMvc.perform(get("/rest/cachestatus/wqp_sites"))
+		JSONObject actual = new JSONObject(rtn.getResponse().getContentAsString());
+		JSONObject expected = new JSONObject(getCompareFile("invalid_site.json"));
+		assertThat(actual, sameJSONObjectAs(expected));
+		
+		rtn = mockMvc.perform(get("/rest/cachestatus/wqp_sites"))
 				.andExpect(status().isOk())
-				//TODO .andExpect(forwardedUrl("wqp_cache_status.jsp"))
-				.andExpect(model().attributeExists("site"))
-				.andExpect(model().attribute("site", "WQP Layer Building Service"))
-				.andExpect(model().attributeExists("cache"))
-				.andExpect(model().attribute("cache", cache.values()));
+				.andReturn();
+		
+		String actualJsonString = new JSONObject(rtn.getResponse().getContentAsString()).toString();
+		String dateString = actualJsonString.replaceAll("[^0-9]","").substring(0,8);
+		String dateCorrectedActualJsonString = actualJsonString.replaceAll("\\d{13}", dateString);
+		
+		actual = new JSONObject(dateCorrectedActualJsonString);
+		expected = new JSONObject(getCompareFile("wqp_cache_status.json"));
+		assertThat(actual, sameJSONObjectAs(expected));
 	}
 
 	@Test
@@ -165,5 +173,26 @@ public class OGCProxyControllerTest {
 		mv.put("site", "BadSite");
 		return mv;
 	}
-
+	
+	/**
+	 * Grabs a file and turns it into a String.
+	 * @param file
+	 * @return A String representation of the input file
+	 * @throws IOException 
+	 */
+	public String getCompareFile(String file) throws IOException {
+		String fileForCompareAsString = new String(FileCopyUtils.copyToByteArray(new ClassPathResource("testResult/" + file).getInputStream()));
+		fileForCompareAsString = adjustJsonDatesToTimeInMilli(fileForCompareAsString);
+		return fileForCompareAsString;
+	}
+	
+	/**
+	 * Replaces a String value with a String representation of a time.
+	 * @param fileString
+	 * @return A String with the "[ACTUAL_TIME]" placeholder replaced with a substring of the current time in epoch milliseconds.
+	 */
+	public String adjustJsonDatesToTimeInMilli(String fileString) {
+		String adjustedDateString = fileString.replace("\"[ACTUAL_TIME]\"", String.valueOf(timeInMilli).substring(0, 8));
+		return adjustedDateString;
+	}	
 }
