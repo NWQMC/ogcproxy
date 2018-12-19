@@ -12,5 +12,11 @@ To run in a development environment, create an application.yml file in the proje
       pass: insert_geoserver_password_here
 ```
 
+in addition, create a .env file in the project's home directory with the following:
+
+```
+wqpGeoserverPassword=insert_geoserverpassword_here
+```
+
 ## Building the docker images
 The docker image builds the jar and then runs the application.  The application will be available at localhost:8080/
