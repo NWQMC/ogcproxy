@@ -41,7 +41,6 @@ import org.json.JSONObject;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.FileCopyUtils;
 
-
 public class OGCProxyControllerTest {
 
 	private MockMvc mockMvc;
