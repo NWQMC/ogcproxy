@@ -3,7 +3,7 @@ applicationName: "ogcproxy"
 dockerImageName: "ogcproxy"
 containerPort: 8080
 artifactoryPath: "wqp"
-gitlabPath: "wma/docker/wqp/ogcproxy"
+gitlabPath: "wma/docker/wqp"
 repoPath: "NWQMC/ogcproxy"
 memory: 768
 rulePriority: 10
