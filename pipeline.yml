@@ -1,0 +1,12 @@
+projectName: "wqp"
+applicationName: "ogcproxy"
+dockerImageName: "ogcproxy"
+containerPort: 8080
+artifactoryPath: "wqp"
+gitlabPath: "wma/docker/wqp/ogcproxy"
+repoPath: "NWQMC/ogcproxy"
+memory: 768
+rulePriority: 10
+healthCheck: "/actuator/health"
+contextPath: "/*"
+deployJobName: "ogcproxy-container-deploy"
