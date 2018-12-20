@@ -13,5 +13,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - README.md
 - Converted project to Spring Boot 2.
 - OAuth2 Security for Internal App.
+- Jenkins configuration
 
 [Unreleased]: https://github.com/NWQMC/ogcproxy/compare/ogcproxy-0.9.1...master
