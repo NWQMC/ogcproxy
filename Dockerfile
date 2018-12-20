@@ -4,10 +4,10 @@ WORKDIR /build
 
 COPY pom.xml pom.xml
 
-RUN mvn --batch-mode --errors --strict-checksums --threads 1C org.apache.maven.plugins:maven-dependency-plugin:3.0.2:go-offline
+RUN mvn clean
 
 COPY src /build/src
-ARG BUILD_COMMAND="mvn --batch-mode --errors --threads 1C clean package verify"
+ARG BUILD_COMMAND="mvn package"
 RUN ${BUILD_COMMAND}
 
 
