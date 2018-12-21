@@ -6,7 +6,7 @@ artifactoryPath: "wqp"
 gitlabPath: "wma/docker/wqp"
 repoPath: "NWQMC/ogcproxy"
 memory: 768
-rulePriority: 10
+rulePriority: 88
 healthCheck: "/actuator/health"
 contextPath: "/ogcproxy/*"
 deployJobName: "ogcproxy-container-deploy"
