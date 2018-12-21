@@ -8,5 +8,5 @@ repoPath: "NWQMC/ogcproxy"
 memory: 768
 rulePriority: 10
 healthCheck: "/actuator/health"
-contextPath: "/*"
+contextPath: "/ogcproxy/*"
 deployJobName: "ogcproxy-container-deploy"
