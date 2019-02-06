@@ -1,4 +1,4 @@
-projectName: "wqp"
+projectName: "wqp_external"
 applicationName: "ogcproxy"
 dockerImageName: "ogcproxy"
 containerPort: 8080
