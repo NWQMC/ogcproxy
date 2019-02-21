@@ -5,7 +5,7 @@ containerPort: 8080
 artifactoryPath: "wqp"
 gitlabPath: "wma/docker/wqp"
 gitRepoUrl: "https://github.com/NWQMC/ogcproxy.git"
-gitRepoCredentialsId: "GITHUB_ACCESS_TOKEN"
+gitRepoCredentialsId: "Jenkins-GitHub-Read-Write-Token"
 memory: 768
 rulePriority: 88
 healthCheck: "/actuator/health"
