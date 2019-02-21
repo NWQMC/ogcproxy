@@ -11,6 +11,11 @@ management:
     git:
       mode: full
 
+server:
+  port: ${SERVER_PORT}
+  servlet:
+    context-path: ${SERVER_CONTEXT_PATH}
+
 # WQP GeoServer settings
 wqp:
   geoserver:
