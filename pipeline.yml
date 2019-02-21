@@ -6,7 +6,6 @@ artifactoryPath: "wqp"
 gitlabPath: "wma/docker/wqp"
 gitRepoUrl: "https://github.com/NWQMC/ogcproxy.git"
 gitRepoCredentialsId: "GITHUB_ACCESS_TOKEN"
-repoPath: "NWQMC/ogcproxy"
 memory: 768
 rulePriority: 88
 healthCheck: "/actuator/health"
