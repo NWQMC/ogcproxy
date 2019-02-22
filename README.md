@@ -15,7 +15,11 @@ To run in a development environment, create an application.yml file in the proje
 in addition, create a .env file in the project's home directory with the following:
 
 ```
-wqpGeoserverPassword=insert_geoserverpassword_here
+WQP_GEOSERVER_PASSWORD=insert_geoserverpassword_here
+WQP_GEOSERVER_HOST=insert_geoserver_host_here
+WQP_LAYERBUILDER_HOST=insert_layerbuilder_host_here
+SERVER_PORT=8080
+SERVER_CONTEXT_PATH=ogcproxy
 ```
 
 ## Building the docker images
