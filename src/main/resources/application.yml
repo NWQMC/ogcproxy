@@ -19,7 +19,7 @@ wqp:
   geoserver:
     proto: http
     host: ${WQP_GEOSERVER_HOST}
-    port: 8080
+    port: ${WQP_GEOSERVER_PORT}
     context: geoserver
     workspace: wqp_sites
     user: admin
@@ -29,7 +29,7 @@ wqp:
   layerbuilder:
     proto: http
     host: ${WQP_LAYERBUILDER_HOST}
-    port: 8080
+    port: ${WQP_LAYERBUILDER_PORT} 
     context: wqp
     path: Station/search
 
