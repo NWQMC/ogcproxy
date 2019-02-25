@@ -1,5 +1,4 @@
----
-version: '3.6'
+version: '3.3'
 
 services:
   ogcproxy:
@@ -8,4 +7,8 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - wqpGeoserverPassword=${WQP_GEOSERVER_PASSWORD}
+      - WQP_GEOSERVER_PASSWORD=${WQP_GEOSERVER_PASSWORD}
+      - SERVER_PORT=${SERVER_PORT}
+      - SERVER_CONTEXT_PATH=${SERVER_CONTEXT_PATH}
+      - WQP_LAYERBUILDER_HOST=${WQP_LAYERBUILDER_HOST}
+      - WQP_GEOSERVER_HOST=${WQP_GEOSERVER_HOST}

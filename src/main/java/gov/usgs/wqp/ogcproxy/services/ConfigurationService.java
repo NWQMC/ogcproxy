@@ -100,7 +100,11 @@ public class ConfigurationService {
 		return geoserverPass;
 	}
 	public String getGeoserverBaseURI() {
-		return geoserverProtocol + "://" + geoserverHost + ":" + geoserverPort + "/" + geoserverContext;
+		return geoserverProtocol 
+                + "://" 
+                + geoserverHost 
+                + "/" 
+                + geoserverContext;
 	}
 	public String getGeoserverWorkspaceBase() {
 		return String.join("/", getGeoserverBaseURI(), GEOSERVER_REST, GEOSERVER_WORKSPACES, geoserverWorkspace);
