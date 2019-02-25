@@ -28,7 +28,7 @@ public class ConfigurationService {
 	private String layerbuilderProtocol;
 	@Value("${wqp.layerbuilder.host:localhost}")
 	private String layerbuilderHost;
-	@Value("${wqp.layerbuilder.port:8080}")
+	@Value("${wqp.layerbuilder.port:}")
 	private String layerbuilderPort;
 	@Value("${wqp.layerbuilder.context:wqp}")
 	private String layerbuilderContext;
@@ -62,7 +62,7 @@ public class ConfigurationService {
 	private String geoserverProtocol;
 	@Value("${wqp.geoserver.host:localhost}")
 	private String geoserverHost;
-	@Value("${wqp.geoserver.port:8080}")
+	@Value("${wqp.geoserver.port:}")
 	private String geoserverPort;
 	@Value("${wqp.geoserver.context:geoserver}")
 	private String geoserverContext;
