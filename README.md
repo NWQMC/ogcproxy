@@ -16,4 +16,4 @@ WQP_GEOSERVER_PORT=80
 ```
 
 ## Building the docker images
-The docker image builds the jar and then runs the application.  The application will be available at localhost:8080/
+The docker image builds the jar and then runs the application.  The application will be available at localhost:8080/ogcproxy

@@ -3,11 +3,11 @@ applicationName: "ogcproxy"
 dockerImageName: "ogcproxy"
 containerPort: 8080
 artifactoryPath: "wqp"
-gitlabPath: "wma/docker/wqp"
+gitlabPath: "wma/docker/wqp/ogcproxy"
 gitRepoUrl: "https://github.com/NWQMC/ogcproxy.git"
 gitRepoCredentialsId: "Jenkins-GitHub-Read-Write-Token"
 memory: 768
 rulePriority: 88
-healthCheck: "/actuator/health"
+healthCheck: "/ogcproxy/actuator/health"
 contextPath: "/ogcproxy/*"
 deployJobName: "ogcproxy-container-deploy"
