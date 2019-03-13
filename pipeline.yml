@@ -3,6 +3,7 @@ applicationName: "ogcproxy"
 dockerImageName: "ogcproxy"
 containerPort: 8080
 artifactoryPath: "wqp"
+numberImagesToKeep: 11
 gitlabPath: "wma/docker/wqp/ogcproxy"
 gitRepoUrl: "https://github.com/NWQMC/ogcproxy.git"
 gitRepoCredentialsId: "Jenkins-GitHub-Read-Write-Token"
