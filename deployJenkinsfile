@@ -1,4 +1,4 @@
-@Library(value='PipelineLibs@0.6.1', changelog=false) _
+@Library(value='PipelineLibs@EB-74_add_health_check_timeout_and_interval', changelog=false) _
 
 pipeline {
     agent {
