@@ -9,7 +9,5 @@ gitRepoCredentialsId: "Jenkins-GitHub-Read-Write-Token"
 memory: 768
 rulePriority: 88
 healthCheck: "/ogcproxy/actuator/health"
-healthCheckIntervalSeconds: 60
-healthCheckTimeoutSeconds: 10
 contextPath: "/ogcproxy/*"
 deployJobName: "ogcproxy-container-deploy"
