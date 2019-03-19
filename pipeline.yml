@@ -6,6 +6,8 @@ artifactoryPath: "wqp"
 gitlabPath: "wma/docker/wqp/ogcproxy"
 gitRepoUrl: "https://github.com/NWQMC/ogcproxy.git"
 gitRepoCredentialsId: "Jenkins-GitHub-Read-Write-Token"
+healthCheckTimeoutSeconds: 10
+healthCheckIntervalSeconds: 60
 memory: 768
 rulePriority: 88
 healthCheck: "/ogcproxy/actuator/health"
