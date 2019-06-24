@@ -9,3 +9,5 @@ save.classpath
 /application.properties
 /.env
 /application.yml
+.idea/
+ogcproxy.iml
