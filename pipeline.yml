@@ -8,6 +8,6 @@ gitRepoUrl: "https://github.com/NWQMC/ogcproxy.git"
 gitRepoCredentialsId: "Jenkins-GitHub-Read-Write-Token"
 memory: 768
 rulePriority: 88
-healthCheck: "/ogcproxy/actuator/health"
-contextPath: "/ogcproxy/*"
+healthCheck: "/ogcservices/actuator/health"
+contextPath: "/ogcservices/*"
 deployJobName: "ogcproxy-container-deploy"
