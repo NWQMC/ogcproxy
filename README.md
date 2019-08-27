@@ -1,5 +1,4 @@
-# ogcproxy
-Water Quality Portal (WQP) OGC Proxy
+# Water Quality Portal OGC Proxy
 
 ## Local Configuration
 This application is configured to be run as a jar.  It can also be run using the command ``` mvn spring-boot:run ``` .
