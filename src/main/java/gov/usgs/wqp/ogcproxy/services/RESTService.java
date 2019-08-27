@@ -28,7 +28,6 @@ public class RESTService {
 		// Depending on the value of the site we will call the correct service.
 		if (ProxyDataSourceParameter.getTypeFromString(site) == ProxyDataSourceParameter.WQP_SITES) {
 			LOG.trace("Checking cache status for site [" + site + "]");
-			//TODO mv.setViewName("wqp_cache_status.jsp");
 			mv.put("site", "WQP Layer Building Service");
 			try {
 				mv.put("cache", layerCachingService.getCacheValues());
@@ -40,8 +39,6 @@ public class RESTService {
 				e.printStackTrace();
 			}
 		} else {
-			// Or return an error
-			// TODO: mv.setViewName("invalid_site.jsp");
 			mv.put("site", site);
 			mv.put("error", "invalid site");
 		}

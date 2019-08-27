@@ -14,15 +14,6 @@ import gov.usgs.wqp.ogcproxy.utils.CloseableHttpClientFactory;
 public class SpringConfig implements WebMvcConfigurer {
 
 	@Bean
-	public InternalResourceViewResolver setupViewResolver() {
-		InternalResourceViewResolver resolver = new InternalResourceViewResolver();
-		resolver.setPrefix("/WEB-INF/views/");
-		resolver.setSuffix("");		// Making this empty so we can explicitly call each view we require (i.e. .jsp and .xml)
-
-		return resolver;
-	}
-
-	@Bean
 	public WQPDynamicLayerCachingService wqpLayerCachingService() {
 		return WQPDynamicLayerCachingService.getInstance();
 	}

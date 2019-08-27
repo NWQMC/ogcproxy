@@ -51,15 +51,6 @@ public class OGCProxyController {
 	 * 
 	 * @return The splash page of the application.
 	 */
-	@GetMapping("/")
-	public ModelAndView entry() {
-		LOG.info("OGCProxyController.entry() called");
-
-		ModelAndView mv = new ModelAndView("index.jsp");
-		mv.addObject("version", ApplicationVersion.getVersion());
-
-		return mv;
-	}
 
 	@GetMapping({"/schemas/**", "/ows/**"})
 	public void getSchemasAndOws(HttpServletRequest request, HttpServletResponse response) {

@@ -108,18 +108,6 @@ public class OGCProxyControllerTest {
 		verify(proxyService).performRequest(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(OGCServices.WFS));
 	}
 
-	@Test
-	public void entryTest() throws Exception {
-		MvcResult rtn = mockMvc.perform(get("/"))
-				.andExpect(status().isOk())
-				.andReturn();
-
-		assertEquals("index.jsp", rtn.getModelAndView().getViewName());
-		assertEquals(1, rtn.getModelAndView().getModelMap().size());
-		assertTrue(rtn.getModelAndView().getModelMap().containsKey("version"));
-		//We get this error because the test does not run in a Spring context.
-		assertEquals("v Error Encountered", rtn.getModelAndView().getModelMap().get("version"));
-	}
 
 	@Test
 	public void restCacheStatusTest() throws Exception {
@@ -161,14 +149,13 @@ public class OGCProxyControllerTest {
 	}
 
 	protected Map<String, Object> getOkCacheStatus(Map<String, DynamicLayer> cache) {
-		Map<String, Object> mv = new HashMap<>();//TODO ("wqp_cache_status.jsp");
-		mv.put("site", "WQP Layer Building Service");
+		Map<String, Object> mv = new HashMap<>();
 		mv.put("cache", cache.values());
 		return mv;
 	}
 
 	protected Map<String, Object> getBadCacheStatus() {
-		Map<String, Object> mv = new HashMap<>();//TODO ("invalid_site.jsp");
+		Map<String, Object> mv = new HashMap<>();
 		mv.put("site", "BadSite");
 		return mv;
 	}

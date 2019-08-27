@@ -42,7 +42,6 @@ public class RESTServiceTest {
 		when(layerCachingService.getCacheValues()).thenReturn(cache);
 
 		Map<String, Object> mv = service.checkCacheStatus(ProxyDataSourceParameter.WQP_SITES.toString());
-		// TODO assertEquals("wqp_cache_status.jsp", mv.getViewName());
 		assertTrue(mv.containsKey("site"));
 		assertEquals("WQP Layer Building Service", mv.get("site"));
 		assertTrue(mv.containsKey("cache"));
@@ -52,7 +51,6 @@ public class RESTServiceTest {
 	@Test
 	public void checkCacheStatusBadTest() {
 		Map<String, Object> mv = service.checkCacheStatus("no_sites_here");
-		// TODO assertEquals("invalid_site.jsp", mv.getViewName());
 		assertTrue(mv.containsKey("site"));
 		assertEquals("no_sites_here", mv.get("site"));
 	}
