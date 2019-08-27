@@ -12,10 +12,6 @@ import org.locationtech.jts.geom.Point;
 import gov.usgs.wqp.ogcproxy.model.attributes.GeoJSONAttributes;
 
 /**
- * SimplePointFeature
- *
- * @author prusso
- * <br /><br />
  * SimplePointFeature maps all basic attributes from a GeoJSON result set to a
  * Geo-Attribute set used by GeoTools in order to index and create a ShapeFile.
  */
@@ -36,10 +32,6 @@ public class SimplePointFeature {
     private String orgName;
     private String orgId;
 
-    private SimpleFeature simpleFeature;
-
-    private GeometryFactory geometryFactory;
-
     public SimplePointFeature(JsonObject jsonFeature) {
         JsonObject featureObject = jsonFeature.getAsJsonObject("properties");
 
@@ -57,15 +49,11 @@ public class SimplePointFeature {
         this.longitude = jsonFeature.getAsJsonObject("geometry").getAsJsonArray(GeoJSONAttributes.POINT).get(0).getAsDouble();
         this.latitude = jsonFeature.getAsJsonObject("geometry").getAsJsonArray(GeoJSONAttributes.POINT).get(1).getAsDouble();
 
-        this.geometryFactory = JTSFactoryFinder.getGeometryFactory();
-        this.point = this.geometryFactory.createPoint(new Coordinate(this.longitude, this.latitude));
+        GeometryFactory geometryFactory = JTSFactoryFinder.getGeometryFactory();
+        this.point = geometryFactory.createPoint(new Coordinate(this.longitude, this.latitude));
     }
 
     public SimpleFeature getSimpleFeature(SimpleFeatureBuilder featureBuilder) {
-        /**
-         * Must be in order of the SimpleFeatureType defined below in
-         * getFeatureType()
-         */
         featureBuilder.add(this.point);
         featureBuilder.add(this.orgId);
         featureBuilder.add(this.orgName);
@@ -77,9 +65,10 @@ public class SimplePointFeature {
         featureBuilder.add(this.provider);
         featureBuilder.add(this.activityCount);
         featureBuilder.add(this.resultCount);
-        this.simpleFeature = featureBuilder.buildFeature(null);
 
-        return this.simpleFeature;
+        SimpleFeature simpleFeature = featureBuilder.buildFeature(null);
+
+        return simpleFeature;
     }
 
     @Override

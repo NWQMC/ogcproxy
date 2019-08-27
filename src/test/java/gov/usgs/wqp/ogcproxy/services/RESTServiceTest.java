@@ -13,7 +13,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.web.servlet.ModelAndView;
 
 import gov.usgs.wqp.ogcproxy.model.DynamicLayer;
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
@@ -30,7 +29,7 @@ public class RESTServiceTest {
 	private RESTService service;
 
 	@Before
-	public void setup() {
+	public void setUp() {
 		MockitoAnnotations.initMocks(this);
 		service = new RESTService(layerCachingService);
 	}

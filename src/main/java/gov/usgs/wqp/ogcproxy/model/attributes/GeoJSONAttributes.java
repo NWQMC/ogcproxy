@@ -1,10 +1,7 @@
 package gov.usgs.wqp.ogcproxy.model.attributes;
 
 public class GeoJSONAttributes {
-	
-	private GeoJSONAttributes() {
-	}
-	
+
 	public static final String PROVIDER = "ProviderName";
 	public static final String ORG_ID = "OrganizationIdentifier";
 	public static final String ORG_NAME = "OrganizationFormalName";
@@ -16,5 +13,7 @@ public class GeoJSONAttributes {
 	public static final String POINT = "coordinates";
 	public static final String ACTIVITY_COUNT = "activityCount";
 	public static final String RESULT_COUNT = "resultCount";
-
+	
+	private GeoJSONAttributes() {
+	}
 }

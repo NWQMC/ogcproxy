@@ -44,15 +44,12 @@ public class ProxyUtilTest {
 
 	@Mock
 	private HttpServletRequest clientRequest;
-	private HttpServletResponse clientResponse;
-	private HttpUriRequest serverRequest;
+
 	@Mock
 	private HttpResponse serverResponse;
-	@Mock
-	private Header header;
 
 	@Before
-	public void setup() {
+	public void setUp() {
 		MockitoAnnotations.initMocks(this);
 	}
 
@@ -60,7 +57,8 @@ public class ProxyUtilTest {
 	public void generateClientResponseHeadersTest() {
 		Header[] headers = {new BasicHeader("transfer-encoding", "tEncoding"), new BasicHeader(HttpHeaders.WARNING, "Yikes!")};
 		when(serverResponse.getAllHeaders()).thenReturn(headers);
-		clientResponse = new MockHttpServletResponse();
+
+		HttpServletResponse clientResponse = new MockHttpServletResponse();
 		ProxyUtil.generateClientResponseHeaders(clientResponse, serverResponse);
 		assertTrue(clientResponse.getHeaderNames().contains(HttpHeaders.WARNING));
 		assertEquals("Yikes!", clientResponse.getHeader(HttpHeaders.WARNING));
@@ -76,7 +74,8 @@ public class ProxyUtilTest {
 		when(clientRequest.getHeaderNames()).thenReturn(headers.keys());
 		when(clientRequest.getHeaders(eq("content-length"))).thenReturn(headers.elements());
 		when(clientRequest.getHeaders(eq(HttpHeaders.WARNING))).thenReturn(headers.elements());
-		serverRequest = new HttpGet("http://this.org:80/wow/dude");
+
+		HttpUriRequest serverRequest = new HttpGet("http://this.org:80/wow/dude");
 		ProxyUtil.generateServerRequestHeaders(clientRequest, serverRequest);
 		assertTrue(serverRequest.containsHeader(HttpHeaders.WARNING));
 

@@ -32,12 +32,6 @@ public class CloseableHttpClientFactory {
 	protected RequestConfig config;
 	protected IdleConnectionMonitorThread staleMonitor;
 
-	/**
-	 * Private Constructor for Singleton Pattern
-	 */
-	private CloseableHttpClientFactory() {
-	}
-
 	// 15 minutes, default is infinite
 	public static int CONNECTION_TTL = 15 * 60 * 1000;
 	public static int CONNECTIONS_MAX_TOTAL = 256;
@@ -46,6 +40,13 @@ public class CloseableHttpClientFactory {
 	public static int CLIENT_SOCKET_TIMEOUT = 5 * 60 * 1000;
 	// 15 seconds, default is infinite
 	public static int CLIENT_CONNECTION_TIMEOUT = 15 * 1000;
+
+
+	/**
+	 * Private Constructor for Singleton Pattern
+	 */
+	private CloseableHttpClientFactory() {
+	}
 
 	/**
 	 * Singleton access

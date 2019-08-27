@@ -1,20 +1,9 @@
 package gov.usgs.wqp.ogcproxy.exceptions;
 
 public class OGCProxyExceptionID {
+
 	private final Long exceptionId;
 	private String name;
-
-	private OGCProxyExceptionID( String name, int id ) {
-		this.name = name;
-		this.exceptionId = Long.valueOf(id);
-	}
-
-	public String toString() {
-		return this.name;
-	}
-	public Long value() {
-		return this.exceptionId;
-	}
 
 	//-----------------------------------------
 	// EXCEPTION DEFINITIONS
@@ -27,8 +16,8 @@ public class OGCProxyExceptionID {
 
 	// CACHE EXCEPTIONS
 	public static final OGCProxyExceptionID LAYER_CREATION_TIME_EXCEEDED =
-		new OGCProxyExceptionID("OGCProxyException Layer Creation Time Exception: ShapeFile creation " +
-				"time exceeded accepted limits.", 0x01000);
+			new OGCProxyExceptionID("OGCProxyException Layer Creation Time Exception: ShapeFile creation " +
+					"time exceeded accepted limits.", 0x01000);
 
 	public static final OGCProxyExceptionID LAYER_CREATION_FAILED =
 			new OGCProxyExceptionID("OGCProxyException Layer Creation Failed Exception: ShapeFile creation " +
@@ -38,15 +27,15 @@ public class OGCProxyExceptionID {
 	// PROPERTIES EXCEPTIONS
 	// ------------------
 	public static final OGCProxyExceptionID INVALID_PROPERTIES_FILE_REQUESTED =
-		new OGCProxyExceptionID("OGCProxyException Properties Exception: Invalid properties file requested."
-				, 0x02000);
+			new OGCProxyExceptionID("OGCProxyException Properties Exception: Invalid properties file requested."
+					, 0x02000);
 
 	// ------------------
 	// PROXY EXCEPTIONS
 	// ------------------
 	public static final OGCProxyExceptionID UNSUPPORTED_REQUEST_METHOD =
-		new OGCProxyExceptionID("OGCProxyException Proxy Exception: Unsupported http request method."
-				, 0x03000);
+			new OGCProxyExceptionID("OGCProxyException Proxy Exception: Unsupported http request method."
+					, 0x03000);
 	public static final OGCProxyExceptionID ERROR_READING_CLIENT_REQUEST_BODY =
 			new OGCProxyExceptionID("OGCProxyException Proxy Exception: Error reading client request body."
 					, 0x03001);
@@ -114,4 +103,18 @@ public class OGCProxyExceptionID {
 	public static final OGCProxyExceptionID UPLOAD_SHAPEFILE_ERROR =
 			new OGCProxyExceptionID("OGCProxyException LayerBuilder Exception: Unable to upload shapefile."
 					, 0x06004);
+
+	private OGCProxyExceptionID( String name, int id ) {
+		this.name = name;
+		this.exceptionId = Long.valueOf(id);
+	}
+
+	public String toString() {
+		return this.name;
+	}
+	public Long value() {
+		return this.exceptionId;
+	}
+
+
 }

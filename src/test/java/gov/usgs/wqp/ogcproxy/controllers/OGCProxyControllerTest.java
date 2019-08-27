@@ -50,18 +50,15 @@ public class OGCProxyControllerTest {
 
 	@Mock
 	private RESTService restService;
-
-	private ConfigurationService configurationService;
-	private OGCProxyController mvcService;
 	private long timeInMilli;
 
 	@Before
-	public void setup() {
+	public void setUp() {
 		MockitoAnnotations.initMocks(this);
-		configurationService = new ConfigurationService();
+		ConfigurationService configurationService = new ConfigurationService();
 		Whitebox.setInternalState(configurationService, "readLockTimeout", Long.valueOf("10"));
 		Whitebox.setInternalState(configurationService, "writeLockTimeout", Long.valueOf("10"));
-		mvcService = new OGCProxyController(proxyService, restService, configurationService);
+		OGCProxyController mvcService = new OGCProxyController(proxyService, restService, configurationService);
 		mockMvc = MockMvcBuilders.standaloneSetup(mvcService).build();
 		timeInMilli = new Date().getTime();
 	}

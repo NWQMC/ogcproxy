@@ -8,20 +8,12 @@ public class ConfigurationService {
 
 	@Value("${proxy.readLock.timout:30}")
 	private Long readLockTimeout;
+
 	@Value("${proxy.writeLock.timout:120}")
 	private Long writeLockTimeout;
+
 	@Value("${proxy.thread.sleep:500}")
 	private Long threadSleep;
-
-	public Long getReadLockTimeout() {
-		return readLockTimeout;
-	}
-	public Long getWriteLockTimeout() {
-		return writeLockTimeout;
-	}
-	public Long getThreadSleep() {
-		return threadSleep;
-	}
 
 	//Layer Building
 	@Value("${wqp.layerbuilder.url}")
@@ -32,16 +24,6 @@ public class ConfigurationService {
 
 	@Value("${layerbuilder.dir.shapefiles}")
 	private String shapefileDirectory;
-
-	public String getWorkingDirectory() {
-		return workingDirectory;
-	}
-	public String getShapefileDirectory() {
-		return shapefileDirectory;
-	}
-	public String getLayerbuilderBaseURI() {
-		return layerbuilderUrl;
-	}
 
 	//GeoServer
 	public static final String GEOSERVER_REST = "rest";
@@ -68,6 +50,27 @@ public class ConfigurationService {
 
 	@Value("${wqp.geoserver.pass}")
 	private String geoserverPass;
+
+
+	public Long getReadLockTimeout() {
+		return readLockTimeout;
+	}
+	public Long getWriteLockTimeout() {
+		return writeLockTimeout;
+	}
+	public Long getThreadSleep() {
+		return threadSleep;
+	}
+
+	public String getWorkingDirectory() {
+		return workingDirectory;
+	}
+	public String getShapefileDirectory() {
+		return shapefileDirectory;
+	}
+	public String getLayerbuilderBaseURI() {
+		return layerbuilderUrl;
+	}
 
 	public String getGeoserverHost() {
 		return geoserverHost;

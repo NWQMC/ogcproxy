@@ -33,24 +33,30 @@ import gov.usgs.wqp.ogcproxy.services.ConfigurationService;
 
 public class GeoServerUtilsTest {
 
-	GeoServerUtils geoServerUtils;
+	private GeoServerUtils geoServerUtils;
 
 	@Mock
 	private CloseableHttpClient httpClient;
+
 	@Mock
 	private HttpClientContext localContext;
+
 	@Mock
 	private CloseableHttpResponse response;
+
 	@Mock
 	private StatusLine statusLine;
+
 	@Mock
-	CloseableHttpClientFactory factory;
+	private CloseableHttpClientFactory factory;
+
 	@Mock
 	private File file;
-	@Mock
-	CredentialsProvider credentialsProvider;
 
-	ConfigurationService configurationService;
+	@Mock
+	private CredentialsProvider credentialsProvider;
+
+	private ConfigurationService configurationService;
 
 	@Before
 	public void beforeTest() {
@@ -122,9 +128,7 @@ public class GeoServerUtilsTest {
 				geoServerUtils.createWorkspace(httpClient, localContext);
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Hi")) {
-					//nothing to see here - is expected behavior
-				} else {
+				if (!(e instanceof OGCProxyException && e.getMessage().contains("Hi"))) {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}
@@ -134,9 +138,7 @@ public class GeoServerUtilsTest {
 				geoServerUtils.createWorkspace(httpClient, localContext);
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Invalid status code from geoserver:200")) {
-					//nothing to see here - is expected behavior
-				} else {
+				if (!(e instanceof OGCProxyException && e.getMessage().contains("Invalid status code from geoserver:200"))) {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}
@@ -162,9 +164,7 @@ public class GeoServerUtilsTest {
 				geoServerUtils.putShapefile(httpClient, localContext, "abc", "application/xml", new File("myFile"));
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Hi")) {
-					//nothing to see here - is expected behavior
-				} else {
+				if (!(e instanceof OGCProxyException && e.getMessage().contains("Hi"))) {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}
@@ -177,9 +177,7 @@ public class GeoServerUtilsTest {
 				geoServerUtils.putShapefile(httpClient, localContext, "abc", "application/xml", new File("myFile"));
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Exception: Invalid status code from geoserver:200")) {
-					//nothing to see here - is expected behavior
-				} else {
+				if (!(e instanceof OGCProxyException && e.getMessage().contains("Exception: Invalid status code from geoserver:200"))) {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}
@@ -203,9 +201,7 @@ public class GeoServerUtilsTest {
 				geoServerUtils.verifyWorkspaceExists(httpClient, localContext);
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Hi")) {
-					//nothing to see here - is expected behavior
-				} else {
+				if (!(e instanceof OGCProxyException && e.getMessage().contains("Hi"))) {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}
@@ -218,9 +214,7 @@ public class GeoServerUtilsTest {
 				geoServerUtils.verifyWorkspaceExists(httpClient, localContext);
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Exception: Invalid status code from geoserver:200")) {
-					//nothing to see here - is expected behavior
-				} else {
+				if (!(e instanceof OGCProxyException && e.getMessage().contains("Exception: Invalid status code from geoserver:200"))) {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}
