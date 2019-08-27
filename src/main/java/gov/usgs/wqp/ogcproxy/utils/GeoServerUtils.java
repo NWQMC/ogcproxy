@@ -64,12 +64,12 @@ public class GeoServerUtils {
 
 	public CloseableHttpClient buildAuthorizedClient() {
 		CredentialsProvider credentialsProvider =
-				closeableHttpClientFactory.getCredentialsProvider(configurationService.getGeoserverHost(), configurationService.getGeoserverPort(), configurationService.getGeoserverUser(), configurationService.getGeoserverPass());
+				closeableHttpClientFactory.getCredentialsProvider(configurationService.getGeoserverHost(), configurationService.getGeoserverUser(), configurationService.getGeoserverPass());
 		return closeableHttpClientFactory.getAuthorizedCloseableHttpClient(credentialsProvider);
 	}
 
 	public HttpClientContext buildLocalContext() {
-		return closeableHttpClientFactory.getPreemptiveAuthContext(configurationService.getGeoserverHost(), configurationService.getGeoserverPort(), configurationService.getGeoserverProtocol());
+		return closeableHttpClientFactory.getPreemptiveAuthContext(configurationService.getGeoserverHost());
 	}
 
 	public void uploadShapefile(CloseableHttpClient geoserverClient, String shapefileDirectory, String layerName) throws OGCProxyException {

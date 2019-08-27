@@ -115,16 +115,17 @@ public class CloseableHttpClientFactory {
 		return getCommonClientBuilder().setDefaultCredentialsProvider(credentialsProvider).build();
 	}
 
-	public CredentialsProvider getCredentialsProvider(String host, String port, String username, String password) {
+	public CredentialsProvider getCredentialsProvider(String host, String username, String password) {
 		CredentialsProvider credsProvider = new BasicCredentialsProvider();
+		HttpHost target = HttpHost.create(host);
 		credsProvider.setCredentials(
-				new AuthScope(host, Integer.parseInt(port)),
+				new AuthScope(target),
 				new UsernamePasswordCredentials(username, password));
 		return credsProvider;
 	}
 
-	public HttpClientContext getPreemptiveAuthContext(String host, String port, String protocol) {
-		HttpHost target = new HttpHost(host, Integer.parseInt(port), protocol);
+	public HttpClientContext getPreemptiveAuthContext(String host) {
+		HttpHost target = HttpHost.create(host);
 
 		BasicScheme basicAuth = new BasicScheme();
 

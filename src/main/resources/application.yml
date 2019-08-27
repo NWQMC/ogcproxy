@@ -17,9 +17,7 @@ server:
 # WQP GeoServer settings
 wqp:
   geoserver:
-    proto: http
     host: ${WQP_GEOSERVER_HOST}
-    port: ${WQP_GEOSERVER_PORT}
     context: geoserver
     workspace: wqp_sites
     user: admin
@@ -27,16 +25,13 @@ wqp:
     catchup:
       time: 1000
   layerbuilder:
-    proto: http
-    host: ${WQP_LAYERBUILDER_HOST}
-    port: ${WQP_LAYERBUILDER_PORT} 
-    context: wqp
-    path: Station/search
+    url: ${WQP_LAYERBUILDER_URL}
+
 
 layerbuilder:
   dir:
-    working: /home/spring
-    shapefiles: /home/spring
+    working: ${LAYERBUILDER_WORKING_DIR}
+    shapefiles: ${LAYERBUILDER_SHAPEFILES_DIR}
 
 # Proxy Service Properties
 proxy:

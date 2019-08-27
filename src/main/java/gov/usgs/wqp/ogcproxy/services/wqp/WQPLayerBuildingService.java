@@ -180,7 +180,6 @@ public class WQPLayerBuildingService {
 		}
 
 		String dataFilename = WQPUtils.retrieveSearchParamData(wqpClient, searchParams, configurationService.getLayerbuilderBaseURI(), configurationService.getWorkingDirectory(), layerName, tokenValue);
-
 		if (isEmpty(dataFilename)) {
 			/*
 			 * Did not receive any data from the server for this request.  Cannot create layer.

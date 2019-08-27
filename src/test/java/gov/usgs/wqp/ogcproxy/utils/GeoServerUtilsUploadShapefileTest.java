@@ -65,7 +65,7 @@ public class GeoServerUtilsUploadShapefileTest {
 	public void uploadShapefileHappyPathTest() {
 		try {
 			whenNew(File.class).withAnyArguments().thenReturn(file);
-			when(factory.getPreemptiveAuthContext(isNull(), isNull(), isNull())).thenReturn(localContext);
+			when(factory.getPreemptiveAuthContext(isNull())).thenReturn(localContext);
 			when(httpClient.execute(any(HttpGet.class), any(HttpClientContext.class))).thenReturn(response);
 			when(httpClient.execute(any(HttpPut.class), any(HttpClientContext.class))).thenReturn(response);
 			when(file.exists()).thenReturn(true);

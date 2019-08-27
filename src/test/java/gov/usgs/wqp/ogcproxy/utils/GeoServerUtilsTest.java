@@ -57,9 +57,7 @@ public class GeoServerUtilsTest {
 		MockitoAnnotations.initMocks(this);
 		configurationService = new ConfigurationService();
 		geoServerUtils = new GeoServerUtils(factory, configurationService);
-		Whitebox.setInternalState(configurationService, "geoserverProtocol", "https");
-		Whitebox.setInternalState(configurationService, "geoserverHost", "owi.usgs.gov");
-		Whitebox.setInternalState(configurationService, "geoserverPort", "8444");
+		Whitebox.setInternalState(configurationService, "geoserverHost", "https://owi.usgs.gov");
 		Whitebox.setInternalState(configurationService, "geoserverContext", "geoserver");
 		Whitebox.setInternalState(configurationService, "geoserverWorkspace", "wqp_sites");
 		Whitebox.setInternalState(configurationService, "geoserverUser", "username");
@@ -68,48 +66,48 @@ public class GeoServerUtilsTest {
 
 	@Test
 	public void buildAuthorizedClientTest() {
-		when(factory.getCredentialsProvider(anyString(), anyString(), anyString(), anyString())).thenReturn(credentialsProvider);
+		when(factory.getCredentialsProvider(anyString(), anyString(), anyString())).thenReturn(credentialsProvider);
 		when(factory.getAuthorizedCloseableHttpClient(any(CredentialsProvider.class))).thenReturn(httpClient);
 		CloseableHttpClient client = geoServerUtils.buildAuthorizedClient();
 		assertNotNull(client);
-		verify(factory).getCredentialsProvider("owi.usgs.gov", "8444", "username", "pwd");
+		verify(factory).getCredentialsProvider("https://owi.usgs.gov",  "username", "pwd");
 	}
 
 	@Test
 	public void buildLocalContextTest() {
-		when(factory.getPreemptiveAuthContext(anyString(), anyString(), anyString())).thenReturn(localContext);
+		when(factory.getPreemptiveAuthContext(anyString())).thenReturn(localContext);
 		HttpClientContext context = geoServerUtils.buildLocalContext();
 		assertNotNull(context);
-		verify(factory).getPreemptiveAuthContext("owi.usgs.gov", "8444", "https");
+		verify(factory).getPreemptiveAuthContext("https://owi.usgs.gov");
 	}
 
 	@Test
 	public void buildNamespacePostTest() {
-		assertEquals("https://owi.usgs.gov:8444/geoserver/rest/namespaces",
+		assertEquals("https://owi.usgs.gov/geoserver/rest/namespaces",
 				geoServerUtils.buildNamespacePost());
 	}
 
 	@Test
 	public void buildShapeFileRestPutTest() {
-		assertEquals("https://owi.usgs.gov:8444/geoserver/rest/workspaces/wqp_sites/datastores/testLayer/file.shp",
+		assertEquals("https://owi.usgs.gov/geoserver/rest/workspaces/wqp_sites/datastores/testLayer/file.shp",
 				geoServerUtils.buildShapeFileRestPut("testLayer"));
 	}
 
 	@Test
 	public void buildWorkspaceRestDeleteTest() {
-		assertEquals("https://owi.usgs.gov:8444/geoserver/rest/workspaces/wqp_sites?recurse=true",
+		assertEquals("https://owi.usgs.gov/geoserver/rest/workspaces/wqp_sites?recurse=true",
 				geoServerUtils.buildWorkspaceRestDelete());
 	}
 
 	@Test
 	public void buildWorkspacesRestGetTest() {
-		assertEquals("https://owi.usgs.gov:8444/geoserver/rest/workspaces/wqp_sites.json",
+		assertEquals("https://owi.usgs.gov/geoserver/rest/workspaces/wqp_sites.json",
 				geoServerUtils.buildWorkspacesRestGet());
 	}
 
 	@Test
 	public void buildResourceRestDeleteTest() {
-		assertEquals("https://owi.usgs.gov:8444/geoserver/rest/resource/data/wqp_sites",
+		assertEquals("https://owi.usgs.gov/geoserver/rest/resource/data/wqp_sites",
 			geoServerUtils.buildResourceRestDelete());
 	}
 
@@ -195,7 +193,7 @@ public class GeoServerUtilsTest {
 	@Test
 	public void verifyWorkspaceExistsTest() {
 		try {
-			when(factory.getPreemptiveAuthContext(isNull(), isNull(), isNull())).thenReturn(localContext);
+			when(factory.getPreemptiveAuthContext(isNull())).thenReturn(localContext);
 			when(httpClient.execute(any(HttpGet.class), any(HttpClientContext.class))).thenThrow(new IOException("Hi")).thenReturn(response);
 			when(httpClient.execute(any(HttpPost.class), any(HttpClientContext.class))).thenReturn(response);
 			when(response.getStatusLine()).thenReturn(statusLine);
