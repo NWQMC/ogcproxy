@@ -17,13 +17,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.ModelAndView;
 
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.services.ConfigurationService;
 import gov.usgs.wqp.ogcproxy.services.ProxyService;
 import gov.usgs.wqp.ogcproxy.services.RESTService;
-import gov.usgs.wqp.ogcproxy.utils.ApplicationVersion;
 import org.springframework.http.MediaType;
 
 @RestController

@@ -56,12 +56,10 @@ public class GeoServerUtilsTest {
 	@Mock
 	private CredentialsProvider credentialsProvider;
 
-	private ConfigurationService configurationService;
-
 	@Before
 	public void beforeTest() {
 		MockitoAnnotations.initMocks(this);
-		configurationService = new ConfigurationService();
+		ConfigurationService configurationService = new ConfigurationService();
 		geoServerUtils = new GeoServerUtils(factory, configurationService);
 		Whitebox.setInternalState(configurationService, "geoserverHost", "https://owi.usgs.gov");
 		Whitebox.setInternalState(configurationService, "geoserverContext", "geoserver");

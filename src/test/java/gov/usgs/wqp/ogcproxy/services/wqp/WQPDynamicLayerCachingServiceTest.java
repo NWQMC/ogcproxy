@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
