@@ -1,11 +1,10 @@
-sudo: required
-
 language: java
-
-services:
-  - docker
 
 jdk:
   - openjdk11
 
-install: true
+script:
+  - mvn clean test
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)

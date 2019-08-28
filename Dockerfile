@@ -22,7 +22,6 @@ RUN mkdir -p /data/working && mkdir -p /data/shapefiles && chmod -R ugo+rwx /dat
 
 USER $USER
 
-
 CMD ["java", "-jar", "app.jar"]
 
 HEALTHCHECK --interval=30s --timeout=3s \

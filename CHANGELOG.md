@@ -15,7 +15,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 -   Dockerized ogcproxy
 -   Added jenkins deploy script
--   Using url environment variables for geoserver and the layerbuilder rather than defining separte
-host, port variables.
+-   Using url environment variables for geoserver and the layerbuilder rather than defining separate host, port variables.
 
 [Unreleased]: https://github.com/NWQMC/ogcproxy/compare/ogcproxy-0.9.1...master
