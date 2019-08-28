@@ -33,7 +33,7 @@ public class ConfigurationService {
 	public static final String GEOSERVER_RESOURCE = "resource";
 	public static final String GEOSERVER_DATA = "data";
 
-	@Value("${wqp.geoserver.host:localhost}")
+	@Value("${wqp.geoserver.host}")
 	private String geoserverHost;
 
 	@Value("${wqp.geoserver.context:geoserver}")
