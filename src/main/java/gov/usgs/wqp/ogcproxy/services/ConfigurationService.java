@@ -33,6 +33,9 @@ public class ConfigurationService {
 	public static final String GEOSERVER_RESOURCE = "resource";
 	public static final String GEOSERVER_DATA = "data";
 
+	@Value("${wqp.geoserver.protocol:https}")
+	private String geoserverProtocol;
+
 	@Value("${wqp.geoserver.host}")
 	private String geoserverHost;
 
@@ -91,7 +94,7 @@ public class ConfigurationService {
 		return geoserverPass;
 	}
 	public String getGeoserverBaseURI() {
-		return  geoserverHost + "/" + geoserverContext;
+		return  geoserverProtocol + "://" + geoserverHost + "/" + geoserverContext;
 	}
 	public String getGeoserverWorkspaceBase() {
 		return String.join("/", getGeoserverBaseURI(), GEOSERVER_REST, GEOSERVER_WORKSPACES, geoserverWorkspace);

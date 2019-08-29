@@ -10,7 +10,7 @@ RUN mvn -B dependency:go-offline
 COPY src /build/src
 RUN mvn -B clean package
 
-FROM usgswma/openjdk:debian-stretch-openjdk-11.0.2-89c4dd2d55ba476c77aa8fd5274dcb8a1ef115b7
+FROM usgswma/openjdk:openjdk:11.0.4-jre-baa3726df925e679dedf110bc1dca29b323e5324
 
 RUN apt-get update && apt-get install --no-install-recommends --no-upgrade -y \
     curl \

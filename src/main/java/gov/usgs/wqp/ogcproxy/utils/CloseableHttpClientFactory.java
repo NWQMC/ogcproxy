@@ -120,7 +120,7 @@ public class CloseableHttpClientFactory {
 		CredentialsProvider credsProvider = new BasicCredentialsProvider();
 		HttpHost target = HttpHost.create(host);
 		credsProvider.setCredentials(
-				new AuthScope(target),
+				new AuthScope(host, AuthScope.ANY_PORT),
 				new UsernamePasswordCredentials(username, password));
 		return credsProvider;
 	}

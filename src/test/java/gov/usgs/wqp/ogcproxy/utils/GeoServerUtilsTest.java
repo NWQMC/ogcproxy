@@ -51,9 +51,6 @@ public class GeoServerUtilsTest {
 	private CloseableHttpClientFactory factory;
 
 	@Mock
-	private File file;
-
-	@Mock
 	private CredentialsProvider credentialsProvider;
 
 	@Before
@@ -61,7 +58,8 @@ public class GeoServerUtilsTest {
 		MockitoAnnotations.initMocks(this);
 		ConfigurationService configurationService = new ConfigurationService();
 		geoServerUtils = new GeoServerUtils(factory, configurationService);
-		Whitebox.setInternalState(configurationService, "geoserverHost", "https://owi.usgs.gov");
+		Whitebox.setInternalState(configurationService, "geoserverProtocol", "https");
+		Whitebox.setInternalState(configurationService, "geoserverHost", "owi.usgs.gov");
 		Whitebox.setInternalState(configurationService, "geoserverContext", "geoserver");
 		Whitebox.setInternalState(configurationService, "geoserverWorkspace", "wqp_sites");
 		Whitebox.setInternalState(configurationService, "geoserverUser", "username");
@@ -74,7 +72,7 @@ public class GeoServerUtilsTest {
 		when(factory.getAuthorizedCloseableHttpClient(any(CredentialsProvider.class))).thenReturn(httpClient);
 		CloseableHttpClient client = geoServerUtils.buildAuthorizedClient();
 		assertNotNull(client);
-		verify(factory).getCredentialsProvider("https://owi.usgs.gov",  "username", "pwd");
+		verify(factory).getCredentialsProvider("owi.usgs.gov",  "username", "pwd");
 	}
 
 	@Test
@@ -82,7 +80,7 @@ public class GeoServerUtilsTest {
 		when(factory.getPreemptiveAuthContext(anyString())).thenReturn(localContext);
 		HttpClientContext context = geoServerUtils.buildLocalContext();
 		assertNotNull(context);
-		verify(factory).getPreemptiveAuthContext("https://owi.usgs.gov");
+		verify(factory).getPreemptiveAuthContext("owi.usgs.gov");
 	}
 
 	@Test

@@ -18,7 +18,6 @@ server:
 wqp:
   geoserver:
     host: ${WQP_GEOSERVER_HOST}
-    context: geoserver
     workspace: wqp_sites
     user: admin
     pass: ${WQP_GEOSERVER_PASSWORD}
