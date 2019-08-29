@@ -10,11 +10,7 @@ RUN mvn -B dependency:go-offline
 COPY src /build/src
 RUN mvn -B clean package
 
-FROM usgswma/openjdk:openjdk:11.0.4-jre-baa3726df925e679dedf110bc1dca29b323e5324
-
-RUN apt-get update && apt-get install --no-install-recommends --no-upgrade -y \
-    curl \
- && rm -rf /var/lib/apt/lists/*
+FROM usgswma/openjdk:11.0.4-jre-baa3726df925e679dedf110bc1dca29b323e5324
 
 COPY --chown=1000:1000 --from=build /build/target/ogcproxy-*.jar app.jar
 
