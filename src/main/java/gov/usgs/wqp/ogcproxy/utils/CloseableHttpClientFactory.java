@@ -118,7 +118,6 @@ public class CloseableHttpClientFactory {
 
 	public CredentialsProvider getCredentialsProvider(String host, String username, String password) {
 		CredentialsProvider credsProvider = new BasicCredentialsProvider();
-		HttpHost target = HttpHost.create(host);
 		credsProvider.setCredentials(
 				new AuthScope(host, AuthScope.ANY_PORT),
 				new UsernamePasswordCredentials(username, password));
