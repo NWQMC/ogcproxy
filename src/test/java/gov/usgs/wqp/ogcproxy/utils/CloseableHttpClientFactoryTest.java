@@ -44,9 +44,10 @@ public class CloseableHttpClientFactoryTest {
 
 	@Test
 	public void getCredentialsProviderTest() {
-		CredentialsProvider credentialsProvider = factory.getCredentialsProvider(TEST_HOST, TEST_PORT, TEST_USERNAME, TEST_PASSWORD);
+		CredentialsProvider credentialsProvider = factory.getCredentialsProvider(TEST_HOST, TEST_USERNAME, TEST_PASSWORD);
 		assertNotNull(credentialsProvider);
-		AuthScope authScope = new AuthScope(TEST_HOST, Integer.parseInt(TEST_PORT));
+		HttpHost target = HttpHost.create(TEST_HOST);
+		AuthScope authScope = new AuthScope(target);
 		Credentials credentials = credentialsProvider.getCredentials(authScope);
 		assertNotNull(credentials);
 		assertEquals(TEST_PASSWORD, credentials.getPassword());
@@ -55,12 +56,12 @@ public class CloseableHttpClientFactoryTest {
 
 	@Test
 	public void getPreemptiveAuthContextTest() {
-		HttpClientContext context = factory.getPreemptiveAuthContext(TEST_HOST, TEST_PORT, TEST_PROTOCOL);
+		HttpClientContext context = factory.getPreemptiveAuthContext(TEST_HOST);
 		assertNotNull(context);
 		AuthCache authCache = context.getAuthCache();
 		assertNotNull(authCache);
 		assertTrue(authCache instanceof BasicAuthCache);
-		HttpHost host = new HttpHost(TEST_HOST, Integer.parseInt(TEST_PORT), TEST_PROTOCOL);
+		HttpHost host = new HttpHost(TEST_HOST);
 		AuthScheme authScheme = authCache.get(host);
 		assertNotNull(authScheme);
 		assertEquals("basic", authScheme.getSchemeName());

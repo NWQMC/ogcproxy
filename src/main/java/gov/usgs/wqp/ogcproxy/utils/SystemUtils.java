@@ -71,10 +71,7 @@ public class SystemUtils {
 
 		FilenameFilter filter = new FilenameFilter() {
 			public boolean accept(File dir, String name) {
-				if (name.indexOf(filename) != -1) {
-					return true;
-				}
-				return false;
+				return name.indexOf(filename) != -1;
 			}
 		};
 
@@ -120,7 +117,7 @@ public class SystemUtils {
 		ByteArrayInputStream bytein = new ByteArrayInputStream(content);
 		GZIPInputStream gzin;
 		try {
-			gzin = new java.util.zip.GZIPInputStream(bytein);
+			gzin = new GZIPInputStream(bytein);
 		} catch (IOException e) {
 			String msg = "SystemUtils.uncompressGzipAsString() Exception : Error creating GZIPInputStream from content [" +
 					 e.getMessage() + "]";
@@ -129,7 +126,7 @@ public class SystemUtils {
 				OGCProxyExceptionID id = OGCProxyExceptionID.GZIP_ERROR;
 				throw new OGCProxyException(id, "SystemUtils", "uncompressGzipAsString()", msg);
 		}
-		ByteArrayOutputStream byteout = new java.io.ByteArrayOutputStream();
+		ByteArrayOutputStream byteout = new ByteArrayOutputStream();
 
 		int res = 0;
 		byte buf[] = new byte[1024];

@@ -48,7 +48,7 @@ public class JsonObjectResponseHandlerTest {
 	private HttpEntity httpEntity;
 
 	@Before
-	public void setup() {
+	public void setUp() {
 		MockitoAnnotations.initMocks(this);
 	}
 

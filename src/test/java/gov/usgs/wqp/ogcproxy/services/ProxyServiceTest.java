@@ -20,8 +20,6 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.apache.http.StatusLine;
-import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,18 +50,18 @@ public class ProxyServiceTest {
 
 	@Mock
 	private HttpServletRequest request;
+
 	@Mock
 	private HttpUriRequest serverRequest;
+
 	@Mock
-	private CloseableHttpResponse response;
+	private WQPDynamicLayerCachingService cachingService;
+
 	@Mock
-	private StatusLine statusLine;
-	@Mock
-	WQPDynamicLayerCachingService cachingService;
-	@Mock
-	CloseableHttpClientFactory clientFactory;
+	private CloseableHttpClientFactory clientFactory;
+
 	@Spy
-	ProxyService service = ProxyService.getInstance();
+	private ProxyService service = ProxyService.getInstance();
 
 	@Before
 	public void beforeTest() {
@@ -72,11 +70,6 @@ public class ProxyServiceTest {
 
 		service.layerCachingService = cachingService;
 		service.closeableHttpClientFactory = clientFactory;
-	}
-
-	@Test
-	public void addGetCapabilitiesInfoTest() {
-		//TODO
 	}
 
 	@Test
@@ -107,21 +100,6 @@ public class ProxyServiceTest {
 		verify(cachingService).getDynamicLayer(any(OGCRequest.class));
 		verifyStatic(ProxyUtil.class, times(2));
 		ProxyUtil.separateParameters(any(HttpServletRequest.class), any(OGCServices.class));
-	}
-
-	@Test
-	public void generateServerRequestTest() {
-		//TODO
-	}
-
-	@Test
-	public void handleServerRequestTest() {
-		//TODO
-	}
-
-	@Test
-	public void handleServerResponseTest() {
-		//TODO
 	}
 
 	@Test
@@ -248,15 +226,4 @@ public class ProxyServiceTest {
 		abc = service.inspectServerContent(request, serverRequest, ogcRequest, responseWithoutDynamicSites.getBytes(), false);
 		assertEquals(responseWithoutDynamicSites, new String(abc));
 	}
-
-	@Test
-	public void performRequestTest() {
-		//TODO
-	}
-
-	@Test
-	public void proxyRequestTest() {
-		//TODO
-	}
-
 }

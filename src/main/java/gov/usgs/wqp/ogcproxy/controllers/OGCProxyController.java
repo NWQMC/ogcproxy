@@ -17,13 +17,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.ModelAndView;
 
 import gov.usgs.wqp.ogcproxy.model.ogc.services.OGCServices;
 import gov.usgs.wqp.ogcproxy.services.ConfigurationService;
 import gov.usgs.wqp.ogcproxy.services.ProxyService;
 import gov.usgs.wqp.ogcproxy.services.RESTService;
-import gov.usgs.wqp.ogcproxy.utils.ApplicationVersion;
 import org.springframework.http.MediaType;
 
 @RestController
@@ -51,15 +49,6 @@ public class OGCProxyController {
 	 * 
 	 * @return The splash page of the application.
 	 */
-	@GetMapping("/")
-	public ModelAndView entry() {
-		LOG.info("OGCProxyController.entry() called");
-
-		ModelAndView mv = new ModelAndView("index.jsp");
-		mv.addObject("version", ApplicationVersion.getVersion());
-
-		return mv;
-	}
 
 	@GetMapping({"/schemas/**", "/ows/**"})
 	public void getSchemasAndOws(HttpServletRequest request, HttpServletResponse response) {

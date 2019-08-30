@@ -41,16 +41,21 @@ public class GeoServerUtilsUploadShapefileTest {
 
 	@Mock
 	private CloseableHttpClient httpClient;
+
 	@Mock
 	private HttpClientContext localContext;
+
 	@Mock
 	private CloseableHttpResponse response;
+
 	@Mock
 	private StatusLine statusLine;
+
 	@Mock
-	CloseableHttpClientFactory factory;
+	private CloseableHttpClientFactory factory;
+
 	@Spy
-	GeoServerUtils geoServerUtils = new GeoServerUtils(factory, configurationService);
+	private GeoServerUtils geoServerUtils = new GeoServerUtils(factory, configurationService);
 
 	private File file;
 
@@ -65,7 +70,7 @@ public class GeoServerUtilsUploadShapefileTest {
 	public void uploadShapefileHappyPathTest() {
 		try {
 			whenNew(File.class).withAnyArguments().thenReturn(file);
-			when(factory.getPreemptiveAuthContext(isNull(), isNull(), isNull())).thenReturn(localContext);
+			when(factory.getPreemptiveAuthContext(isNull())).thenReturn(localContext);
 			when(httpClient.execute(any(HttpGet.class), any(HttpClientContext.class))).thenReturn(response);
 			when(httpClient.execute(any(HttpPut.class), any(HttpClientContext.class))).thenReturn(response);
 			when(file.exists()).thenReturn(true);
@@ -93,9 +98,7 @@ public class GeoServerUtilsUploadShapefileTest {
 				geoServerUtils.uploadShapefile(httpClient, "", "");
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
-				if (e instanceof OGCProxyException && ((OGCProxyException)e).getExceptionid() == OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR) {
-					//nothing to see here - is expected behavior
-				} else {
+				if (!(e instanceof OGCProxyException && ((OGCProxyException)e).getExceptionid() == OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR)) {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}
@@ -121,9 +124,7 @@ public class GeoServerUtilsUploadShapefileTest {
 				geoServerUtils.uploadShapefile(httpClient, "", "");
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
-				if (e instanceof OGCProxyException && ((OGCProxyException)e).getExceptionid() == OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR) {
-					//nothing to see here - is expected behavior
-				} else {
+				if (!(e instanceof OGCProxyException && ((OGCProxyException)e).getExceptionid() == OGCProxyExceptionID.UPLOAD_SHAPEFILE_ERROR)) {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}

@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
 import org.apache.http.client.HttpResponseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
@@ -57,21 +56,24 @@ public class WQPDynamicLayerCachingServiceTest {
 
 	@Mock
 	private CloseableHttpClient httpClient;
+
 	@Mock
 	private HttpClientBuilder httpClientBuilder;
+
 	@Mock
 	private ConfigurationService configurationService;
+
 	@Mock
 	private GeoServerUtils geoServerUtils;
+
 	@Mock
 	private CloseableHttpResponse response;
-	@Mock
-	private StatusLine statusLine;
+
 	@Mock
 	private WQPLayerBuildingService wqpLayerBuildingService;
 
 	@Spy
-	WQPDynamicLayerCachingService service = WQPDynamicLayerCachingService.getInstance();
+	private WQPDynamicLayerCachingService service = WQPDynamicLayerCachingService.getInstance();
 
 	public final static String WQP_WORKSPACE = "wqp_sites";
 	public final static String ONE_QUAL_NAME = String.join(":", WQP_WORKSPACE, JsonObjectResponseHandlerTest.ONE_NAME);
@@ -166,11 +168,6 @@ public class WQPDynamicLayerCachingServiceTest {
 		int cnt = service.clearInMemoryCache();
 		assertEquals(2, cnt);
 		assertTrue(service.getCacheValues().isEmpty());
-	}
-
-	@Test
-	public void getDynamicLayerTest() {
-		//TODO
 	}
 
 	@Test

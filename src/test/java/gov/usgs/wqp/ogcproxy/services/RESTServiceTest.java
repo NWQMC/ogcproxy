@@ -13,7 +13,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.web.servlet.ModelAndView;
 
 import gov.usgs.wqp.ogcproxy.model.DynamicLayer;
 import gov.usgs.wqp.ogcproxy.model.OGCRequest;
@@ -30,7 +29,7 @@ public class RESTServiceTest {
 	private RESTService service;
 
 	@Before
-	public void setup() {
+	public void setUp() {
 		MockitoAnnotations.initMocks(this);
 		service = new RESTService(layerCachingService);
 	}
@@ -42,7 +41,6 @@ public class RESTServiceTest {
 		when(layerCachingService.getCacheValues()).thenReturn(cache);
 
 		Map<String, Object> mv = service.checkCacheStatus(ProxyDataSourceParameter.WQP_SITES.toString());
-		// TODO assertEquals("wqp_cache_status.jsp", mv.getViewName());
 		assertTrue(mv.containsKey("site"));
 		assertEquals("WQP Layer Building Service", mv.get("site"));
 		assertTrue(mv.containsKey("cache"));
@@ -52,7 +50,6 @@ public class RESTServiceTest {
 	@Test
 	public void checkCacheStatusBadTest() {
 		Map<String, Object> mv = service.checkCacheStatus("no_sites_here");
-		// TODO assertEquals("invalid_site.jsp", mv.getViewName());
 		assertTrue(mv.containsKey("site"));
 		assertEquals("no_sites_here", mv.get("site"));
 	}

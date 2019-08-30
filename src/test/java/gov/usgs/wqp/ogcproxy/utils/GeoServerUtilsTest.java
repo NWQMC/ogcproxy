@@ -33,33 +33,33 @@ import gov.usgs.wqp.ogcproxy.services.ConfigurationService;
 
 public class GeoServerUtilsTest {
 
-	GeoServerUtils geoServerUtils;
+	private GeoServerUtils geoServerUtils;
 
 	@Mock
 	private CloseableHttpClient httpClient;
+
 	@Mock
 	private HttpClientContext localContext;
+
 	@Mock
 	private CloseableHttpResponse response;
+
 	@Mock
 	private StatusLine statusLine;
-	@Mock
-	CloseableHttpClientFactory factory;
-	@Mock
-	private File file;
-	@Mock
-	CredentialsProvider credentialsProvider;
 
-	ConfigurationService configurationService;
+	@Mock
+	private CloseableHttpClientFactory factory;
+
+	@Mock
+	private CredentialsProvider credentialsProvider;
 
 	@Before
 	public void beforeTest() {
 		MockitoAnnotations.initMocks(this);
-		configurationService = new ConfigurationService();
+		ConfigurationService configurationService = new ConfigurationService();
 		geoServerUtils = new GeoServerUtils(factory, configurationService);
 		Whitebox.setInternalState(configurationService, "geoserverProtocol", "https");
 		Whitebox.setInternalState(configurationService, "geoserverHost", "owi.usgs.gov");
-		Whitebox.setInternalState(configurationService, "geoserverPort", "8444");
 		Whitebox.setInternalState(configurationService, "geoserverContext", "geoserver");
 		Whitebox.setInternalState(configurationService, "geoserverWorkspace", "wqp_sites");
 		Whitebox.setInternalState(configurationService, "geoserverUser", "username");
@@ -68,48 +68,48 @@ public class GeoServerUtilsTest {
 
 	@Test
 	public void buildAuthorizedClientTest() {
-		when(factory.getCredentialsProvider(anyString(), anyString(), anyString(), anyString())).thenReturn(credentialsProvider);
+		when(factory.getCredentialsProvider(anyString(), anyString(), anyString())).thenReturn(credentialsProvider);
 		when(factory.getAuthorizedCloseableHttpClient(any(CredentialsProvider.class))).thenReturn(httpClient);
 		CloseableHttpClient client = geoServerUtils.buildAuthorizedClient();
 		assertNotNull(client);
-		verify(factory).getCredentialsProvider("owi.usgs.gov", "8444", "username", "pwd");
+		verify(factory).getCredentialsProvider("owi.usgs.gov",  "username", "pwd");
 	}
 
 	@Test
 	public void buildLocalContextTest() {
-		when(factory.getPreemptiveAuthContext(anyString(), anyString(), anyString())).thenReturn(localContext);
+		when(factory.getPreemptiveAuthContext(anyString())).thenReturn(localContext);
 		HttpClientContext context = geoServerUtils.buildLocalContext();
 		assertNotNull(context);
-		verify(factory).getPreemptiveAuthContext("owi.usgs.gov", "8444", "https");
+		verify(factory).getPreemptiveAuthContext("owi.usgs.gov");
 	}
 
 	@Test
 	public void buildNamespacePostTest() {
-		assertEquals("https://owi.usgs.gov:8444/geoserver/rest/namespaces",
+		assertEquals("https://owi.usgs.gov/geoserver/rest/namespaces",
 				geoServerUtils.buildNamespacePost());
 	}
 
 	@Test
 	public void buildShapeFileRestPutTest() {
-		assertEquals("https://owi.usgs.gov:8444/geoserver/rest/workspaces/wqp_sites/datastores/testLayer/file.shp",
+		assertEquals("https://owi.usgs.gov/geoserver/rest/workspaces/wqp_sites/datastores/testLayer/file.shp",
 				geoServerUtils.buildShapeFileRestPut("testLayer"));
 	}
 
 	@Test
 	public void buildWorkspaceRestDeleteTest() {
-		assertEquals("https://owi.usgs.gov:8444/geoserver/rest/workspaces/wqp_sites?recurse=true",
+		assertEquals("https://owi.usgs.gov/geoserver/rest/workspaces/wqp_sites?recurse=true",
 				geoServerUtils.buildWorkspaceRestDelete());
 	}
 
 	@Test
 	public void buildWorkspacesRestGetTest() {
-		assertEquals("https://owi.usgs.gov:8444/geoserver/rest/workspaces/wqp_sites.json",
+		assertEquals("https://owi.usgs.gov/geoserver/rest/workspaces/wqp_sites.json",
 				geoServerUtils.buildWorkspacesRestGet());
 	}
 
 	@Test
 	public void buildResourceRestDeleteTest() {
-		assertEquals("https://owi.usgs.gov:8444/geoserver/rest/resource/data/wqp_sites",
+		assertEquals("https://owi.usgs.gov/geoserver/rest/resource/data/wqp_sites",
 			geoServerUtils.buildResourceRestDelete());
 	}
 
@@ -124,9 +124,7 @@ public class GeoServerUtilsTest {
 				geoServerUtils.createWorkspace(httpClient, localContext);
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Hi")) {
-					//nothing to see here - is expected behavior
-				} else {
+				if (!(e instanceof OGCProxyException && e.getMessage().contains("Hi"))) {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}
@@ -136,9 +134,7 @@ public class GeoServerUtilsTest {
 				geoServerUtils.createWorkspace(httpClient, localContext);
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Invalid status code from geoserver:200")) {
-					//nothing to see here - is expected behavior
-				} else {
+				if (!(e instanceof OGCProxyException && e.getMessage().contains("Invalid status code from geoserver:200"))) {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}
@@ -164,9 +160,7 @@ public class GeoServerUtilsTest {
 				geoServerUtils.putShapefile(httpClient, localContext, "abc", "application/xml", new File("myFile"));
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Hi")) {
-					//nothing to see here - is expected behavior
-				} else {
+				if (!(e instanceof OGCProxyException && e.getMessage().contains("Hi"))) {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}
@@ -179,9 +173,7 @@ public class GeoServerUtilsTest {
 				geoServerUtils.putShapefile(httpClient, localContext, "abc", "application/xml", new File("myFile"));
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Exception: Invalid status code from geoserver:200")) {
-					//nothing to see here - is expected behavior
-				} else {
+				if (!(e instanceof OGCProxyException && e.getMessage().contains("Exception: Invalid status code from geoserver:200"))) {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}
@@ -195,7 +187,7 @@ public class GeoServerUtilsTest {
 	@Test
 	public void verifyWorkspaceExistsTest() {
 		try {
-			when(factory.getPreemptiveAuthContext(isNull(), isNull(), isNull())).thenReturn(localContext);
+			when(factory.getPreemptiveAuthContext(isNull())).thenReturn(localContext);
 			when(httpClient.execute(any(HttpGet.class), any(HttpClientContext.class))).thenThrow(new IOException("Hi")).thenReturn(response);
 			when(httpClient.execute(any(HttpPost.class), any(HttpClientContext.class))).thenReturn(response);
 			when(response.getStatusLine()).thenReturn(statusLine);
@@ -205,9 +197,7 @@ public class GeoServerUtilsTest {
 				geoServerUtils.verifyWorkspaceExists(httpClient, localContext);
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Hi")) {
-					//nothing to see here - is expected behavior
-				} else {
+				if (!(e instanceof OGCProxyException && e.getMessage().contains("Hi"))) {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}
@@ -220,9 +210,7 @@ public class GeoServerUtilsTest {
 				geoServerUtils.verifyWorkspaceExists(httpClient, localContext);
 				fail("didn't get the OGCProxyException we were expecting");
 			} catch (Exception e) {
-				if (e instanceof OGCProxyException && e.getMessage().contains("Exception: Invalid status code from geoserver:200")) {
-					//nothing to see here - is expected behavior
-				} else {
+				if (!(e instanceof OGCProxyException && e.getMessage().contains("Exception: Invalid status code from geoserver:200"))) {
 					fail("Wrong exception thrown: " + e.getLocalizedMessage());
 				}
 			}

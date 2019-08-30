@@ -15,19 +15,19 @@ import gov.usgs.wqp.ogcproxy.model.parser.OgcParser;
 
 public class OgcParserTest {
 
-	static final String SEARCH_PARAMS = "countrycode:US;statecode:US%3A55%7CUS%3A28%7CUS%3A32;characteristicName:Atrazine";
+	private static final String SEARCH_PARAMS = "countrycode:US;statecode:US%3A55%7CUS%3A28%7CUS%3A32;characteristicName:Atrazine";
 
-	static final String SEARCH_PARAMS_DECODED = "countrycode:US;statecode:US:55|US:28|US:32;characteristicName:Atrazine";
+	private static final String SEARCH_PARAMS_DECODED = "countrycode:US;statecode:US:55|US:28|US:32;characteristicName:Atrazine";
 
-	static final String XML_DECLARATION = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
+	private static final String XML_DECLARATION = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>";
 
-	static final String WFS_TAG = "<wfs:GetFeature xmlns:wfs=\"http://www.opengis.net/wfs\""+
+	private static final String WFS_TAG = "<wfs:GetFeature xmlns:wfs=\"http://www.opengis.net/wfs\""+
 			" xmlns:ows=\"http://www.opengis.net/ows/1.1\""+
 			" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\""+
 			" service=\"WFS\" version=\"1.1.0\""+
 			" xsi:schemaLocation=\"http://www.opengis.net/wfs http://schemas.opengis.net/wfs/1.1.0/wfs.xsd\">";
 
-	final String wfs_typeNames =
+	private final String wfs_typeNames =
 			"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?> "+
 			"<wfs:GetFeature xmlns:wfs=\"http://www.opengis.net/wfs\" service=\"WFS\" version=\"1.1.0\" "+
 			"	xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "+
@@ -37,7 +37,7 @@ public class OgcParserTest {
 			"	</wfs:Query> "+
 			" </wfs:GetFeature> ";
 
-	final String wfs_typeName =
+	private final String wfs_typeName =
 			"<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?> "+
 			"<wfs:GetFeature xmlns:wfs=\"http://www.opengis.net/wfs\" service=\"WFS\" version=\"1.1.0\" "+
 			"	xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "+
@@ -132,7 +132,7 @@ public class OgcParserTest {
 			"</ogc:GetMap>";
 
 	@Test
-	public void parse_wfs_typeNames_test() throws Exception {
+	public void parseWfsTypeNamesTest() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContentType("application/xml");
@@ -151,7 +151,7 @@ public class OgcParserTest {
 	}
 
 	@Test
-	public void parse_wfs_typeName_test() throws Exception {
+	public void parseWfsTypeNameTest() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContentType("application/xml");
@@ -170,7 +170,7 @@ public class OgcParserTest {
 	}
 
 	@Test
-	public void parse_wfs_vendor_params_test() throws Exception {
+	public void parseWfsVendorParamsTest() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContentType("application/xml");
@@ -192,7 +192,7 @@ public class OgcParserTest {
 	}
 
 	@Test
-	public void parse_wms_get_map_vendor_params_test() throws Exception {
+	public void parseWmsGetMapVendorParamsTest() throws Exception {
 		MockHttpServletRequest request = new MockHttpServletRequest();
 		request.setMethod("POST");
 		request.setContentType("application/xml");

@@ -56,8 +56,10 @@ public class ProxyService {
 
 	@Autowired
 	protected CloseableHttpClientFactory closeableHttpClientFactory;
+
 	@Autowired
 	protected WQPDynamicLayerCachingService layerCachingService;
+
 	@Autowired
 	protected ConfigurationService configurationService;
 
@@ -89,7 +91,6 @@ public class ProxyService {
 			WFS_GET_CAPABILITIES_2_0_0_CONTENT = new String(FileCopyUtils.copyToByteArray(new ClassPathResource("schemas/wfs/capabilities/GetCapabilities.2.0.0.xml").getInputStream()));
 		} 
 		catch (IOException e) {
-			
 			LOG.error("Unexpected exception reading file: " + e.getLocalizedMessage());
 		}
 	}
@@ -181,7 +182,6 @@ public class ProxyService {
 	 *
 	 * @param clientRequest
 	 * @param clientResponse
-	 * @param requestParams
 	 * @return
 	 */
 	private boolean proxyRequest(HttpServletRequest clientRequest, HttpServletResponse clientResponse,
@@ -507,6 +507,7 @@ public class ProxyService {
 				break;
 			case WFS:
 				result = "</FeatureTypeList>";
+				break;
 		}
 		return result;
 	}
@@ -524,7 +525,7 @@ public class ProxyService {
 					default:
 						result = WMS_GET_CAPABILITIES_1_1_1_CONTENT;
 				}
-			break;
+				break;
 			case WFS:
 				switch (version) {
 					case "1.0.0":
@@ -533,7 +534,7 @@ public class ProxyService {
 					default:
 						result = WFS_GET_CAPABILITIES_2_0_0_CONTENT;
 				}
-			
+				break;
 		}
 		return result;
 	};	

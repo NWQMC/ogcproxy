@@ -1,7 +1,5 @@
 package gov.usgs.wqp.ogcproxy.controllers;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -50,18 +48,15 @@ public class OGCProxyControllerTest {
 
 	@Mock
 	private RESTService restService;
-
-	private ConfigurationService configurationService;
-	private OGCProxyController mvcService;
 	private long timeInMilli;
 
 	@Before
-	public void setup() {
+	public void setUp() {
 		MockitoAnnotations.initMocks(this);
-		configurationService = new ConfigurationService();
+		ConfigurationService configurationService = new ConfigurationService();
 		Whitebox.setInternalState(configurationService, "readLockTimeout", Long.valueOf("10"));
 		Whitebox.setInternalState(configurationService, "writeLockTimeout", Long.valueOf("10"));
-		mvcService = new OGCProxyController(proxyService, restService, configurationService);
+		OGCProxyController mvcService = new OGCProxyController(proxyService, restService, configurationService);
 		mockMvc = MockMvcBuilders.standaloneSetup(mvcService).build();
 		timeInMilli = new Date().getTime();
 	}
@@ -108,18 +103,6 @@ public class OGCProxyControllerTest {
 		verify(proxyService).performRequest(any(HttpServletRequest.class), any(HttpServletResponse.class), eq(OGCServices.WFS));
 	}
 
-	@Test
-	public void entryTest() throws Exception {
-		MvcResult rtn = mockMvc.perform(get("/"))
-				.andExpect(status().isOk())
-				.andReturn();
-
-		assertEquals("index.jsp", rtn.getModelAndView().getViewName());
-		assertEquals(1, rtn.getModelAndView().getModelMap().size());
-		assertTrue(rtn.getModelAndView().getModelMap().containsKey("version"));
-		//We get this error because the test does not run in a Spring context.
-		assertEquals("v Error Encountered", rtn.getModelAndView().getModelMap().get("version"));
-	}
 
 	@Test
 	public void restCacheStatusTest() throws Exception {
@@ -161,14 +144,13 @@ public class OGCProxyControllerTest {
 	}
 
 	protected Map<String, Object> getOkCacheStatus(Map<String, DynamicLayer> cache) {
-		Map<String, Object> mv = new HashMap<>();//TODO ("wqp_cache_status.jsp");
-		mv.put("site", "WQP Layer Building Service");
+		Map<String, Object> mv = new HashMap<>();
 		mv.put("cache", cache.values());
 		return mv;
 	}
 
 	protected Map<String, Object> getBadCacheStatus() {
-		Map<String, Object> mv = new HashMap<>();//TODO ("invalid_site.jsp");
+		Map<String, Object> mv = new HashMap<>();
 		mv.put("site", "BadSite");
 		return mv;
 	}
