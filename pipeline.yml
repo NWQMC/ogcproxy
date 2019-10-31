@@ -11,3 +11,6 @@ rulePriority: 88
 healthCheck: "/ogcservices/actuator/health"
 contextPath: "/ogcservices/*"
 deployJobName: "ogcproxy-container-deploy"
+# configuration repository paths
+configRepoPath: "wma/docker/wqp/ogcproxy"
+configCredentialsId: "wma-eto-eb-rsa"
