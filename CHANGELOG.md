@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased](https://github.com/NWQMC/ogcproxy/compare/ogcproxy-1.1.0...master)
 ### Changed
--  Use new deployment pipeline library
+-   Use new deployment pipeline library
 
 ## [1.1.0](https://github.com/NWQMC/ogcproxy/compare/ogcproxy-0.9.1...ogcproxy-1.1.0)
 ### Added
