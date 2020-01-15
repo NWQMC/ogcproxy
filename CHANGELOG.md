@@ -3,10 +3,12 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html). (Patch version X.Y.0 is implied if not specified.)
+## [Unreleased](https://github.com/NWQMC/ogcproxy/compare/ogcproxy-1.3.0...master)
 
-## [Unreleased](https://github.com/NWQMC/ogcproxy/compare/ogcproxy-1.1.0...master)
+## [1.3.0](https://github.com/NWQMC/ogcproxy/compare/ogcproxy-1.1.0...ogcproxy-1.3.0)
 ### Changed
 -   Use new deployment pipeline library
+-   Update Dockerfile to use latest openjdk-debian-stretch 11 image rather than a specific tagged version.
 
 ## [1.1.0](https://github.com/NWQMC/ogcproxy/compare/ogcproxy-0.9.1...ogcproxy-1.1.0)
 ### Added
