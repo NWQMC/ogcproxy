@@ -3,14 +3,17 @@ applicationName: "ogcproxy"
 dockerImageName: "ogcproxy"
 containerPort: 8080
 artifactoryPath: "wqp"
-gitlabPath: "wma/docker/wqp/ogcproxy"
 gitRepoUrl: "https://github.com/NWQMC/ogcproxy.git"
 gitRepoCredentialsId: "Jenkins-GitHub-Read-Write-Token"
 memory: 768
-rulePriority: 88
 healthCheck: "/ogcservices/actuator/health"
-contextPath: "/ogcservices/*"
 deployJobName: "ogcproxy-container-deploy"
 # configuration repository paths
 configRepoPath: "wma/docker/wqp/ogcproxy"
 configCredentialsId: "wma-eto-eb-rsa"
+# configure routing
+urlRules:
+  - type: forward
+    conditions:
+      - "/ogcservices/*"
+    priority: 88
