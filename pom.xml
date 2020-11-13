@@ -49,17 +49,22 @@
     </properties>
 
     <repositories>
-        <repository>
+        <!--<repository>
             <id>osgeo</id>
             <name>Open Source Geospatial Foundation Repository</name>
-            <url>https://download.osgeo.org/webdav/geotools/</url>
-        </repository>
+            <url>https://repo.osgeo.org/repository/release/</url>
+        </repository>-->
 
         <repository>
-            <id>opengeo</id>
-            <name>OpenGeo Maven Repository</name>
-            <url>https://repo.boundlessgeo.com/main/</url>
+            <id>osgeo-alt</id>
+            <name>Open Source Geospatial Foundation Repository</name>
+            <url>https://repo.osgeo.org/repository/release/</url>
         </repository>
+        <repository>
+            <id>geotools</id>
+            <url>https://mvnrepository.com/artifact/org.geotools/gt-shapefile?repo=boundless</url>
+        </repository>
+
     </repositories>
 
     <scm>
