@@ -1,0 +1,25 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: weekly
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: org.springframework.boot:spring-boot-starter-parent
+    versions:
+    - 2.4.2
+    - 2.4.3
+  - dependency-name: org.springframework.security.oauth.boot:spring-security-oauth2-autoconfigure
+    versions:
+    - 2.4.1
+    - 2.4.2
+  - dependency-name: org.geotools:gt-epsg-hsql
+    versions:
+    - "24.2"
+  - dependency-name: org.geotools:gt-shapefile
+    versions:
+    - "24.2"
+  - dependency-name: org.locationtech.jts:jts
+    versions:
+    - 1.18.0
